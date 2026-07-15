@@ -169,7 +169,7 @@
     });
 
     // Cap total reduction at 90% so progression pacing and pricing stay meaningful.
-    m.costReduction = Math.max(0.1, m.costReduction);
+    m.costReduction = Math.max(cfg.MAX_COST_REDUCTION_MULT, m.costReduction);
 
     // Global production multiplier applied to CPS
     m.global =

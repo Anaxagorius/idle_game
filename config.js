@@ -54,6 +54,7 @@ Game.config = {
   RESEARCH_RESET_PP_COST: 100,
   RESEARCH_RESET_RP_GAIN: 10,
   CLICK_CPS_FRACTION: 0.05,
+  MAX_COST_REDUCTION_MULT: 0.1,
 };
 
 /* --------------------------------------------------------------------------
