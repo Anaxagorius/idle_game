@@ -545,9 +545,6 @@ textarea#save-string {
 }
 @media (max-width: 960px) { .map-tab-layout { grid-template-columns: 1fr; } }
 
-.map-main-col {}
-.map-side-col {}
-
 .map-full-panel .panel { padding-bottom: 12px; }
 .full-map-container {
   width: 100%;

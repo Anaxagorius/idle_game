@@ -6,13 +6,13 @@
    ========================================================================== */
 
 (function () {
-  const Map = {};
+  var GameMap = {};
 
   /* --------------------------------------------------------------------------
      Building → terrain requirements
      null = no terrain constraint (space-age buildings).
   -------------------------------------------------------------------------- */
-  Map.BUILDING_TERRAIN = {
+  GameMap.BUILDING_TERRAIN = {
     worker:        ['forest', 'farmland', 'urban'],
     farm:          ['farmland'],
     mine:          ['mine'],
@@ -36,7 +36,7 @@
   /* --------------------------------------------------------------------------
      Terrain type display info
   -------------------------------------------------------------------------- */
-  Map.TERRAIN_INFO = {
+  GameMap.TERRAIN_INFO = {
     farmland: { label: 'Farmland', icon: '🌾', markerColor: '#8bc34a', markerBorder: '#558b2f' },
     forest:   { label: 'Forest',   icon: '🌲', markerColor: '#2e7d32', markerBorder: '#1b5e20' },
     mine:     { label: 'Mine',     icon: '⛏',  markerColor: '#795548', markerBorder: '#4e342e' },
@@ -47,7 +47,7 @@
   /* --------------------------------------------------------------------------
      Building pin icons (first letter fallback used in SVG text)
   -------------------------------------------------------------------------- */
-  Map.BUILDING_ICONS = {
+  GameMap.BUILDING_ICONS = {
     worker:        '👷', farm:       '🌾', mine:     '⛏',
     factory:       '🏭', bank:       '🏦', corporation: '🏢',
     laboratory:    '🔬', powerplant: '⚡', refinery: '🛢',
@@ -65,7 +65,7 @@
        description                 — flavour text shown in selector
        resources []                — { type, x, y } zones for building placement
   -------------------------------------------------------------------------- */
-  Map.COUNTIES = [
+  GameMap.COUNTIES = [
 
     /* ===================================================================
        MAINLAND
@@ -335,8 +335,8 @@
   /* --------------------------------------------------------------------------
      Fast lookup by id
   -------------------------------------------------------------------------- */
-  Map.COUNTY_MAP = {};
-  Map.COUNTIES.forEach(function (c) { Map.COUNTY_MAP[c.id] = c; });
+  GameMap.COUNTY_MAP = {};
+  GameMap.COUNTIES.forEach(function (c) { GameMap.COUNTY_MAP[c.id] = c; });
 
-  Game.Map = Map;
+  Game.Map = GameMap;
 })();

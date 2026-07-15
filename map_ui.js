@@ -4,7 +4,7 @@
    ========================================================================== */
 
 (function () {
-  var M = Game.Map;
+  var MapData = Game.Map;
   var MapUI = {};
 
   var SVG_W = 780;
@@ -94,8 +94,8 @@
     }
 
     // Counties
-    for (var ci = 0; ci < M.COUNTIES.length; ci++) {
-      var county = M.COUNTIES[ci];
+    for (var ci = 0; ci < MapData.COUNTIES.length; ci++) {
+      var county = MapData.COUNTIES[ci];
       var isEmpire = county.id === selectedCounty;
 
       var strokeColor = '#fff';
@@ -161,12 +161,12 @@
 
     // Resource zone markers (full map only)
     if (isFull) {
-      for (var ri = 0; ri < M.COUNTIES.length; ri++) {
-        var rc = M.COUNTIES[ri];
+      for (var ri = 0; ri < MapData.COUNTIES.length; ri++) {
+        var rc = MapData.COUNTIES[ri];
         if (!rc.resources) continue;
         for (var zi = 0; zi < rc.resources.length; zi++) {
           var zone = rc.resources[zi];
-          var info = M.TERRAIN_INFO[zone.type];
+          var info = MapData.TERRAIN_INFO[zone.type];
           var zg = svgEl('g', { class: 'resource-zone', 'data-type': zone.type });
           zg.appendChild(svgEl('circle', {
             cx: zone.x, cy: zone.y, r: 7,
@@ -218,7 +218,8 @@
     // Interaction for selector mode
     if (isSelector) {
       var polys = svg.querySelectorAll('.county-poly');
-      polys.forEach(function (poly) {
+      var polysArr = Array.prototype.slice.call(polys);
+      polysArr.forEach(function (poly) {
         poly.style.cursor = 'pointer';
         poly.addEventListener('mouseenter', function () {
           var cid = this.getAttribute('data-county');
@@ -297,7 +298,7 @@
 
   /* ── selector modal helpers ────────────────────────────────────────────── */
   MapUI._showSelectorInfo = function (countyId) {
-    var county = M.COUNTY_MAP[countyId];
+    var county = MapData.COUNTY_MAP[countyId];
     var panel = document.getElementById('county-selector-info');
     if (!county || !panel) return;
 
@@ -306,7 +307,7 @@
     var res = (county.resources || []).map(function (r) {
       if (seen[r.type]) return null;
       seen[r.type] = true;
-      var t = M.TERRAIN_INFO[r.type];
+      var t = MapData.TERRAIN_INFO[r.type];
       return '<span class="terrain-badge terrain-' + r.type + '">' + t.icon + ' ' + t.label + '</span>';
     }).filter(Boolean).join(' ');
 
@@ -325,7 +326,8 @@
     var svg = document.getElementById('selector-map-svg');
     if (!svg) return;
     // Dim all
-    svg.querySelectorAll('.county-poly').forEach(function (p) {
+    var allPolys = Array.prototype.slice.call(svg.querySelectorAll('.county-poly'));
+    allPolys.forEach(function (p) {
       p.setAttribute('opacity', '0.55');
       p.setAttribute('stroke', '#fff');
       p.setAttribute('stroke-width', '1.5');
@@ -360,7 +362,7 @@
   };
 
   MapUI.confirmCountySelection = function (countyId) {
-    var county = M.COUNTY_MAP[countyId];
+    var county = MapData.COUNTY_MAP[countyId];
     if (!county) return;
     if (!Game.state.map) Game.state.map = { selectedCounty: null, pins: [] };
     Game.state.map.selectedCounty = countyId;
@@ -377,10 +379,10 @@
     var s = Game.state;
     if (!s.map || !s.map.selectedCounty) return;
 
-    var terrainTypes = M.BUILDING_TERRAIN[buildingId];
+    var terrainTypes = MapData.BUILDING_TERRAIN[buildingId];
     if (!terrainTypes) return; // space-age building, no terrain needed
 
-    var county = M.COUNTY_MAP[s.map.selectedCounty];
+    var county = MapData.COUNTY_MAP[s.map.selectedCounty];
     if (!county || !county.resources) return;
 
     var suitable = county.resources.filter(function (z) {
@@ -396,13 +398,13 @@
     var zone = suitable[existing % suitable.length];
 
     // Small random jitter so stacked pins are visible
-    var jit = function () { return (Math.random() - 0.5) * 9; };
+    var randomJitter = function () { return (Math.random() - 0.5) * 9; };
 
     s.map.pins.push({
       buildingId: buildingId,
       countyId: s.map.selectedCounty,
-      x: zone.x + jit(),
-      y: zone.y + jit(),
+      x: zone.x + randomJitter(),
+      y: zone.y + randomJitter(),
     });
 
     MapUI.refresh();
@@ -434,7 +436,7 @@
       return;
     }
 
-    var county = M.COUNTY_MAP[s.map.selectedCounty];
+    var county = MapData.COUNTY_MAP[s.map.selectedCounty];
     if (!county) return;
 
     // Count pins per building type
@@ -445,7 +447,7 @@
 
     var buildingLines = Object.keys(counts).map(function (bid) {
       var b = Game.config.buildingMap[bid];
-      var icon = M.BUILDING_ICONS[bid] || '📌';
+      var icon = MapData.BUILDING_ICONS[bid] || '📌';
       return '<div class="empire-building-line">' +
         '<span>' + icon + ' ' + (b ? b.name : bid) + '</span>' +
         '<span class="empire-building-count">×' + counts[bid] + '</span>' +
@@ -486,8 +488,8 @@
     var empireId = s.map ? s.map.selectedCounty : null;
 
     var html = '';
-    for (var i = 0; i < M.COUNTIES.length; i++) {
-      var c = M.COUNTIES[i];
+    for (var i = 0; i < MapData.COUNTIES.length; i++) {
+      var c = MapData.COUNTIES[i];
       var isEmpire = c.id === empireId;
       var statusLabel = isEmpire
         ? '<span class="county-status status-empire">👑 Your Empire</span>'
@@ -505,8 +507,8 @@
   /* Build the terrain legend element. */
   MapUI._buildLegend = function (container) {
     var html = '<div class="map-legend">';
-    Object.keys(M.TERRAIN_INFO).forEach(function (key) {
-      var t = M.TERRAIN_INFO[key];
+    Object.keys(MapData.TERRAIN_INFO).forEach(function (key) {
+      var t = MapData.TERRAIN_INFO[key];
       html +=
         '<span class="legend-item terrain-' + key + '">' +
           '<span class="legend-dot" style="background:' + t.markerColor + ';border-color:' + t.markerBorder + '"></span>' +
