@@ -12,6 +12,10 @@
     const s = Game.state;
     s.coins = 0;
     cfg.buildings.forEach((b) => (s.buildings[b.id] = 0));
+    (cfg.subBuildings || []).forEach((sb) => {
+      s.subBuildings[sb.id] = 0;
+      s.subBuildingUpgrades[sb.id] = 0;
+    });
     s.upgrades = {};
     s.lifetimeCoins = 0;
     s.activeEvents = [];
@@ -98,6 +102,10 @@
     s.prestigePoints = 0;
     s.researchPoints = 0;
     cfg.buildings.forEach((b) => (s.buildings[b.id] = 0));
+    (cfg.subBuildings || []).forEach((sb) => {
+      s.subBuildings[sb.id] = 0;
+      s.subBuildingUpgrades[sb.id] = 0;
+    });
     s.upgrades = {};
     s.research = {};
     s.unlocked = {};

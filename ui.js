@@ -91,6 +91,7 @@
     const list = refs.buildingList;
     list.innerHTML = "";
     UI._buildingRows = {};
+    UI._subRows = {};
     let lastTier = 0;
     cfg.buildings.forEach((b) => {
       if (b.tier !== lastTier) {
@@ -100,12 +101,16 @@
       }
       const row = make("div", "building-row");
       row.innerHTML =
+        '<div class="building-main">' +
         '<div class="building-info">' +
         '<div class="building-name">' + b.name + ' <span class="building-owned" data-owned></span></div>' +
         '<div class="building-role">' + b.role + '</div>' +
+        '<div class="building-suballoc" data-suballoc></div>' +
         '<div class="building-cps" data-cps></div>' +
         "</div>" +
-        '<button class="buy-button" data-buy><span class="buy-label">Buy</span><span class="buy-cost" data-cost></span></button>';
+        '<button class="buy-button" data-buy><span class="buy-label">Buy</span><span class="buy-cost" data-cost></span></button>' +
+        "</div>" +
+        '<div class="subbuilding-list" data-subs></div>';
       const btn = row.querySelector("[data-buy]");
       btn.addEventListener("click", () => {
         const bought = Game.Buildings.buy(b.id);
@@ -113,11 +118,48 @@
           UI.update();
         }
       });
+      const subsWrap = row.querySelector("[data-subs]");
+      const subs = Game.Buildings.subBuildingsForParent(b.id);
+      if (!subs.length) {
+        subsWrap.remove();
+      } else {
+        UI._subRows[b.id] = {};
+        subs.forEach((sb) => {
+          const subCard = make("div", "subbuilding-card");
+          subCard.innerHTML =
+            '<div class="subbuilding-top">' +
+            '<div><div class="subbuilding-name">' + sb.name + ' <span class="subbuilding-owned" data-sub-owned></span></div>' +
+            '<div class="subbuilding-desc">' + sb.desc + "</div></div>" +
+            '<div class="subbuilding-level" data-sub-level></div>' +
+            "</div>" +
+            '<div class="subbuilding-actions">' +
+            '<button class="sub-btn" data-sub-buy><span>Allocate</span><span class="sub-btn-cost" data-sub-buy-cost></span></button>' +
+            '<button class="sub-btn secondary" data-sub-upgrade><span>Improve</span><span class="sub-btn-cost" data-sub-up-cost></span></button>' +
+            "</div>";
+          subCard.querySelector("[data-sub-buy]").addEventListener("click", () => {
+            if (Game.Buildings.buySubBuilding(sb.id, 1)) UI.update();
+          });
+          subCard.querySelector("[data-sub-upgrade]").addEventListener("click", () => {
+            if (Game.Buildings.upgradeSubBuilding(sb.id)) UI.update();
+          });
+          subsWrap.appendChild(subCard);
+          UI._subRows[b.id][sb.id] = {
+            card: subCard,
+            owned: subCard.querySelector("[data-sub-owned]"),
+            level: subCard.querySelector("[data-sub-level]"),
+            buyBtn: subCard.querySelector("[data-sub-buy]"),
+            buyCost: subCard.querySelector("[data-sub-buy-cost]"),
+            upBtn: subCard.querySelector("[data-sub-upgrade]"),
+            upCost: subCard.querySelector("[data-sub-up-cost]"),
+          };
+        });
+      }
       list.appendChild(row);
       UI._buildingRows[b.id] = {
         row,
         owned: row.querySelector("[data-owned]"),
         cps: row.querySelector("[data-cps]"),
+        suballoc: row.querySelector("[data-suballoc]"),
         cost: row.querySelector("[data-cost]"),
         btn,
       };
@@ -139,6 +181,35 @@
       const affordable = s.coins >= cost;
       r.btn.classList.toggle("disabled", !affordable);
       r.btn.disabled = false; // allow click to buy-max fallback
+
+       const subs = Game.Buildings.subBuildingsForParent(b.id);
+       if (subs.length && r.suballoc) {
+         const allocated = Game.Buildings.allocatedParentUnits(b.id);
+         r.suballoc.textContent = "Sub-buildings: " + allocated + " / " + owned + " allocated";
+       } else if (r.suballoc) {
+         r.suballoc.textContent = "";
+       }
+
+      const subRows = (UI._subRows && UI._subRows[b.id]) || null;
+      if (subRows) {
+        subs.forEach((sb) => {
+          const sr = subRows[sb.id];
+          if (!sr) return;
+          const subOwned = s.subBuildings[sb.id] || 0;
+          const level = Game.Buildings.subUpgradeLevel(sb.id);
+          const canAllocate = Game.Buildings.canBuySubBuilding(sb.id, 1);
+          const canUpgrade = Game.Buildings.canUpgradeSubBuilding(sb.id);
+          const upCost = Game.Buildings.subUpgradeCost(sb.id);
+          sr.owned.textContent = "x" + subOwned;
+          sr.level.textContent = "Lv " + level + " / " + (cfg.SUB_BUILDING_MAX_UPGRADES || 2);
+          sr.buyCost.textContent = cfg.SUB_BUILDING_PARENT_COST + " " + cfg.buildingMap[b.id].name;
+          sr.upCost.textContent = upCost === Infinity ? "Maxed" : fmt(upCost) + " coins";
+          sr.buyBtn.classList.toggle("disabled", !canAllocate);
+          sr.upBtn.classList.toggle("disabled", !canUpgrade);
+          sr.buyBtn.disabled = false;
+          sr.upBtn.disabled = false;
+        });
+      }
     });
     UI.updateUpgrades();
   };
@@ -485,6 +556,7 @@
       ["Click Value", fmt(s._clickValue)],
       ["Total Clicks", fmt(stats.totalClicks)],
       ["Total Buildings Owned", fmt(Game.Buildings.totalOwned())],
+      ["Total Sub-buildings", fmt(cfg.subBuildings.reduce((sum, sb) => sum + (s.subBuildings[sb.id] || 0), 0))],
       ["Upgrades Purchased", fmt(Object.keys(s.upgrades).filter((k) => s.upgrades[k]).length) + " / 108"],
       ["Research Completed", fmt(stats.researchCompleted) + " / 80"],
       ["Talents Purchased", fmt(stats.talentsPurchased || 0) + " / " + cfg.talents.length],
