@@ -78,6 +78,7 @@
     }
 
     s.buildings[buildingId] = (s.buildings[buildingId] || 0) + amount;
+    if (Game.MapUI) Game.MapUI.placeBuildingPin(buildingId);
     Game.recalculate();
     return amount;
   };

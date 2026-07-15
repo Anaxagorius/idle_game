@@ -50,6 +50,10 @@
       settings: {
         notifications: true,
       },
+      map: {
+        selectedCounty: null,
+        pins: [],
+      },
       lastSave: Date.now(),
       lastTick: Date.now(),
       startTime: Date.now(),

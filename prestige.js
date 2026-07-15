@@ -15,6 +15,10 @@
     s.upgrades = {};
     s.lifetimeCoins = 0;
     s.activeEvents = [];
+    // Clear building pins (buildings are gone), but keep the selected county
+    if (s.map) s.map.pins = [];
+    if (Game.MapUI) Game.MapUI.refresh();
+    if (Game.MapUI) Game.MapUI._updateEmpirePanel();
   }
 
   /* ---------------------------------------------------------------------

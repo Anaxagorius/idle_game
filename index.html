@@ -38,6 +38,7 @@
   <!-- ================= Tabs ================= -->
   <nav class="tabs">
     <button class="tab-button active" data-tab="economy">Economy</button>
+    <button class="tab-button" data-tab="map">🗺️ Map</button>
     <button class="tab-button" data-tab="research">Research</button>
     <button class="tab-button" data-tab="automation">Automation</button>
     <button class="tab-button" data-tab="achievements">Achievements</button>
@@ -60,6 +61,14 @@
             <div class="click-value" id="click-value">+1 / click</div>
             <p class="muted">Each click earns coins scaled by your production and bonuses.</p>
           </div>
+          <!-- Mini-map quick-view -->
+          <div class="panel mini-map-panel">
+            <h2>🗺️ Empire Overview
+              <button class="tab-button-link" onclick="Game.UI.showTab('map')">View Full Map →</button>
+            </h2>
+            <div id="mini-map-container" class="mini-map-container"></div>
+            <div id="empire-info-panel-mini" class="empire-info-mini"></div>
+          </div>
           <div class="panel">
             <h2>Building Upgrades</h2>
             <div id="upgrade-list" class="upgrade-grid"></div>
@@ -68,6 +77,32 @@
         <div class="panel">
           <h2>Buildings</h2>
           <div id="building-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= Map ================= -->
+    <section id="tab-map" class="tab-content">
+      <div class="map-tab-layout">
+        <!-- Left: full map -->
+        <div class="map-main-col">
+          <div class="panel map-full-panel">
+            <h2>🗺️ Nova Scotia — Empire Map</h2>
+            <div id="full-map-container" class="full-map-container"></div>
+            <div id="map-legend-container"></div>
+          </div>
+        </div>
+        <!-- Right: empire info + county list -->
+        <div class="map-side-col">
+          <div class="panel">
+            <h2>Your Empire</h2>
+            <div id="empire-info-panel"></div>
+          </div>
+          <div class="panel">
+            <h2>Counties</h2>
+            <p class="muted" style="font-size:12px;margin-bottom:10px">The remaining counties will become rivals. Expand your empire to dominate Nova Scotia.</p>
+            <div id="county-roster"></div>
+          </div>
         </div>
       </div>
     </section>
@@ -176,6 +211,22 @@
     </section>
   </main>
 
+  <!-- ================= County Selector Overlay ================= -->
+  <div class="overlay" id="county-selector-overlay" style="display:none">
+    <div class="county-selector-modal">
+      <div class="selector-header">
+        <h2>🗺️ Choose Your Empire</h2>
+        <p class="muted">Nova Scotia has 18 counties. Claim one as your home territory — its resources will shape what you can build. The others will become rivals.</p>
+      </div>
+      <div class="selector-body">
+        <div id="county-selector-map" class="county-selector-map"></div>
+        <div id="county-selector-info" class="county-selector-info">
+          <p class="muted" style="font-size:13px">Hover or click a county to see its resources, then claim it as your Empire.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= Overlays ================= -->
   <div class="toast-container" id="toast-container"></div>
   <div class="event-banner" id="event-banner"></div>
@@ -192,6 +243,7 @@
 
   <!-- ================= Scripts (load order matters) ================= -->
   <script src="config.js"></script>
+  <script src="map.js"></script>
   <script src="game.js"></script>
   <script src="buildings.js"></script>
   <script src="research.js"></script>
@@ -201,6 +253,7 @@
   <script src="automation.js"></script>
   <script src="events.js"></script>
   <script src="save.js"></script>
+  <script src="map_ui.js"></script>
   <script src="ui.js"></script>
   <script>
     // ================= Boot =================

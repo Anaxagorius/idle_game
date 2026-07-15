@@ -67,6 +67,7 @@
 
     UI.showTab("economy");
     UI.update();
+    if (Game.MapUI) Game.MapUI.init();
   };
 
   /* ---------------------------------------------------------------------
