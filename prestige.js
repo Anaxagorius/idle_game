@@ -15,12 +15,16 @@
     s.upgrades = {};
     s.lifetimeCoins = 0;
     s.activeEvents = [];
+<<<<<<< HEAD
     // Clear building pins (buildings are gone), but keep the selected county
     if (s.map) s.map.pins = [];
     if (Game.MapUI) {
       Game.MapUI.refresh();
       Game.MapUI._updateEmpirePanel();
     }
+=======
+    s.activeTalentPowers = [];
+>>>>>>> origin/main
   }
 
   /* ---------------------------------------------------------------------
@@ -101,6 +105,7 @@
     s.research = {};
     s.unlocked = {};
     s.activeEvents = [];
+    s.activeTalentPowers = [];
     // Automation toggles reset (features must be re-unlocked via research)
     s.automation.autoClick = false;
     s.automation.autoBuy = false;

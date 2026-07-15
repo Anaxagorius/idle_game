@@ -179,6 +179,18 @@
           <p class="muted">Resets everything except Ascension Shards. Each shard grants +2% permanent global production.</p>
           <button class="big-btn btn-ascend disabled" id="btn-ascend">Ascend</button>
         </div>
+
+        <div class="panel prestige-panel prestige-panel-wide">
+          <h2>Layer 1 Talents — Prestige Abilities</h2>
+          <div class="info-line"><b id="talent-count">0 / 30 purchased</b></div>
+          <p class="muted">
+            Spend Prestige Points on permanent talents and activatable powers. Power talents have cooldowns and
+            temporary tradeoffs (for example: Heavy Rain boosts farming but lowers mining/factory output).
+          </p>
+          <div class="talent-grid" id="talent-list"></div>
+          <h3>Active Powers</h3>
+          <div class="talent-power-list" id="talent-power-list"></div>
+        </div>
       </div>
     </section>
 
@@ -250,6 +262,7 @@
   <script src="achievements.js"></script>
   <script src="milestones.js"></script>
   <script src="prestige.js"></script>
+  <script src="talents.js"></script>
   <script src="automation.js"></script>
   <script src="events.js"></script>
   <script src="save.js"></script>
