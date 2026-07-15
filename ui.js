@@ -396,7 +396,7 @@
     if (!list || !powerList || !count || !Game.Talents) return;
 
     const purchased = Game.Talents.totalPurchased();
-    count.textContent = purchased + " / " + cfg.talents.length + " talents";
+    count.textContent = purchased + " / " + cfg.talents.length + " Talents";
 
     list.innerHTML = "";
     cfg.talents.forEach((t) => {
@@ -433,7 +433,7 @@
     powerList.innerHTML = "";
     const powers = cfg.talents.filter((t) => t.type === "power" && Game.Talents.purchased(t.id));
     if (!powers.length) {
-      powerList.appendChild(make("div", "empty-note", "Purchase power talents to unlock activatable abilities."));
+      powerList.appendChild(make("div", "empty-note", "Purchase power talents to unlock abilities."));
       return;
     }
 

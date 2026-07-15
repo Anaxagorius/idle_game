@@ -93,6 +93,7 @@
     function applyEffect(effect) {
       if (!effect || !effect.type) return;
       const type = effect.type;
+      // value -> additive bonus (1 + value), mult -> direct multiplier.
       if (type === "globalMult") {
         m.talentGlobal *= effect.mult !== undefined ? effect.mult : 1 + (effect.value || 0);
       } else if (type === "clickMult") {
@@ -167,7 +168,7 @@
       def.effects.forEach((effect) => applyEffect(effect));
     });
 
-    // Prevent costs from dropping to 0 or negative with stacked reductions.
+    // Cap total reduction at 90% so progression pacing and pricing stay meaningful.
     m.costReduction = Math.max(0.1, m.costReduction);
 
     // Global production multiplier applied to CPS
@@ -189,7 +190,8 @@
   /* Base CPS per building (with its upgrades), before global multipliers */
   /* Base CPS per building (with its upgrades), before global multipliers.
      multOverride is used by Game.recalculate() so all buildings use the
-     same multiplier snapshot within the same frame. */
+     same multiplier snapshot within the same frame; s._mult is refreshed
+     each recalculate and is used as the normal cached fallback. */
   Game.buildingCps = function (buildingId, multOverride) {
     const s = Game.state;
     const b = cfg.buildingMap[buildingId];
