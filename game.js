@@ -35,6 +35,9 @@
       },
       unlocked: {}, // automation features unlocked via research
       activeEvents: [],
+      talents: {},
+      talentCooldowns: {},
+      activeTalentPowers: [],
       nextEventTime: 0,
       stats: {
         totalClicks: 0,
@@ -42,6 +45,8 @@
         prestigeCount: 0,
         ascensionCount: 0,
         researchCompleted: 0,
+        talentsPurchased: 0,
+        powersActivated: 0,
         eventsTriggered: 0,
         playTime: 0,
         offlineEarnings: 0,
@@ -77,9 +82,36 @@
       achievement: 1,
       milestone: 1,
       event: 1,
+      talentGlobal: 1,
+      clickMult: 1,
+      rpGain: 1,
+      buildingMult: {},
       prestigeGain: 1,
       costReduction: 1,
     };
+
+    function applyEffect(effect) {
+      if (!effect || !effect.type) return;
+      const type = effect.type;
+      if (type === "globalMult") {
+        m.talentGlobal *= effect.mult !== undefined ? effect.mult : 1 + (effect.value || 0);
+      } else if (type === "clickMult") {
+        m.clickMult *= effect.mult !== undefined ? effect.mult : 1 + (effect.value || 0);
+      } else if (type === "rpMult") {
+        m.rpGain *= effect.mult !== undefined ? effect.mult : 1 + (effect.value || 0);
+      } else if (type === "prestigeGain") {
+        m.prestigeGain *= effect.mult !== undefined ? effect.mult : 1 + (effect.value || 0);
+      } else if (type === "costReduction") {
+        const reduction = effect.mult !== undefined ? effect.mult : 1 - Math.max(0, effect.value || 0);
+        m.costReduction *= reduction;
+      } else if (type === "buildingMult") {
+        const buildingId = effect.building || effect.target;
+        if (!buildingId) return;
+        const current = m.buildingMult[buildingId] || 1;
+        const mult = effect.mult !== undefined ? effect.mult : 1 + (effect.value || 0);
+        m.buildingMult[buildingId] = current * mult;
+      }
+    }
 
     // Research effects
     cfg.research.forEach((r) => {
@@ -98,6 +130,12 @@
         m.researchPrestige *= 1 + v;
         m.prestigeGain *= 1 + v;
       }
+    });
+
+    // Prestige talents (passive)
+    cfg.talents.forEach((t) => {
+      if (!s.talents[t.id] || t.type === "power") return;
+      applyEffect(t);
     });
 
     // Achievement bonuses (additive)
@@ -122,6 +160,15 @@
       else if (def.kind === "prestigeMult") m.prestigeGain *= def.value;
     });
 
+    // Active talent powers
+    s.activeTalentPowers.forEach((p) => {
+      const def = cfg.talentPowerMap[p.id];
+      if (!def || !def.effects) return;
+      def.effects.forEach((effect) => applyEffect(effect));
+    });
+
+    m.costReduction = Math.max(0.1, m.costReduction);
+
     // Global production multiplier applied to CPS
     m.global =
       m.prestige *
@@ -132,13 +179,14 @@
       m.researchAutomation *
       m.achievement *
       m.milestone *
-      m.event;
+      m.event *
+      m.talentGlobal;
 
     return m;
   };
 
   /* Base CPS per building (with its upgrades), before global multipliers */
-  Game.buildingCps = function (buildingId) {
+  Game.buildingCps = function (buildingId, multOverride) {
     const s = Game.state;
     const b = cfg.buildingMap[buildingId];
     const owned = s.buildings[buildingId] || 0;
@@ -147,7 +195,9 @@
     for (let i = 0; i < 6; i++) {
       if (s.upgrades[buildingId + "_up" + i]) upgradeLevels++;
     }
-    return owned * b.baseCps * Math.pow(2, upgradeLevels);
+    const mults = multOverride || s._mult || Game.computeMultipliers();
+    const buildingMult = (mults.buildingMult && mults.buildingMult[buildingId]) || 1;
+    return owned * b.baseCps * Math.pow(2, upgradeLevels) * buildingMult;
   };
 
   /* ---------------------------------------------------------------------
@@ -159,7 +209,7 @@
 
     let baseCps = 0;
     cfg.buildings.forEach((b) => {
-      baseCps += Game.buildingCps(b.id);
+      baseCps += Game.buildingCps(b.id, m);
     });
 
     const cps = baseCps * m.global;
@@ -172,10 +222,10 @@
       (s.buildings.laboratory || 0) * 0.2 +
       (s.buildings.university || 0) * 2 +
       (s.buildings.datacenter || 0) * 5;
-    s._rps = rpBase * m.researchGlobal * m.prestige * (1 + s.ascensionShards * cfg.ASCENSION_PER_SHARD_MULT);
+    s._rps = rpBase * m.researchGlobal * m.prestige * (1 + s.ascensionShards * cfg.ASCENSION_PER_SHARD_MULT) * m.rpGain;
 
     // Click value: flat scaled by global mult + fraction of CPS
-    s._clickValue = 1 * m.global + cps * cfg.CLICK_CPS_FRACTION;
+    s._clickValue = (1 * m.global + cps * cfg.CLICK_CPS_FRACTION) * m.clickMult;
 
     return { cps, rps: s._rps, clickValue: s._clickValue, m };
   };
@@ -225,6 +275,7 @@
 
     // Events, automation, achievements, milestones
     Game.Events.update(dtSeconds);
+    if (Game.Talents && Game.Talents.update) Game.Talents.update(dtSeconds);
     Game.Automation.update(dtSeconds);
     Game.Achievements.check();
     Game.Milestones.check();

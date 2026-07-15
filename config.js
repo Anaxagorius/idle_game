@@ -389,3 +389,150 @@ const EVENTS = [
 Game.config.events = EVENTS;
 Game.config.eventMinDelay = 120; // seconds
 Game.config.eventMaxDelay = 300;
+
+/* --------------------------------------------------------------------------
+   Prestige Talents (30)
+   -------------------------------------------------------------------------- */
+const TALENTS = [
+  // Economics branch (10)
+  { id: "talent_econ_0", branch: "economics", name: "Legacy Ledger", cost: 10, type: "globalMult", value: 0.05, desc: "+5% global production.", requires: null },
+  { id: "talent_econ_1", branch: "economics", name: "Efficient Tribute", cost: 20, type: "prestigeGain", value: 0.1, desc: "+10% prestige points earned.", requires: "talent_econ_0" },
+  { id: "talent_econ_2", branch: "economics", name: "Investment Guild", cost: 35, type: "costReduction", value: 0.05, desc: "-5% building and upgrade costs.", requires: "talent_econ_1" },
+  { id: "talent_econ_3", branch: "economics", name: "Golden Touch", cost: 50, type: "clickMult", value: 0.2, desc: "+20% click value.", requires: "talent_econ_2" },
+  { id: "talent_econ_4", branch: "economics", name: "Compound Legacy", cost: 80, type: "globalMult", value: 0.08, desc: "+8% global production.", requires: "talent_econ_3" },
+  { id: "talent_econ_5", branch: "economics", name: "Prosperity Engines", cost: 120, type: "rpMult", value: 0.15, desc: "+15% research point gain.", requires: "talent_econ_4" },
+  { id: "talent_econ_6", branch: "economics", name: "Prestige Arbitrage", cost: 180, type: "prestigeGain", value: 0.15, desc: "+15% prestige points earned.", requires: "talent_econ_5" },
+  { id: "talent_econ_7", branch: "economics", name: "Lean Procurement", cost: 260, type: "costReduction", value: 0.06, desc: "-6% building and upgrade costs.", requires: "talent_econ_6" },
+  { id: "talent_econ_8", branch: "economics", name: "Hypercapitalism", cost: 380, type: "globalMult", value: 0.12, desc: "+12% global production.", requires: "talent_econ_7" },
+  { id: "talent_econ_9", branch: "economics", name: "Eternal Treasury", cost: 550, type: "clickMult", value: 0.35, desc: "+35% click value.", requires: "talent_econ_8" },
+
+  // Industry branch (10)
+  { id: "talent_ind_0", branch: "industry", name: "Fertile Soil", cost: 15, type: "buildingMult", target: "farm", value: 0.25, desc: "+25% Farm output.", requires: null },
+  { id: "talent_ind_1", branch: "industry", name: "Deep Shafts", cost: 25, type: "buildingMult", target: "mine", value: 0.25, desc: "+25% Mine output.", requires: "talent_ind_0" },
+  { id: "talent_ind_2", branch: "industry", name: "Efficient Assembly", cost: 40, type: "buildingMult", target: "factory", value: 0.2, desc: "+20% Factory output.", requires: "talent_ind_1" },
+  { id: "talent_ind_3", branch: "industry", name: "Smart Grid", cost: 65, type: "buildingMult", target: "powerplant", value: 0.2, desc: "+20% Power Plant output.", requires: "talent_ind_2" },
+  { id: "talent_ind_4", branch: "industry", name: "Academic Grants", cost: 90, type: "buildingMult", target: "university", value: 0.25, desc: "+25% University output.", requires: "talent_ind_3" },
+  { id: "talent_ind_5", branch: "industry", name: "Quantum Servers", cost: 140, type: "buildingMult", target: "datacenter", value: 0.3, desc: "+30% Data Center output.", requires: "talent_ind_4" },
+  { id: "talent_ind_6", branch: "industry", name: "Orbital Logistics", cost: 220, type: "buildingMult", target: "spaceport", value: 0.3, desc: "+30% Space Port output.", requires: "talent_ind_5" },
+  { id: "talent_ind_7", branch: "industry", name: "Stellar Refinement", cost: 320, type: "buildingMult", target: "refinery", value: 0.35, desc: "+35% Refinery output.", requires: "talent_ind_6" },
+  { id: "talent_ind_8", branch: "industry", name: "Nexus Optimization", cost: 480, type: "buildingMult", target: "galacticnexus", value: 0.4, desc: "+40% Galactic Nexus output.", requires: "talent_ind_7" },
+  { id: "talent_ind_9", branch: "industry", name: "Interstellar Supply Chain", cost: 700, type: "globalMult", value: 0.15, desc: "+15% global production.", requires: "talent_ind_8" },
+
+  // Climate branch (4 passive + 6 active powers)
+  { id: "talent_climate_0", branch: "climate", name: "Weather Bureau", cost: 20, type: "rpMult", value: 0.1, desc: "+10% research point gain.", requires: null },
+  { id: "talent_climate_1", branch: "climate", name: "Forecasting Models", cost: 35, type: "globalMult", value: 0.06, desc: "+6% global production.", requires: "talent_climate_0" },
+  { id: "talent_climate_2", branch: "climate", name: "Seasonal Harvest", cost: 55, type: "buildingMult", target: "farm", value: 0.3, desc: "+30% Farm output.", requires: "talent_climate_1" },
+  { id: "talent_climate_3", branch: "climate", name: "Geological Survey", cost: 80, type: "buildingMult", target: "mine", value: 0.3, desc: "+30% Mine output.", requires: "talent_climate_2" },
+
+  {
+    id: "talent_climate_4",
+    branch: "climate",
+    name: "Heavy Rain",
+    cost: 120,
+    type: "power",
+    powerId: "heavy_rain",
+    duration: 45,
+    cooldown: 180,
+    desc: "Call heavy rain: boosts Farms, hurts Mines and Factories.",
+    requires: "talent_climate_3",
+    effects: [
+      { type: "buildingMult", building: "farm", mult: 2.5 },
+      { type: "buildingMult", building: "mine", mult: 0.6 },
+      { type: "buildingMult", building: "factory", mult: 0.75 },
+    ],
+  },
+  {
+    id: "talent_climate_5",
+    branch: "climate",
+    name: "Solar Flare",
+    cost: 180,
+    type: "power",
+    powerId: "solar_flare",
+    duration: 35,
+    cooldown: 200,
+    desc: "Call a solar flare: boosts energy/computing, hurts labs.",
+    requires: "talent_climate_4",
+    effects: [
+      { type: "buildingMult", building: "powerplant", mult: 2.2 },
+      { type: "buildingMult", building: "datacenter", mult: 1.8 },
+      { type: "buildingMult", building: "laboratory", mult: 0.7 },
+    ],
+  },
+  {
+    id: "talent_climate_6",
+    branch: "climate",
+    name: "Mineral Rush",
+    cost: 260,
+    type: "power",
+    powerId: "mineral_rush",
+    duration: 40,
+    cooldown: 220,
+    desc: "Force a mineral rush: boosts Mines and Refineries, hurts Farms.",
+    requires: "talent_climate_5",
+    effects: [
+      { type: "buildingMult", building: "mine", mult: 2.0 },
+      { type: "buildingMult", building: "refinery", mult: 1.8 },
+      { type: "buildingMult", building: "farm", mult: 0.6 },
+    ],
+  },
+  {
+    id: "talent_climate_7",
+    branch: "climate",
+    name: "Market Festival",
+    cost: 360,
+    type: "power",
+    powerId: "market_festival",
+    duration: 35,
+    cooldown: 240,
+    desc: "Host a festival: boosts Banks/Corporations and clicks, hurts Factories.",
+    requires: "talent_climate_6",
+    effects: [
+      { type: "buildingMult", building: "bank", mult: 2.0 },
+      { type: "buildingMult", building: "corporation", mult: 1.9 },
+      { type: "buildingMult", building: "factory", mult: 0.7 },
+      { type: "clickMult", mult: 1.6 },
+    ],
+  },
+  {
+    id: "talent_climate_8",
+    branch: "climate",
+    name: "Arcology Monsoon",
+    cost: 500,
+    type: "power",
+    powerId: "arcology_monsoon",
+    duration: 50,
+    cooldown: 300,
+    desc: "Call an arcology monsoon: huge Farms, better Universities, weaker Data Centers.",
+    requires: "talent_climate_7",
+    effects: [
+      { type: "buildingMult", building: "farm", mult: 3.0 },
+      { type: "buildingMult", building: "university", mult: 1.6 },
+      { type: "buildingMult", building: "datacenter", mult: 0.65 },
+    ],
+  },
+  {
+    id: "talent_climate_9",
+    branch: "climate",
+    name: "Quantum Storm",
+    cost: 700,
+    type: "power",
+    powerId: "quantum_storm",
+    duration: 25,
+    cooldown: 320,
+    desc: "Trigger a quantum storm: doubles global output and prestige gain, but weakens clicks.",
+    requires: "talent_climate_8",
+    effects: [
+      { type: "globalMult", mult: 2.0 },
+      { type: "prestigeGain", mult: 1.8 },
+      { type: "clickMult", mult: 0.5 },
+    ],
+  },
+];
+
+Game.config.talents = TALENTS;
+Game.config.talentMap = {};
+Game.config.talentPowerMap = {};
+TALENTS.forEach((t) => {
+  Game.config.talentMap[t.id] = t;
+  if (t.type === "power" && t.powerId) Game.config.talentPowerMap[t.powerId] = t;
+});
