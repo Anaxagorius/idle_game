@@ -395,7 +395,7 @@ Game.config.eventMaxDelay = 300;
    Prestige Talents (30)
    -------------------------------------------------------------------------- */
 /* Passive talents use `value` (added as 1 + value multiplier).
-   Power effects use explicit `mult` values (direct multipliers, including debuffs < 1). */
+   Power effects use explicit `mult` values (direct multipliers, including penalties when mult < 1). */
 const TALENTS = [
   // Economics branch (10)
   { id: "talent_econ_0", branch: "economics", name: "Legacy Ledger", cost: 10, type: "globalMult", value: 0.05, desc: "+5% global production.", requires: null },

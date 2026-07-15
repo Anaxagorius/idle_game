@@ -104,7 +104,7 @@
       } else if (type === "prestigeGain") {
         m.prestigeGain *= effectMultiplier;
       } else if (type === "costReduction") {
-        // costReduction uses subtraction (1 - value) so positive values reduce costs.
+        // costReduction uses subtraction (1 - value); negative values are ignored.
         const reduction = effect.mult !== undefined ? effect.mult : 1 - Math.max(0, effect.value || 0);
         m.costReduction *= reduction;
       } else if (type === "buildingMult") {
@@ -169,7 +169,7 @@
       def.effects.forEach((effect) => applyEffect(effect));
     });
 
-    // Cap total reduction at 90% so progression pacing and pricing stay meaningful.
+    // 0.1 multiplier = maximum 90% total cost reduction.
     m.costReduction = Math.max(cfg.MAX_COST_REDUCTION_MULT, m.costReduction);
 
     // Global production multiplier applied to CPS
@@ -284,7 +284,7 @@
 
     // Events, automation, achievements, milestones
     Game.Events.update(dtSeconds);
-    if (Game.Talents && Game.Talents.update) Game.Talents.update(dtSeconds);
+    if (Game.Talents && Game.Talents.update) Game.Talents.update();
     Game.Automation.update(dtSeconds);
     Game.Achievements.check();
     Game.Milestones.check();
