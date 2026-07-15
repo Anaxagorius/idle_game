@@ -384,6 +384,83 @@
     setBtn(el("btn-prestige"), Game.Prestige.canPrestige());
     setBtn(el("btn-research-reset"), Game.Prestige.canResearchReset());
     setBtn(el("btn-ascend"), Game.Prestige.canAscend());
+
+    UI.updateTalents();
+  };
+
+  UI.updateTalents = function () {
+    const s = Game.state;
+    const list = el("talent-list");
+    const powerList = el("talent-power-list");
+    const count = el("talent-count");
+    if (!list || !powerList || !count || !Game.Talents) return;
+
+    const purchased = Game.Talents.totalPurchased();
+    count.textContent = purchased + " / " + cfg.talents.length + " Talents";
+
+    list.innerHTML = "";
+    cfg.talents.forEach((t) => {
+      const owned = Game.Talents.purchased(t.id);
+      const available = Game.Talents.available(t.id);
+      const canAfford = Game.Talents.canAfford(t.id);
+      const card = make("div", "talent-card" + (owned ? " purchased" : available ? "" : " locked"));
+
+      let actionText = "";
+      if (owned) actionText = "Purchased";
+      else if (!available) actionText = "Requires previous talent";
+      else if (canAfford) actionText = "Buy for " + fmt(t.cost) + " PP";
+      else actionText = "Need " + fmt(t.cost) + " PP";
+
+      card.innerHTML =
+        '<div class="talent-header"><span class="talent-name">' + t.name + "</span>" +
+        '<span class="talent-branch">' + t.branch + "</span></div>" +
+        '<div class="talent-desc">' + t.desc + "</div>" +
+        '<button class="talent-buy-btn ' + (owned || !canAfford ? "disabled" : "") + '">' + actionText + "</button>";
+
+      const btn = card.querySelector("button");
+      btn.disabled = owned || !canAfford;
+      btn.addEventListener("click", () => {
+        if (Game.Talents.buy(t.id)) UI.update();
+      });
+      list.appendChild(card);
+    });
+
+    const activeMap = {};
+    Game.Talents.activePowers().forEach((p) => {
+      activeMap[p.id] = p.remaining;
+    });
+
+    powerList.innerHTML = "";
+    const powers = cfg.talents.filter((t) => t.type === "power" && Game.Talents.purchased(t.id));
+    if (!powers.length) {
+      powerList.appendChild(make("div", "empty-note", "Purchase power talents to unlock abilities."));
+      return;
+    }
+
+    powers.forEach((p) => {
+      const activeRemaining = activeMap[p.powerId] || 0;
+      const cooldown = Game.Talents.cooldownRemaining(p.powerId);
+      const ready = Game.Talents.canActivate(p.powerId);
+      const row = make("div", "talent-power-row");
+
+      let status = "Ready";
+      if (activeRemaining > 0) status = "Active " + Math.ceil(activeRemaining) + "s";
+      else if (cooldown > 0) status = "Cooldown " + Math.ceil(cooldown) + "s";
+
+      row.innerHTML =
+        '<div class="talent-power-info">' +
+        '<div class="talent-power-name">' + p.name + "</div>" +
+        '<div class="talent-power-meta">' + Math.ceil(p.duration) + "s duration • " + Math.ceil(p.cooldown) + "s cooldown • " + status + "</div>" +
+        '<div class="talent-power-desc">' + p.desc + "</div>" +
+        "</div>" +
+        '<button class="talent-power-btn ' + (ready ? "" : "disabled") + '">Activate</button>';
+      const btn = row.querySelector("button");
+      btn.disabled = !ready;
+      btn.addEventListener("click", () => {
+        if (Game.Talents.activate(p.powerId)) UI.update();
+      });
+      powerList.appendChild(row);
+    });
   };
 
   function setBtn(btn, enabled) {
@@ -409,6 +486,8 @@
       ["Total Buildings Owned", fmt(Game.Buildings.totalOwned())],
       ["Upgrades Purchased", fmt(Object.keys(s.upgrades).filter((k) => s.upgrades[k]).length) + " / 108"],
       ["Research Completed", fmt(stats.researchCompleted) + " / 80"],
+      ["Talents Purchased", fmt(stats.talentsPurchased || 0) + " / " + cfg.talents.length],
+      ["Talent Powers Used", fmt(stats.powersActivated || 0)],
       ["Prestige Points", fmt(s.prestigePoints)],
       ["Lifetime Prestige Points", fmt(s.lifetimePrestigePoints)],
       ["Prestige Count", fmt(stats.prestigeCount)],

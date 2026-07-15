@@ -339,6 +339,7 @@ header {
 /* ---------- Prestige ---------- */
 .prestige-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
 .prestige-panel h2 { color: var(--purple); }
+.prestige-panel-wide { grid-column: 1 / -1; }
 .big-btn {
   width: 100%;
   padding: 14px;
@@ -359,6 +360,85 @@ header {
 .info-line b { color: var(--text); }
 .highlight-purple { color: var(--purple); font-weight: 700; }
 .highlight-cyan { color: var(--cyan); font-weight: 700; }
+
+.talent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+.talent-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-2);
+  padding: 10px;
+}
+.talent-card.purchased {
+  border-color: var(--green);
+  background: rgba(67, 170, 139, 0.14);
+}
+.talent-card.locked {
+  opacity: 0.75;
+}
+.talent-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+.talent-name { font-weight: 700; color: var(--text); }
+.talent-branch {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.talent-desc {
+  margin: 6px 0 10px;
+  font-size: 12px;
+  color: var(--muted);
+  min-height: 32px;
+}
+.talent-buy-btn,
+.talent-power-btn {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: linear-gradient(90deg, #6941c6, #9e77ed);
+  color: #fff;
+  font-weight: 700;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+.talent-buy-btn.disabled,
+.talent-power-btn.disabled {
+  background: var(--panel);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+.talent-power-list {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 10px;
+}
+.talent-power-row {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-2);
+  padding: 10px;
+}
+.talent-power-name { font-weight: 700; color: var(--cyan); }
+.talent-power-meta {
+  font-size: 12px;
+  color: var(--gold-2);
+  margin-top: 3px;
+}
+.talent-power-desc {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 6px 0 8px;
+}
 
 /* ---------- Statistics ---------- */
 .stat-row {

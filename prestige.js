@@ -15,6 +15,7 @@
     s.upgrades = {};
     s.lifetimeCoins = 0;
     s.activeEvents = [];
+    s.activeTalentPowers = [];
   }
 
   /* ---------------------------------------------------------------------
@@ -95,6 +96,7 @@
     s.research = {};
     s.unlocked = {};
     s.activeEvents = [];
+    s.activeTalentPowers = [];
     // Automation toggles reset (features must be re-unlocked via research)
     s.automation.autoClick = false;
     s.automation.autoBuy = false;
