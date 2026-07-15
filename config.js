@@ -407,22 +407,22 @@ const TALENTS = [
   { id: "talent_econ_9", branch: "economics", name: "Eternal Treasury", cost: 550, type: "clickMult", value: 0.35, desc: "+35% click value.", requires: "talent_econ_8" },
 
   // Industry branch (10)
-  { id: "talent_ind_0", branch: "industry", name: "Fertile Soil", cost: 15, type: "buildingMult", target: "farm", value: 0.25, desc: "+25% Farm output.", requires: null },
-  { id: "talent_ind_1", branch: "industry", name: "Deep Shafts", cost: 25, type: "buildingMult", target: "mine", value: 0.25, desc: "+25% Mine output.", requires: "talent_ind_0" },
-  { id: "talent_ind_2", branch: "industry", name: "Efficient Assembly", cost: 40, type: "buildingMult", target: "factory", value: 0.2, desc: "+20% Factory output.", requires: "talent_ind_1" },
-  { id: "talent_ind_3", branch: "industry", name: "Smart Grid", cost: 65, type: "buildingMult", target: "powerplant", value: 0.2, desc: "+20% Power Plant output.", requires: "talent_ind_2" },
-  { id: "talent_ind_4", branch: "industry", name: "Academic Grants", cost: 90, type: "buildingMult", target: "university", value: 0.25, desc: "+25% University output.", requires: "talent_ind_3" },
-  { id: "talent_ind_5", branch: "industry", name: "Quantum Servers", cost: 140, type: "buildingMult", target: "datacenter", value: 0.3, desc: "+30% Data Center output.", requires: "talent_ind_4" },
-  { id: "talent_ind_6", branch: "industry", name: "Orbital Logistics", cost: 220, type: "buildingMult", target: "spaceport", value: 0.3, desc: "+30% Space Port output.", requires: "talent_ind_5" },
-  { id: "talent_ind_7", branch: "industry", name: "Stellar Refinement", cost: 320, type: "buildingMult", target: "refinery", value: 0.35, desc: "+35% Refinery output.", requires: "talent_ind_6" },
-  { id: "talent_ind_8", branch: "industry", name: "Nexus Optimization", cost: 480, type: "buildingMult", target: "galacticnexus", value: 0.4, desc: "+40% Galactic Nexus output.", requires: "talent_ind_7" },
+  { id: "talent_ind_0", branch: "industry", name: "Fertile Soil", cost: 15, type: "buildingMult", building: "farm", value: 0.25, desc: "+25% Farm output.", requires: null },
+  { id: "talent_ind_1", branch: "industry", name: "Deep Shafts", cost: 25, type: "buildingMult", building: "mine", value: 0.25, desc: "+25% Mine output.", requires: "talent_ind_0" },
+  { id: "talent_ind_2", branch: "industry", name: "Efficient Assembly", cost: 40, type: "buildingMult", building: "factory", value: 0.2, desc: "+20% Factory output.", requires: "talent_ind_1" },
+  { id: "talent_ind_3", branch: "industry", name: "Smart Grid", cost: 65, type: "buildingMult", building: "powerplant", value: 0.2, desc: "+20% Power Plant output.", requires: "talent_ind_2" },
+  { id: "talent_ind_4", branch: "industry", name: "Academic Grants", cost: 90, type: "buildingMult", building: "university", value: 0.25, desc: "+25% University output.", requires: "talent_ind_3" },
+  { id: "talent_ind_5", branch: "industry", name: "Quantum Servers", cost: 140, type: "buildingMult", building: "datacenter", value: 0.3, desc: "+30% Data Center output.", requires: "talent_ind_4" },
+  { id: "talent_ind_6", branch: "industry", name: "Orbital Logistics", cost: 220, type: "buildingMult", building: "spaceport", value: 0.3, desc: "+30% Space Port output.", requires: "talent_ind_5" },
+  { id: "talent_ind_7", branch: "industry", name: "Stellar Refinement", cost: 320, type: "buildingMult", building: "refinery", value: 0.35, desc: "+35% Refinery output.", requires: "talent_ind_6" },
+  { id: "talent_ind_8", branch: "industry", name: "Nexus Optimization", cost: 480, type: "buildingMult", building: "galacticnexus", value: 0.4, desc: "+40% Galactic Nexus output.", requires: "talent_ind_7" },
   { id: "talent_ind_9", branch: "industry", name: "Interstellar Supply Chain", cost: 700, type: "globalMult", value: 0.15, desc: "+15% global production.", requires: "talent_ind_8" },
 
   // Climate branch (4 passive + 6 active powers)
   { id: "talent_climate_0", branch: "climate", name: "Weather Bureau", cost: 20, type: "rpMult", value: 0.1, desc: "+10% research point gain.", requires: null },
   { id: "talent_climate_1", branch: "climate", name: "Forecasting Models", cost: 35, type: "globalMult", value: 0.06, desc: "+6% global production.", requires: "talent_climate_0" },
-  { id: "talent_climate_2", branch: "climate", name: "Seasonal Harvest", cost: 55, type: "buildingMult", target: "farm", value: 0.3, desc: "+30% Farm output.", requires: "talent_climate_1" },
-  { id: "talent_climate_3", branch: "climate", name: "Geological Survey", cost: 80, type: "buildingMult", target: "mine", value: 0.3, desc: "+30% Mine output.", requires: "talent_climate_2" },
+  { id: "talent_climate_2", branch: "climate", name: "Seasonal Harvest", cost: 55, type: "buildingMult", building: "farm", value: 0.3, desc: "+30% Farm output.", requires: "talent_climate_1" },
+  { id: "talent_climate_3", branch: "climate", name: "Geological Survey", cost: 80, type: "buildingMult", building: "mine", value: 0.3, desc: "+30% Mine output.", requires: "talent_climate_2" },
 
   {
     id: "talent_climate_4",

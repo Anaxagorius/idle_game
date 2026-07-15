@@ -105,7 +105,7 @@
         const reduction = effect.mult !== undefined ? effect.mult : 1 - Math.max(0, effect.value || 0);
         m.costReduction *= reduction;
       } else if (type === "buildingMult") {
-        const buildingId = effect.building || effect.target;
+        const buildingId = effect.building;
         if (!buildingId) return;
         const current = m.buildingMult[buildingId] || 1;
         const mult = effect.mult !== undefined ? effect.mult : 1 + (effect.value || 0);
@@ -167,6 +167,7 @@
       def.effects.forEach((effect) => applyEffect(effect));
     });
 
+    // Prevent costs from dropping to 0 or negative with stacked reductions.
     m.costReduction = Math.max(0.1, m.costReduction);
 
     // Global production multiplier applied to CPS
@@ -186,6 +187,9 @@
   };
 
   /* Base CPS per building (with its upgrades), before global multipliers */
+  /* Base CPS per building (with its upgrades), before global multipliers.
+     multOverride is used by Game.recalculate() so all buildings use the
+     same multiplier snapshot within the same frame. */
   Game.buildingCps = function (buildingId, multOverride) {
     const s = Game.state;
     const b = cfg.buildingMap[buildingId];
@@ -195,7 +199,9 @@
     for (let i = 0; i < 6; i++) {
       if (s.upgrades[buildingId + "_up" + i]) upgradeLevels++;
     }
-    const mults = multOverride || s._mult || Game.computeMultipliers();
+    let mults = multOverride;
+    if (!mults) mults = s._mult;
+    if (!mults) mults = Game.computeMultipliers();
     const buildingMult = (mults.buildingMult && mults.buildingMult[buildingId]) || 1;
     return owned * b.baseCps * Math.pow(2, upgradeLevels) * buildingMult;
   };

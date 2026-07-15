@@ -396,7 +396,7 @@
     if (!list || !powerList || !count || !Game.Talents) return;
 
     const purchased = Game.Talents.totalPurchased();
-    count.textContent = purchased + " / " + cfg.talents.length + " purchased";
+    count.textContent = purchased + " / " + cfg.talents.length + " talents";
 
     list.innerHTML = "";
     cfg.talents.forEach((t) => {

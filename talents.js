@@ -29,7 +29,7 @@
     const t = cfg.talentMap[id];
     s.prestigePoints -= t.cost;
     s.talents[id] = true;
-    s.stats.talentsPurchased = (s.stats.talentsPurchased || 0) + 1;
+    s.stats.talentsPurchased += 1;
     Game.recalculate();
     if (Game.UI && Game.UI.toast) Game.UI.toast("Talent purchased: " + t.name, "prestige");
     return true;
@@ -74,7 +74,7 @@
       endTime: s.stats.playTime + def.duration,
     });
     s.talentCooldowns[powerId] = s.stats.playTime + def.cooldown;
-    s.stats.powersActivated = (s.stats.powersActivated || 0) + 1;
+    s.stats.powersActivated += 1;
     Game.recalculate();
 
     if (Game.UI && Game.UI.toast) Game.UI.toast("Power activated: " + def.name, "event");
