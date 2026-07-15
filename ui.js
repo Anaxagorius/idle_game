@@ -103,6 +103,7 @@
         '<div class="building-info">' +
         '<div class="building-name">' + b.name + ' <span class="building-owned" data-owned></span></div>' +
         '<div class="building-role">' + b.role + '</div>' +
+        '<div class="building-req" data-req></div>' +
         '<div class="building-cps" data-cps></div>' +
         "</div>" +
         '<button class="buy-button" data-buy><span class="buy-label">Buy</span><span class="buy-cost" data-cost></span></button>';
@@ -117,6 +118,7 @@
       UI._buildingRows[b.id] = {
         row,
         owned: row.querySelector("[data-owned]"),
+        req: row.querySelector("[data-req]"),
         cps: row.querySelector("[data-cps]"),
         cost: row.querySelector("[data-cost]"),
         btn,
@@ -132,12 +134,27 @@
       const owned = s.buildings[b.id] || 0;
       const amount = Game.Buildings.resolveAmount(b.id);
       const cost = Game.Buildings.bulkCost(b.id, Math.max(1, amount));
+      const prevId = Game.Buildings.previousBuildingId(b.id);
+      const prev = prevId ? cfg.buildingMap[prevId] : null;
+      const requiredPrev = Game.Buildings.requiredPrevious(b.id, Math.max(1, amount));
+      const prevOwned = prevId ? (s.buildings[prevId] || 0) : 0;
       r.owned.textContent = "x" + owned;
       const contribution = Game.buildingCps(b.id) * (s._mult ? s._mult.global : 1);
       r.cps.textContent = fmt(contribution) + " CPS" + (owned > 0 ? " (" + ((contribution / (s._cps || 1)) * 100).toFixed(1) + "%)" : "");
       r.cost.textContent = fmt(cost) + (amount > 1 ? " (x" + amount + ")" : "");
+      if (r.req) {
+        if (!prevId) {
+          r.req.textContent = "No prerequisite";
+          r.req.classList.remove("missing");
+        } else {
+          r.req.textContent =
+            "Needs " + fmt(requiredPrev) + " " + prev.name + " (" + fmt(prevOwned) + " available)";
+          r.req.classList.toggle("missing", prevOwned < requiredPrev);
+        }
+      }
       const affordable = s.coins >= cost;
-      r.btn.classList.toggle("disabled", !affordable);
+      const hasPrereq = !prevId || prevOwned >= requiredPrev;
+      r.btn.classList.toggle("disabled", !affordable || !hasPrereq);
       r.btn.disabled = false; // allow click to buy-max fallback
     });
     UI.updateUpgrades();
@@ -367,26 +384,63 @@
     el("prestige-current-pp").textContent = fmt(s.prestigePoints);
     el("prestige-lifetime-pp").textContent = fmt(s.lifetimePrestigePoints);
     el("prestige-potential").textContent = fmt(Game.Prestige.potential());
-    el("prestige-mult").textContent = "+" + fmt(s.prestigePoints * cfg.PRESTIGE_PER_POINT_MULT * 100) + "%";
+    el("prestige-mult").textContent = "+" + fmt(s.prestigePoints * cfg.PRESTIGE_PER_POINT_MULT * (cfg.BONUS_EFFECTIVENESS_MULT || 1) * 100) + "%";
 
     el("prestige-count").textContent = fmt(s.stats.prestigeCount);
     el("ascension-count").textContent = fmt(s.stats.ascensionCount);
 
     el("research-reset-info").textContent =
       "You have " + fmt(s.prestigePoints) + " PP. Spend " + cfg.RESEARCH_RESET_PP_COST +
-      " PP to gain " + cfg.RESEARCH_RESET_RP_GAIN + " RP.";
+      " PP to gain " + fmt(cfg.RESEARCH_RESET_RP_GAIN * (cfg.GAIN_EFFECTIVENESS_MULT || 1)) + " RP.";
 
     el("ascension-current-shards").textContent = fmt(s.ascensionShards);
-    el("ascension-mult").textContent = "+" + fmt(s.ascensionShards * cfg.ASCENSION_PER_SHARD_MULT * 100) + "%";
+    el("ascension-mult").textContent = "+" + fmt(s.ascensionShards * cfg.ASCENSION_PER_SHARD_MULT * (cfg.BONUS_EFFECTIVENESS_MULT || 1) * 100) + "%";
     el("ascension-potential").textContent = fmt(Game.Prestige.potentialShards());
+    const ppPerShard = cfg.ASCENSION_REQUIRED_PP / (cfg.GAIN_EFFECTIVENESS_MULT || 1);
     el("ascension-req").textContent =
-      "Requires " + cfg.ASCENSION_REQUIRED_PP + " PP. You have " + fmt(s.prestigePoints) + " PP.";
+      "Requires about " + fmt(ppPerShard) + " PP per shard. You have " + fmt(s.prestigePoints) + " PP.";
 
     setBtn(el("btn-prestige"), Game.Prestige.canPrestige());
     setBtn(el("btn-research-reset"), Game.Prestige.canResearchReset());
     setBtn(el("btn-ascend"), Game.Prestige.canAscend());
 
     UI.updateTalents();
+    UI.updateGodsTitans();
+  };
+
+  UI.updateGodsTitans = function () {
+    const list = el("god-titan-list");
+    const count = el("god-titan-count");
+    if (!list || !count) return;
+    const purchased = cfg.godsTitans.filter((gt) => Game.Prestige.godTitanPurchased(gt.id)).length;
+    count.textContent = purchased + " / " + cfg.godsTitans.length + " unlocked";
+    list.innerHTML = "";
+
+    cfg.godsTitans.forEach((gt) => {
+      const owned = Game.Prestige.godTitanPurchased(gt.id);
+      const available = Game.Prestige.godTitanAvailable(gt.id);
+      const canAfford = Game.Prestige.canAffordGodTitan(gt.id);
+      const card = make("div", "talent-card" + (owned ? " purchased" : available ? "" : " locked"));
+
+      let actionText = "";
+      if (owned) actionText = "Unlocked";
+      else if (!available) actionText = "Requires previous God/Titan";
+      else if (canAfford) actionText = "Buy for " + fmt(gt.cost) + " Shards";
+      else actionText = "Need " + fmt(gt.cost) + " Shards";
+
+      card.innerHTML =
+        '<div class="talent-header"><span class="talent-name">' + gt.name + "</span>" +
+        '<span class="talent-branch">God/Titan</span></div>' +
+        '<div class="talent-desc">' + gt.desc + "</div>" +
+        '<button class="talent-buy-btn ' + (owned || !canAfford ? "disabled" : "") + '">' + actionText + "</button>";
+
+      const btn = card.querySelector("button");
+      btn.disabled = owned || !canAfford;
+      btn.addEventListener("click", () => {
+        if (Game.Prestige.buyGodTitan(gt.id)) UI.update();
+      });
+      list.appendChild(card);
+    });
   };
 
   UI.updateTalents = function () {
@@ -494,6 +548,7 @@
       ["Prestige Count", fmt(stats.prestigeCount)],
       ["Research Points", fmt(s.researchPoints)],
       ["Ascension Shards", fmt(s.ascensionShards)],
+      ["Gods/Titans Unlocked", fmt(cfg.godsTitans.filter((gt) => s.godsTitans[gt.id]).length) + " / " + cfg.godsTitans.length],
       ["Ascension Count", fmt(stats.ascensionCount)],
       ["Achievements", Game.Achievements.count() + " / " + cfg.achievements.length],
       ["Milestones", Game.Milestones.count() + " / " + cfg.milestones.length],

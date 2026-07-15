@@ -62,7 +62,7 @@
     if (!Prestige.canResearchReset()) return false;
     const times = Math.floor(s.prestigePoints / cfg.RESEARCH_RESET_PP_COST);
     const ppSpent = times * cfg.RESEARCH_RESET_PP_COST;
-    const rpGain = times * cfg.RESEARCH_RESET_RP_GAIN;
+    const rpGain = times * cfg.RESEARCH_RESET_RP_GAIN * (cfg.GAIN_EFFECTIVENESS_MULT || 1);
 
     s.prestigePoints -= ppSpent;
     s.researchPoints += rpGain;
@@ -77,11 +77,11 @@
      Layer 3: Ascension -> Ascension Shards
      --------------------------------------------------------------------- */
   Prestige.canAscend = function () {
-    return Game.state.prestigePoints >= cfg.ASCENSION_REQUIRED_PP;
+    return Prestige.potentialShards() >= 1;
   };
 
   Prestige.potentialShards = function () {
-    return Math.floor(Game.state.prestigePoints / cfg.ASCENSION_REQUIRED_PP);
+    return Math.floor((Game.state.prestigePoints / cfg.ASCENSION_REQUIRED_PP) * (cfg.GAIN_EFFECTIVENESS_MULT || 1));
   };
 
   Prestige.ascend = function () {
@@ -113,6 +113,33 @@
 
     Game.recalculate();
     if (Game.UI && Game.UI.toast) Game.UI.toast("Ascended! +" + Game.formatNumber(shards) + " Ascension Shards", "prestige");
+    return true;
+  };
+
+  Prestige.godTitanPurchased = function (id) {
+    return !!Game.state.godsTitans[id];
+  };
+
+  Prestige.godTitanAvailable = function (id) {
+    const gt = cfg.godTitanMap[id];
+    if (!gt || Prestige.godTitanPurchased(id)) return false;
+    if (gt.requires && !Prestige.godTitanPurchased(gt.requires)) return false;
+    return true;
+  };
+
+  Prestige.canAffordGodTitan = function (id) {
+    const gt = cfg.godTitanMap[id];
+    return !!gt && Prestige.godTitanAvailable(id) && Game.state.ascensionShards >= gt.cost;
+  };
+
+  Prestige.buyGodTitan = function (id) {
+    const s = Game.state;
+    if (!Prestige.canAffordGodTitan(id)) return false;
+    const gt = cfg.godTitanMap[id];
+    s.ascensionShards -= gt.cost;
+    s.godsTitans[id] = true;
+    Game.recalculate();
+    if (Game.UI && Game.UI.toast) Game.UI.toast("Unlocked: " + gt.name, "prestige");
     return true;
   };
 

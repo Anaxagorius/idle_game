@@ -158,7 +158,7 @@
           <div class="info-line">Production Multiplier: <b class="highlight-purple" id="prestige-mult">+0%</b></div>
           <div class="info-line">Prestige Count: <b id="prestige-count">0</b></div>
           <div class="info-line">You would earn: <b class="highlight-purple" id="prestige-potential">0</b> PP</div>
-          <p class="muted">Resets coins, buildings and upgrades. Each PP grants +1% permanent production.</p>
+          <p class="muted">Resets coins, buildings and upgrades. Each PP grants +0.1% permanent production.</p>
           <button class="big-btn btn-prestige disabled" id="btn-prestige">Prestige</button>
         </div>
 
@@ -176,7 +176,7 @@
           <div class="info-line">Ascension Count: <b id="ascension-count">0</b></div>
           <div class="info-line">You would earn: <b class="highlight-cyan" id="ascension-potential">0</b> Shards</div>
           <div class="info-line" id="ascension-req"></div>
-          <p class="muted">Resets everything except Ascension Shards. Each shard grants +2% permanent global production.</p>
+          <p class="muted">Resets everything except Ascension Shards. Each shard grants +0.2% permanent global production.</p>
           <button class="big-btn btn-ascend disabled" id="btn-ascend">Ascend</button>
         </div>
 
@@ -190,6 +190,15 @@
           <div class="talent-grid" id="talent-list"></div>
           <h3>Active Powers</h3>
           <div class="talent-power-list" id="talent-power-list"></div>
+        </div>
+
+        <div class="panel prestige-panel prestige-panel-wide">
+          <h2>Ascension Upgrades — Gods and Titans</h2>
+          <div class="info-line"><b id="god-titan-count">0 / 0 unlocked</b></div>
+          <p class="muted">
+            Spend Ascension Shards on permanent tradeoff upgrades. Each choice gives a subtle bonus and a subtle drawback.
+          </p>
+          <div class="talent-grid" id="god-titan-list"></div>
         </div>
       </div>
     </section>

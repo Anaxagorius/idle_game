@@ -91,7 +91,7 @@
     let target = null;
     for (let i = buildings.length - 1; i >= 0; i--) {
       const b = buildings[i];
-      if (Game.state.coins >= Game.Buildings.costOf(b.id)) {
+      if (Game.Buildings.maxPurchasable(b.id) >= 1) {
         target = b.id;
         break;
       }

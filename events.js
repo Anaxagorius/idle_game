@@ -29,7 +29,7 @@
     s.stats.eventsTriggered++;
 
     if (def.kind === "instantRP") {
-      s.researchPoints += def.value;
+      s.researchPoints += def.value * (cfg.GAIN_EFFECTIVENESS_MULT || 1);
     } else {
       // Timed effect
       s.activeEvents.push({
