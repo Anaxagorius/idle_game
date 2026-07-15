@@ -94,23 +94,24 @@
       if (!effect || !effect.type) return;
       const type = effect.type;
       // value -> additive bonus (1 + value), mult -> direct multiplier.
+      const effectMultiplier = effect.mult !== undefined ? effect.mult : 1 + (effect.value || 0);
       if (type === "globalMult") {
-        m.talentGlobal *= effect.mult !== undefined ? effect.mult : 1 + (effect.value || 0);
+        m.talentGlobal *= effectMultiplier;
       } else if (type === "clickMult") {
-        m.clickMult *= effect.mult !== undefined ? effect.mult : 1 + (effect.value || 0);
+        m.clickMult *= effectMultiplier;
       } else if (type === "rpMult") {
-        m.rpGain *= effect.mult !== undefined ? effect.mult : 1 + (effect.value || 0);
+        m.rpGain *= effectMultiplier;
       } else if (type === "prestigeGain") {
-        m.prestigeGain *= effect.mult !== undefined ? effect.mult : 1 + (effect.value || 0);
+        m.prestigeGain *= effectMultiplier;
       } else if (type === "costReduction") {
+        // costReduction uses subtraction (1 - value) so positive values reduce costs.
         const reduction = effect.mult !== undefined ? effect.mult : 1 - Math.max(0, effect.value || 0);
         m.costReduction *= reduction;
       } else if (type === "buildingMult") {
         const buildingId = effect.building;
         if (!buildingId) return;
         const current = m.buildingMult[buildingId] || 1;
-        const mult = effect.mult !== undefined ? effect.mult : 1 + (effect.value || 0);
-        m.buildingMult[buildingId] = current * mult;
+        m.buildingMult[buildingId] = current * effectMultiplier;
       }
     }
 

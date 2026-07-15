@@ -88,7 +88,7 @@
     return true;
   };
 
-  Talents.update = function (_dtSeconds) {
+  Talents.update = function () {
     const s = Game.state;
     if (!s.activeTalentPowers.length) return;
     const before = s.activeTalentPowers.length;

@@ -486,7 +486,7 @@
       ["Total Buildings Owned", fmt(Game.Buildings.totalOwned())],
       ["Upgrades Purchased", fmt(Object.keys(s.upgrades).filter((k) => s.upgrades[k]).length) + " / 108"],
       ["Research Completed", fmt(stats.researchCompleted) + " / 80"],
-      ["talents purchased", fmt(stats.talentsPurchased || 0) + " / " + cfg.talents.length],
+      ["Talents purchased", fmt(stats.talentsPurchased || 0) + " / " + cfg.talents.length],
       ["Talent Powers Used", fmt(stats.powersActivated || 0)],
       ["Prestige Points", fmt(s.prestigePoints)],
       ["Lifetime Prestige Points", fmt(s.lifetimePrestigePoints)],
