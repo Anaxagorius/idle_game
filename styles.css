@@ -568,3 +568,220 @@ textarea#save-string {
 }
 
 .muted { color: var(--muted); font-size: 13px; }
+
+/* ==========================================================================
+   Nova Scotia Map styles
+   ========================================================================== */
+
+/* ── SVG map containers ─────────────────────────────────────────────────── */
+.ns-map { display: block; border-radius: 8px; }
+.ns-map--mini { max-height: 160px; }
+.ns-map--full { max-height: 480px; }
+.ns-map--selector { max-height: 360px; }
+
+.county-poly { transition: opacity 0.2s, stroke-width 0.15s; }
+.county-label { user-select: none; }
+
+/* ── Mini-map panel (Economy tab) ───────────────────────────────────────── */
+.mini-map-panel h2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.tab-button-link {
+  background: none;
+  border: none;
+  color: var(--blue);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+  font-weight: 600;
+}
+.tab-button-link:hover { color: var(--gold); }
+.mini-map-container {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.empire-info-mini {
+  margin-top: 8px;
+  font-size: 13px;
+}
+.empire-mini-name {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--panel-2);
+  font-weight: 600;
+  color: var(--gold-2);
+}
+
+/* ── Full map tab layout ────────────────────────────────────────────────── */
+.map-tab-layout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 16px;
+}
+@media (max-width: 960px) { .map-tab-layout { grid-template-columns: 1fr; } }
+
+.map-full-panel .panel { padding-bottom: 12px; }
+.full-map-container {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+
+/* ── Map legend ─────────────────────────────────────────────────────────── */
+.map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px;
+  background: var(--panel-2);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--text);
+}
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid;
+  flex-shrink: 0;
+}
+.pin-dot {
+  background: #ffd700;
+  border-color: #333;
+}
+
+/* ── Empire panel (map tab sidebar) ────────────────────────────────────── */
+.empire-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--panel-2);
+  margin-bottom: 8px;
+}
+.empire-name {
+  font-weight: 700;
+  color: var(--gold-2);
+  font-size: 14px;
+}
+.empire-buildings {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+.empire-building-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: var(--panel-2);
+}
+.empire-building-count {
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 12px;
+}
+
+/* Tiny button used inside panels */
+.btn-tiny {
+  font-size: 11px !important;
+  padding: 3px 8px !important;
+  min-width: unset !important;
+}
+
+/* ── County roster (map tab sidebar) ───────────────────────────────────── */
+.county-roster-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  margin-bottom: 4px;
+  border-radius: 5px;
+  background: var(--panel-2);
+  font-size: 12px;
+}
+.county-roster-row.roster-empire {
+  background: rgba(255, 215, 0, 0.08);
+}
+.roster-county-name { font-weight: 600; color: var(--text); }
+.county-status { font-size: 11px; padding: 2px 7px; border-radius: 12px; }
+.status-empire { background: rgba(255, 215, 0, 0.18); color: var(--gold-2); }
+.status-rival  { background: rgba(230, 57, 70, 0.15); color: #ff8a80; }
+
+/* ── County selector overlay ────────────────────────────────────────────── */
+.county-selector-modal {
+  background: var(--panel);
+  border: 1px solid var(--gold);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 900px;
+  width: 96vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.65);
+}
+.selector-header { margin-bottom: 16px; }
+.selector-header h2 { color: var(--gold-2); margin: 0 0 6px; font-size: 20px; }
+.selector-body {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 18px;
+  align-items: start;
+}
+@media (max-width: 700px) { .selector-body { grid-template-columns: 1fr; } }
+
+.county-selector-map {
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  background: #1a4a6e;
+}
+.county-selector-info {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  min-height: 140px;
+}
+.county-selector-info h3 { margin-top: 0; }
+
+/* terrain badge chips */
+.terrain-badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 12px;
+  font-size: 12px;
+  margin: 2px;
+  font-weight: 600;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.selector-confirm-btn {
+  margin-top: 10px;
+  width: 100%;
+  background: linear-gradient(135deg, #b8860b, var(--gold));
+  color: #1a1000;
+  font-weight: 700;
+  font-size: 13px;
+}
+.selector-confirm-btn:hover { opacity: 0.9; }
