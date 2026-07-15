@@ -111,6 +111,7 @@
 
     const finalRequiredPrev = Buildings.requiredPrevious(buildingId, amount);
     if (prevId && finalRequiredPrev > 0) {
+      // Safety guard for state mutations between amount resolution and final purchase application.
       if ((s.buildings[prevId] || 0) < finalRequiredPrev) return 0;
       s.buildings[prevId] -= finalRequiredPrev;
     }

@@ -78,13 +78,13 @@
     const s = Game.state;
     const bonusScale = cfg.BONUS_EFFECTIVENESS_MULT || 1;
     function scaleBonus(value) {
-      if (value > 0) return value * bonusScale;
-      return value;
+      return (value || 0) * bonusScale;
     }
     function scaledMultiplierFromEffect(effect) {
       if (effect.mult !== undefined) {
         if (effect.mult > 1) return 1 + (effect.mult - 1) * bonusScale;
-        return effect.mult;
+        if (effect.mult < 1) return 1 - (1 - effect.mult) * bonusScale;
+        return 1;
       }
       return 1 + scaleBonus(effect.value || 0);
     }
@@ -235,7 +235,8 @@
     if (!mults) mults = s._mult;
     if (!mults) mults = Game.computeMultipliers();
     const buildingMult = (mults.buildingMult && mults.buildingMult[buildingId]) || 1;
-    const upgradeStepMult = 1 + (cfg.BONUS_EFFECTIVENESS_MULT || 1);
+    const bonusScale = cfg.BONUS_EFFECTIVENESS_MULT === undefined ? 1 : cfg.BONUS_EFFECTIVENESS_MULT;
+    const upgradeStepMult = 1 + bonusScale;
     return owned * b.baseCps * Math.pow(upgradeStepMult, upgradeLevels) * buildingMult;
   };
 

@@ -77,6 +77,7 @@
      Layer 3: Ascension -> Ascension Shards
      --------------------------------------------------------------------- */
   Prestige.canAscend = function () {
+    // Uses potential shards so the check automatically respects gain-effectiveness scaling.
     return Prestige.potentialShards() >= 1;
   };
 

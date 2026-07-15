@@ -57,6 +57,7 @@ Game.config = {
   MAX_COST_REDUCTION_MULT: 0.1,
   BONUS_EFFECTIVENESS_MULT: 0.1,
   GAIN_EFFECTIVENESS_MULT: 0.1,
+  // How many of the previous building are consumed to buy one current building, by target tier.
   BUILDING_PREREQ_BY_TIER: { 1: 10, 2: 50, 3: 1000 },
 };
 
@@ -547,6 +548,7 @@ TALENTS.forEach((t) => {
    Ascension Shard Upgrades: Gods and Titans
    -------------------------------------------------------------------------- */
 const GODS_TITANS = [
+  // effect values are fractional: 0.08 = +8%, -0.03 = -3%
   {
     id: "god_harvest",
     name: "Demeter's Blessing",

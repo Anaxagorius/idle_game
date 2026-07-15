@@ -142,15 +142,13 @@
       const contribution = Game.buildingCps(b.id) * (s._mult ? s._mult.global : 1);
       r.cps.textContent = fmt(contribution) + " CPS" + (owned > 0 ? " (" + ((contribution / (s._cps || 1)) * 100).toFixed(1) + "%)" : "");
       r.cost.textContent = fmt(cost) + (amount > 1 ? " (x" + amount + ")" : "");
-      if (r.req) {
-        if (!prevId) {
-          r.req.textContent = "No prerequisite";
-          r.req.classList.remove("missing");
-        } else {
-          r.req.textContent =
-            "Needs " + fmt(requiredPrev) + " " + prev.name + " (" + fmt(prevOwned) + " available)";
-          r.req.classList.toggle("missing", prevOwned < requiredPrev);
-        }
+      if (!prevId) {
+        r.req.textContent = "Base building";
+        r.req.classList.remove("missing");
+      } else {
+        r.req.textContent =
+          "Needs " + fmt(requiredPrev) + " " + prev.name + " (" + fmt(prevOwned) + " available)";
+        r.req.classList.toggle("missing", prevOwned < requiredPrev);
       }
       const affordable = s.coins >= cost;
       const hasPrereq = !prevId || prevOwned >= requiredPrev;
