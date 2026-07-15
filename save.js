@@ -37,6 +37,8 @@
   /* Merge loaded data into a fresh default state to tolerate missing keys */
   function merge(target, source) {
     Object.keys(source).forEach((k) => {
+      // Guard against prototype pollution
+      if (k === "__proto__" || k === "constructor" || k === "prototype") return;
       if (
         source[k] &&
         typeof source[k] === "object" &&
