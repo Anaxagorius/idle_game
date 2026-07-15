@@ -65,7 +65,7 @@
     (cfg.subBuildings || []).forEach((sb) => {
       if (typeof fresh.subBuildings[sb.id] !== "number") fresh.subBuildings[sb.id] = 0;
       if (typeof fresh.subBuildingUpgrades[sb.id] !== "number") fresh.subBuildingUpgrades[sb.id] = 0;
-      fresh.subBuildingUpgrades[sb.id] = Math.max(0, Math.min(cfg.SUB_BUILDING_MAX_UPGRADES || 2, fresh.subBuildingUpgrades[sb.id]));
+      fresh.subBuildingUpgrades[sb.id] = Math.max(0, Math.min(cfg.SUB_BUILDING_MAX_UPGRADES, fresh.subBuildingUpgrades[sb.id]));
     });
     Game.state = fresh;
     Game.recalculate();

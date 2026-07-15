@@ -89,6 +89,10 @@
   Buildings.subBuildingsForParent = function (buildingId) {
     return cfg.subBuildingsByParent[buildingId] || [];
   };
+  function normalizeSubAmount(amountArg) {
+    if (amountArg === undefined || amountArg === null) return 1;
+    return Math.max(0, Math.floor(amountArg));
+  }
 
   Buildings.allocatedParentUnits = function (buildingId) {
     const subs = Buildings.subBuildingsForParent(buildingId);
@@ -104,14 +108,16 @@
   Buildings.canBuySubBuilding = function (subId, amountArg) {
     const sb = cfg.subBuildingMap[subId];
     if (!sb) return false;
-    const amount = Math.max(1, amountArg || 1);
+    const amount = normalizeSubAmount(amountArg);
+    if (amount <= 0) return false;
     return Buildings.availableParentUnits(sb.parent) >= amount;
   };
 
   Buildings.buySubBuilding = function (subId, amountArg) {
     const sb = cfg.subBuildingMap[subId];
     if (!sb) return 0;
-    const amount = Math.max(1, amountArg || 1);
+    const amount = normalizeSubAmount(amountArg);
+    if (amount <= 0) return 0;
     const available = Buildings.availableParentUnits(sb.parent);
     const bought = Math.min(amount, available);
     if (bought <= 0) return 0;
@@ -128,7 +134,7 @@
     const sb = cfg.subBuildingMap[subId];
     if (!sb) return Infinity;
     const level = Buildings.subUpgradeLevel(subId);
-    if (level >= (cfg.SUB_BUILDING_MAX_UPGRADES || 2)) return Infinity;
+    if (level >= cfg.SUB_BUILDING_MAX_UPGRADES) return Infinity;
     const reduction = (Game.state._mult && Game.state._mult.costReduction) || 1;
     return sb.upgradeCosts[level] * reduction;
   };
@@ -137,7 +143,7 @@
     const sb = cfg.subBuildingMap[subId];
     if (!sb) return false;
     const level = Buildings.subUpgradeLevel(subId);
-    if (level >= (cfg.SUB_BUILDING_MAX_UPGRADES || 2)) return false;
+    if (level >= cfg.SUB_BUILDING_MAX_UPGRADES) return false;
     return Game.state.coins >= Buildings.subUpgradeCost(subId);
   };
 

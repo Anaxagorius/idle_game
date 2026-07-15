@@ -99,13 +99,15 @@
         const labels = { 1: "Tier 1 — Civilization", 2: "Tier 2 — Industrial Age", 3: "Tier 3 — Space Age" };
         list.appendChild(make("div", "tier-header", labels[b.tier]));
       }
+      const subs = Game.Buildings.subBuildingsForParent(b.id);
+      const subAllocHtml = subs.length ? '<div class="building-suballoc" data-suballoc></div>' : "";
       const row = make("div", "building-row");
       row.innerHTML =
         '<div class="building-main">' +
         '<div class="building-info">' +
         '<div class="building-name">' + b.name + ' <span class="building-owned" data-owned></span></div>' +
         '<div class="building-role">' + b.role + '</div>' +
-        '<div class="building-suballoc" data-suballoc></div>' +
+        subAllocHtml +
         '<div class="building-cps" data-cps></div>' +
         "</div>" +
         '<button class="buy-button" data-buy><span class="buy-label">Buy</span><span class="buy-cost" data-cost></span></button>' +
@@ -119,11 +121,12 @@
         }
       });
       const subsWrap = row.querySelector("[data-subs]");
-      const subs = Game.Buildings.subBuildingsForParent(b.id);
       if (!subs.length) {
         subsWrap.remove();
       } else {
         UI._subRows[b.id] = {};
+        const unitLabel = cfg.SUB_BUILDING_PARENT_COST === 1 ? " unit" : " units";
+        const buyLabel = cfg.SUB_BUILDING_PARENT_COST + " " + cfg.buildingMap[b.id].name + unitLabel;
         subs.forEach((sb) => {
           const subCard = make("div", "subbuilding-card");
           subCard.innerHTML =
@@ -151,6 +154,7 @@
             buyCost: subCard.querySelector("[data-sub-buy-cost]"),
             upBtn: subCard.querySelector("[data-sub-upgrade]"),
             upCost: subCard.querySelector("[data-sub-up-cost]"),
+            buyLabel,
           };
         });
       }
@@ -182,13 +186,13 @@
       r.btn.classList.toggle("disabled", !affordable);
       r.btn.disabled = false; // allow click to buy-max fallback
 
-       const subs = Game.Buildings.subBuildingsForParent(b.id);
-       if (subs.length && r.suballoc) {
-         const allocated = Game.Buildings.allocatedParentUnits(b.id);
-         r.suballoc.textContent = "Sub-buildings: " + allocated + " / " + owned + " allocated";
-       } else if (r.suballoc) {
-         r.suballoc.textContent = "";
-       }
+      const subs = Game.Buildings.subBuildingsForParent(b.id);
+      if (subs.length && r.suballoc) {
+        const allocated = Game.Buildings.allocatedParentUnits(b.id);
+        r.suballoc.textContent = "Sub-buildings: " + allocated + " / " + owned + " allocated";
+      } else if (r.suballoc) {
+        r.suballoc.textContent = "";
+      }
 
       const subRows = (UI._subRows && UI._subRows[b.id]) || null;
       if (subRows) {
@@ -201,8 +205,8 @@
           const canUpgrade = Game.Buildings.canUpgradeSubBuilding(sb.id);
           const upCost = Game.Buildings.subUpgradeCost(sb.id);
           sr.owned.textContent = "x" + subOwned;
-          sr.level.textContent = "Lv " + level + " / " + (cfg.SUB_BUILDING_MAX_UPGRADES || 2);
-          sr.buyCost.textContent = cfg.SUB_BUILDING_PARENT_COST + " " + cfg.buildingMap[b.id].name;
+          sr.level.textContent = "Lv " + level + " / " + cfg.SUB_BUILDING_MAX_UPGRADES;
+          sr.buyCost.textContent = sr.buyLabel;
           sr.upCost.textContent = upCost === Infinity ? "Maxed" : fmt(upCost) + " coins";
           sr.buyBtn.classList.toggle("disabled", !canAllocate);
           sr.upBtn.classList.toggle("disabled", !canUpgrade);

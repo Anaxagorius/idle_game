@@ -127,6 +127,11 @@
       }
     }
 
+    function subBuildingEffectMultiplier(effectValue, owned, upgradeMult) {
+      const rawMult = 1 + effectValue * owned * upgradeMult;
+      return Math.max(cfg.MIN_BUILDING_MULTIPLIER, rawMult);
+    }
+
     // Research effects
     cfg.research.forEach((r) => {
       if (!s.research[r.id]) return;
@@ -185,11 +190,10 @@
     (cfg.subBuildings || []).forEach((sb) => {
       const owned = s.subBuildings && s.subBuildings[sb.id] ? s.subBuildings[sb.id] : 0;
       if (!owned) return;
-      const level = Math.max(0, Math.min(cfg.SUB_BUILDING_MAX_UPGRADES || 2, (s.subBuildingUpgrades && s.subBuildingUpgrades[sb.id]) || 0));
-      const upgradeMult = 1 + level * 0.35;
+      const level = Math.max(0, Math.min(cfg.SUB_BUILDING_MAX_UPGRADES, (s.subBuildingUpgrades && s.subBuildingUpgrades[sb.id]) || 0));
+      const upgradeMult = 1 + level * cfg.SUB_BUILDING_UPGRADE_STEP;
       sb.effects.forEach((effect) => {
-        const rawMult = 1 + effect.value * owned * upgradeMult;
-        const effectMult = Math.max(0.1, rawMult);
+        const effectMult = subBuildingEffectMultiplier(effect.value, owned, upgradeMult);
         const current = m.buildingMult[effect.target] || 1;
         m.buildingMult[effect.target] = current * effectMult;
       });
