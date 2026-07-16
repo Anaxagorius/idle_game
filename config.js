@@ -1126,7 +1126,7 @@ Object.keys(SKILL_TREE_NAMES).forEach((branch) => {
   const names = SKILL_TREE_NAMES[branch];
   const effects = SKILL_TREE_EFFECTS[branch] || [];
   if (effects.length !== names.length) {
-    throw new Error("Skill tree branch mismatch: " + branch);
+    throw new Error("Skill tree branch mismatch: " + branch + " - expected " + names.length + " nodes but got " + effects.length + " effects");
   }
   names.forEach((name, index) => {
     const effect = effects[index];

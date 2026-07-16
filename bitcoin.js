@@ -145,7 +145,6 @@
     const ratio = totalDemand <= 0 ? 1 : Math.min(1, availableEnergy / (totalDemand * dt));
     const miningRate = Bitcoin.baseMiningRate() * ratio * mult("minerEfficiency", 1);
     const coinRate = Bitcoin.baseCoinFarmerRate() * ratio * mult("coinFarmerYield", 1);
-    const projectedEnergy = clampEnergy(Math.max(0, s.energy) + production * dt - totalDemand * ratio * dt);
     return {
       production,
       minerDemand,
@@ -154,7 +153,6 @@
       activityRatio: ratio,
       miningRate,
       coinRate,
-      projectedEnergy,
     };
   };
 
