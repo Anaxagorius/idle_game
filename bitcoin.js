@@ -6,6 +6,8 @@
 (function () {
   const cfg = Game.config;
   const Bitcoin = {};
+  // Snapshot math uses demand * dt; keep dt above zero so UI rate previews stay stable.
+  const SNAPSHOT_MIN_SECONDS = 0.05;
 
   function ownedCount(group, id) {
     return (Game.state[group] && Game.state[group][id]) || 0;
@@ -134,7 +136,7 @@
   Bitcoin.snapshot = function (dtSeconds) {
     const s = Game.state;
     s.energyCap = Bitcoin.energyCap();
-    const dt = Math.max(0.05, dtSeconds || 1);
+    const dt = Math.max(SNAPSHOT_MIN_SECONDS, dtSeconds || 1);
     const production = Bitcoin.energyProduction();
     const minerDemand = Bitcoin.minerDemand();
     const coinDemand = Bitcoin.coinFarmerDemand();

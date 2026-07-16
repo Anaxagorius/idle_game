@@ -1116,6 +1116,11 @@ const SKILL_BASE_COST = 12;
 const SKILL_COST_INCREMENT = 8;
 // Hash Forge offers strong click scaling, so its node costs are slightly higher.
 const HASHFORGE_COST_MULTIPLIER = 1.05;
+const SKILL_POWER_DESCRIPTIONS = {
+  grid_overdrive: "Unlock power: Grid Overdrive.",
+  hash_surge: "Unlock power: Hash Surge.",
+  research_burst: "Unlock power: Research Burst.",
+};
 const SKILL_TREE_NODES = [];
 Object.keys(SKILL_TREE_NAMES).forEach((branch) => {
   SKILL_TREE_NAMES[branch].forEach((name, index) => {
@@ -1142,7 +1147,7 @@ Object.keys(SKILL_TREE_NAMES).forEach((branch) => {
     else if (effect.type === "stockInsight") desc = "Unlock stock trend insight.";
     else if (effect.type === "clickCpsFractionMult") desc = "Clicks gain more from CPS.";
     else if (effect.type === "autoClickBoost") desc = "Boost auto-click speed.";
-    else if (effect.type === "skillPower") desc = effect.powerId === "grid_overdrive" ? "Unlock power: Grid Overdrive." : effect.powerId === "hash_surge" ? "Unlock power: Hash Surge." : "Unlock power: Research Burst.";
+    else if (effect.type === "skillPower") desc = SKILL_POWER_DESCRIPTIONS[effect.powerId] || "Unlock power.";
     if (effect.penaltyType) desc += " Tradeoff applies.";
     SKILL_TREE_NODES.push({
       id,
