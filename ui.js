@@ -442,12 +442,16 @@
     });
 
     powerList.innerHTML = "";
+    const activePowerMap = {};
+    Game.SkillTrees.activePowers().forEach((p) => {
+      activePowerMap[p.id] = p.remaining;
+    });
     Object.keys(cfg.skillPowers || {}).forEach((powerId) => {
       const p = cfg.skillPowers[powerId];
-      const active = Game.SkillTrees.activePowers().find((a) => a.id === powerId);
+      const activeRemaining = activePowerMap[powerId] || 0;
       const cooldown = Game.SkillTrees.cooldownRemaining(powerId);
       const ready = Game.SkillTrees.canActivate(powerId);
-      const status = active ? "Active " + Math.ceil(active.remaining) + "s" : cooldown > 0 ? "Cooldown " + Math.ceil(cooldown) + "s" : "Ready";
+      const status = activeRemaining > 0 ? "Active " + Math.ceil(activeRemaining) + "s" : cooldown > 0 ? "Cooldown " + Math.ceil(cooldown) + "s" : "Ready";
       const row = make("div", "talent-power-row");
       row.innerHTML =
         '<div class="talent-power-info">' +
@@ -596,7 +600,7 @@
   UI.updateStocks = function () {
     if (!built.stocks || !UI._stockRows) return;
     const s = Game.state;
-    const mults = s._mult || { stockInsight: 0 };
+    const mults = s._mult || { stockInsight: 0, stockFeeReduction: 1 };
     const summary = el("stock-summary");
     summary.innerHTML =
       '<div class="stat-row"><span class="stat-key">Portfolio Value</span><span class="stat-val">' + fmt(Game.Stocks.portfolioValue()) + " coins</span></div>" +

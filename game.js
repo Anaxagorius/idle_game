@@ -261,7 +261,7 @@
     cfg.milestones.forEach((ml) => {
       if (s.milestones[ml.id]) msBonus += scaleBonus(ml.bonus);
     });
-    m.milestone = (1 + msBonus) * m.milestoneMult;
+    m.milestone = 1 + msBonus * m.milestoneMult;
 
     // Active events
     s.activeEvents.forEach((ev) => {

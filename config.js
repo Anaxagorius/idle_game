@@ -814,7 +814,7 @@ Object.keys(SKILL_TREE_NAMES).forEach((branch) => {
     const id = "skill_" + branch + "_" + index;
     const cost = Math.floor((SKILL_BASE_COST + index * SKILL_COST_INCREMENT) * (branch === "hashforge" ? HASHFORGE_COST_MULTIPLIER : 1));
     let desc = "";
-    if (effect.type === "buildingMult") desc = "+" + Math.round(effect.value * 100) + "% " + Game.config.buildingMap[effect.building].name + " output.";
+    if (effect.type === "buildingMult") desc = "+" + Math.round(effect.value * 100) + "% " + ((Game.config.buildingMap[effect.building] && Game.config.buildingMap[effect.building].name) || "Building") + " output.";
     else if (effect.type === "costReduction") desc = "-" + Math.round(effect.value * 100) + "% building/upgrade cost.";
     else if (effect.type === "globalMult") desc = "+" + Math.round(effect.value * 100) + "% global production.";
     else if (effect.type === "clickMult") desc = "+" + Math.round(effect.value * 100) + "% click value.";
@@ -853,15 +853,14 @@ SKILL_TREE_NODES.forEach((n) => {
   Game.config.skillTreeNodesByTree[n.tree].push(n);
 });
 
-const RESEARCH_BURST_COOLDOWN = 240;
-Game.config.RESEARCH_BURST_COOLDOWN = RESEARCH_BURST_COOLDOWN;
+Game.config.RESEARCH_BURST_COOLDOWN = 240;
 Game.config.skillPowers = {
   research_burst: {
     id: "research_burst",
     name: "Research Burst",
     desc: "Temporarily boosts RP gain and reduces global output.",
     duration: 30,
-    cooldown: RESEARCH_BURST_COOLDOWN,
+    cooldown: Game.config.RESEARCH_BURST_COOLDOWN,
     effects: [
       { type: "rpMult", mult: 2.2 },
       { type: "globalMult", mult: 0.9 },
