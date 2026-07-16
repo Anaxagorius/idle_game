@@ -289,7 +289,7 @@ Game.config.diplomacyActions = [
   },
 ];
 Game.config.diplomacyActionMap = {};
-Game.config.diplomacyActions.forEach((action) => {
+Game.config.diplomacyActions.forEach(function (action) {
   Game.config.diplomacyActionMap[action.id] = action;
 });
 

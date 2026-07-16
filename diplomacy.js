@@ -21,6 +21,12 @@
     return Math.max(0, -relation);
   }
 
+  function boundedTarget(base, terms, min, max) {
+    var total = base;
+    for (var i = 0; i < terms.length; i++) total += terms[i];
+    return clamp(total, min, max);
+  }
+
   function countyIndex(countyId) {
     for (var i = 0; i < MapData.COUNTIES.length; i++) {
       if (MapData.COUNTIES[i].id === countyId) return i;
@@ -333,26 +339,32 @@
       county.influence = clamp(county.influence - cfg.DIPLOMACY_INFLUENCE_DECAY * dt, cfg.DIPLOMACY_STAT_MIN, cfg.DIPLOMACY_STAT_MAX);
       county.intel = clamp(county.intel - cfg.DIPLOMACY_INTEL_DECAY * dt, cfg.DIPLOMACY_STAT_MIN, cfg.DIPLOMACY_STAT_MAX);
 
-      var prosperityTarget = clamp(
-        cfg.DIPLOMACY_PROSPERITY_TARGET_BASE +
-          county.relation * cfg.DIPLOMACY_PROSPERITY_RELATION_FACTOR -
-          county.suspicion * cfg.DIPLOMACY_PROSPERITY_SUSPICION_FACTOR,
+      var prosperityTarget = boundedTarget(
+        cfg.DIPLOMACY_PROSPERITY_TARGET_BASE,
+        [
+          county.relation * cfg.DIPLOMACY_PROSPERITY_RELATION_FACTOR,
+          -county.suspicion * cfg.DIPLOMACY_PROSPERITY_SUSPICION_FACTOR,
+        ],
         cfg.DIPLOMACY_PROSPERITY_TARGET_MIN,
         cfg.DIPLOMACY_PROSPERITY_TARGET_MAX
       );
-      var tradeTarget = clamp(
-        cfg.DIPLOMACY_TRADE_TARGET_BASE +
-          county.relation * cfg.DIPLOMACY_TRADE_RELATION_FACTOR +
-          county.influence * cfg.DIPLOMACY_TRADE_INFLUENCE_FACTOR -
-          county.suspicion * cfg.DIPLOMACY_TRADE_SUSPICION_FACTOR,
+      var tradeTarget = boundedTarget(
+        cfg.DIPLOMACY_TRADE_TARGET_BASE,
+        [
+          county.relation * cfg.DIPLOMACY_TRADE_RELATION_FACTOR,
+          county.influence * cfg.DIPLOMACY_TRADE_INFLUENCE_FACTOR,
+          -county.suspicion * cfg.DIPLOMACY_TRADE_SUSPICION_FACTOR,
+        ],
         cfg.DIPLOMACY_TRADE_TARGET_MIN,
         cfg.DIPLOMACY_TRADE_TARGET_MAX
       );
-      var relationTarget = clamp(
-        cfg.DIPLOMACY_RELATION_TARGET_BASE +
-          county.prosperity * cfg.DIPLOMACY_RELATION_PROSPERITY_FACTOR +
-          county.influence * cfg.DIPLOMACY_RELATION_INFLUENCE_FACTOR -
-          county.suspicion * cfg.DIPLOMACY_RELATION_SUSPICION_FACTOR,
+      var relationTarget = boundedTarget(
+        cfg.DIPLOMACY_RELATION_TARGET_BASE,
+        [
+          county.prosperity * cfg.DIPLOMACY_RELATION_PROSPERITY_FACTOR,
+          county.influence * cfg.DIPLOMACY_RELATION_INFLUENCE_FACTOR,
+          -county.suspicion * cfg.DIPLOMACY_RELATION_SUSPICION_FACTOR,
+        ],
         cfg.DIPLOMACY_RELATION_TARGET_MIN,
         cfg.DIPLOMACY_RELATION_TARGET_MAX
       );

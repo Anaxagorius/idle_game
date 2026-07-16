@@ -10,6 +10,8 @@
   var SVG_W = 780;
   var SVG_H = 400;
   var UI_SEPARATOR = ' • ';
+  var RIVAL_DIMMED_OPACITY = 0.62;
+  var NEMESIS_DIMMED_OPACITY = 0.72;
 
   /* ── helpers ───────────────────────────────────────────────────────────── */
   function svgEl(tag, attrs) {
@@ -46,6 +48,19 @@
 
   function statValue(value) {
     return Math.round(value || 0);
+  }
+
+  function countyRosterButtonHtml(row, countyState, status, isFocused) {
+    return `
+      <button class="county-roster-row county-roster-button${isFocused ? ' roster-focus' : ''}"
+        onclick="Game.MapUI.selectCountyDiplomacy('${row.county.id}')"
+        style="border-left:3px solid ${row.county.color}">
+        <span class="county-roster-main">
+          <span class="roster-county-name">${row.county.name}</span>
+          <span class="county-roster-meta">Trade +${Game.formatNumber(row.yield)}/s${UI_SEPARATOR}Suspicion ${statValue(countyState.suspicion)}</span>
+        </span>
+        <span class="county-status ${status.className}">${status.emoji} ${status.label}</span>
+      </button>`;
   }
 
   /* ── build the SVG map ─────────────────────────────────────────────────── */
@@ -121,7 +136,7 @@
       } else if (selectedCounty && !isSelector) {
         var status = diplomacyStatus(county.id);
         strokeColor = status.stroke || strokeColor;
-        countyOpacity = status.className === 'status-nemesis' ? 0.72 : 0.62;
+        countyOpacity = status.className === 'status-nemesis' ? NEMESIS_DIMMED_OPACITY : RIVAL_DIMMED_OPACITY;
       }
 
       var polyAttrs = {
@@ -549,16 +564,7 @@
       var countyState = row.state;
       var status = row.status;
       var isFocused = s.map && s.map.focusCounty === row.county.id;
-      html += `
-        <button class="county-roster-row county-roster-button${isFocused ? ' roster-focus' : ''}"
-          onclick="Game.MapUI.selectCountyDiplomacy('${row.county.id}')"
-          style="border-left:3px solid ${row.county.color}">
-          <span class="county-roster-main">
-            <span class="roster-county-name">${row.county.name}</span>
-            <span class="county-roster-meta">Trade +${Game.formatNumber(row.yield)}/s${UI_SEPARATOR}Suspicion ${statValue(countyState.suspicion)}</span>
-          </span>
-          <span class="county-status ${status.className}">${status.emoji} ${status.label}</span>
-        </button>`;
+      html += countyRosterButtonHtml(row, countyState, status, isFocused);
     }
     roster.innerHTML = html;
   };
