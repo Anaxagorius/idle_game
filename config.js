@@ -71,16 +71,16 @@ Game.config = {
    globalPenalty (also direct — the price of obsession).
    -------------------------------------------------------------------------- */
 Game.config.clickerUpgradeDefs = [
-  { name: "Calloused Fingers",  flavor: "Flesh yields. Coins do not.",                        clickBoost: 1.15, globalPenalty: 0.99 },
-  { name: "Knuckle Grease",     flavor: "Blood is currency. Joints are for the weak.",         clickBoost: 1.18, globalPenalty: 0.98 },
-  { name: "Torn Ligaments",     flavor: "The ache sharpens focus.",                            clickBoost: 1.22, globalPenalty: 0.97 },
-  { name: "Fractured Bones",    flavor: "Hairline cracks whisper of ambition.",                clickBoost: 1.26, globalPenalty: 0.96 },
-  { name: "Severed Tendons",    flavor: "Pain is a reminder you are still useful.",            clickBoost: 1.32, globalPenalty: 0.95 },
-  { name: "Crushed Nerves",     flavor: "Numbness is a gift. Work never stops.",               clickBoost: 1.38, globalPenalty: 0.94 },
-  { name: "Withered Grip",      flavor: "The hand forgets rest. So must you.",                 clickBoost: 1.45, globalPenalty: 0.93 },
-  { name: "Ruined Flesh",       flavor: "Bone and determination are all that remain.",         clickBoost: 1.55, globalPenalty: 0.92 },
-  { name: "Cursed Touch",       flavor: "Every coin carries a cost of flesh.",                 clickBoost: 1.65, globalPenalty: 0.91 },
-  { name: "Fist of Desperation",flavor: "Shattered. Relentless. Irreplaceable.",               clickBoost: 1.80, globalPenalty: 0.90 },
+  { name: "Calloused Fingers",   flavor: "Flesh yields. Coins do not.",                       clickBoost: 1.15, globalPenalty: 0.99 },
+  { name: "Knuckle Grease",      flavor: "Blood is currency. Joints are for the weak.",        clickBoost: 1.18, globalPenalty: 0.98 },
+  { name: "Torn Ligaments",      flavor: "The ache sharpens focus.",                           clickBoost: 1.22, globalPenalty: 0.97 },
+  { name: "Fractured Bones",     flavor: "Hairline cracks whisper of ambition.",               clickBoost: 1.26, globalPenalty: 0.96 },
+  { name: "Severed Tendons",     flavor: "Pain is a reminder you are still useful.",           clickBoost: 1.32, globalPenalty: 0.95 },
+  { name: "Crushed Nerves",      flavor: "Numbness is a gift. Work never stops.",              clickBoost: 1.38, globalPenalty: 0.94 },
+  { name: "Withered Grip",       flavor: "The hand forgets rest. So must you.",                clickBoost: 1.45, globalPenalty: 0.93 },
+  { name: "Ruined Flesh",        flavor: "Bone and determination are all that remain.",        clickBoost: 1.55, globalPenalty: 0.92 },
+  { name: "Cursed Touch",        flavor: "Every coin carries a cost of flesh.",                clickBoost: 1.65, globalPenalty: 0.91 },
+  { name: "Fist of Desperation", flavor: "Shattered. Relentless. Irreplaceable.",              clickBoost: 1.80, globalPenalty: 0.90 },
 ];
 
 Game.config.DIPLOMACY_RELATION_MIN = -100;

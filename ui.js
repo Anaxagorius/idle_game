@@ -71,6 +71,7 @@
     UI.buildResearchTabs();
     UI.wireSettings();
     UI.wirePrestigeButtons();
+    UI.wireClickerUpgrades();
 
     UI.showTab("economy");
     UI.update();
@@ -265,6 +266,16 @@
     });
   };
 
+  UI.wireClickerUpgrades = function () {
+    const container = el("clicker-upgrades");
+    if (!container) return;
+    container.addEventListener("click", (e) => {
+      if (e.target.closest("[data-cu-buy]")) {
+        if (Game.Buildings.buyClickerUpgrade()) UI.update();
+      }
+    });
+  };
+
   UI.updateClickerUpgrades = function () {
     const container = el("clicker-upgrades");
     if (!container) return;
@@ -291,10 +302,6 @@
         "</div>";
     }
     container.innerHTML = html;
-    if (!maxed) {
-      const btn = container.querySelector("[data-cu-buy]");
-      if (btn) btn.addEventListener("click", () => { if (Game.Buildings.buyClickerUpgrade()) UI.update(); });
-    }
   };
 
   /* ---------------------------------------------------------------------
