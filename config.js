@@ -58,7 +58,7 @@ Game.config = {
   BONUS_EFFECTIVENESS_MULT: 0.1,
   GAIN_EFFECTIVENESS_MULT: 0.1,
   // How many of the previous building are consumed to buy one current building, by target tier.
-  BUILDING_PREREQ_BY_TIER: { 1: 10, 2: 50, 3: 1000 },
+  BUILDING_PREREQ_BY_TIER: { 1: 10, 2: 50, 3: 200 },
 };
 
 /* --------------------------------------------------------------------------
@@ -223,7 +223,7 @@ BUILDING_DATA.forEach((b) => {
       name: names[i],
       threshold: UPGRADE_THRESHOLDS[i],
       cost: b.baseCost * UPGRADE_COST_FACTORS[i],
-      desc: "Doubles " + b.name + " production. Requires " + UPGRADE_THRESHOLDS[i] + " owned.",
+      desc: "+" + (Game.config.BONUS_EFFECTIVENESS_MULT * 100) + "% " + b.name + " production. Requires " + UPGRADE_THRESHOLDS[i] + " owned.",
     });
   }
 });
@@ -311,6 +311,13 @@ const branchEffectBase = {
   prestige: { type: "prestige", base: 0.2 },
 };
 
+/* Convert a raw bonus value to a display percentage string, rounded to one decimal place.
+   Raw values are multiplied by BONUS_EFFECTIVENESS_MULT before display so the shown
+   percentage matches the actual in-game effect computed by scaledMultiplierFromEffect. */
+function scaledDisplayPct(rawValue) {
+  return Math.round(rawValue * Game.config.BONUS_EFFECTIVENESS_MULT * 1000) / 10;
+}
+
 Object.keys(RESEARCH_BRANCHES).forEach((branchKey) => {
   const branch = RESEARCH_BRANCHES[branchKey];
   branch.nodes.forEach((node, i) => {
@@ -318,14 +325,15 @@ Object.keys(RESEARCH_BRANCHES).forEach((branchKey) => {
     const eff = branchEffectBase[branchKey];
     const id = branchKey + "_" + i;
     const value = eff.base * (1 + i * 0.15);
+    const scaledPct = scaledDisplayPct(value);
     let desc = "";
-    if (eff.type === "coin") desc = "+" + Math.round(value * 100) + "% coin income.";
-    else if (eff.type === "building") desc = "+" + Math.round(value * 100) + "% building production.";
-    else if (eff.type === "global") desc = "+" + Math.round(value * 100) + "% global production.";
-    else if (eff.type === "prestige") desc = "+" + Math.round(value * 100) + "% prestige points earned.";
+    if (eff.type === "coin") desc = "+" + scaledPct + "% coin income.";
+    else if (eff.type === "building") desc = "+" + scaledPct + "% building production.";
+    else if (eff.type === "global") desc = "+" + scaledPct + "% global production.";
+    else if (eff.type === "prestige") desc = "+" + scaledPct + "% prestige points earned.";
     else if (eff.type === "automation") {
       if (AUTOMATION_UNLOCKS[id]) desc = "Unlocks " + AUTOMATION_UNLOCKS[id] + " automation. ";
-      desc += "+" + Math.round(value * 100) + "% global production.";
+      desc += "+" + scaledPct + "% global production.";
     }
     RESEARCH.push({
       id,
@@ -478,12 +486,12 @@ Game.config.milestones = MILESTONES;
    Events
    -------------------------------------------------------------------------- */
 const EVENTS = [
-  { id: "golden", name: "Golden Coin", desc: "10x income!", duration: 30, weight: 25, kind: "coinMult", value: 10, color: "#f6c453" },
-  { id: "boom", name: "Market Boom", desc: "+200% production!", duration: 60, weight: 20, kind: "coinMult", value: 3, color: "#43aa8b" },
+  { id: "golden", name: "Golden Coin", desc: "+90% income!", duration: 30, weight: 25, kind: "coinMult", value: 10, color: "#f6c453" },
+  { id: "boom", name: "Market Boom", desc: "+20% production!", duration: 60, weight: 20, kind: "coinMult", value: 3, color: "#43aa8b" },
   { id: "breakthrough", name: "Scientific Breakthrough", desc: "+50 free RP!", duration: 0, weight: 20, kind: "instantRP", value: 50, color: "#4ea8de" },
   { id: "crisis", name: "Economic Crisis", desc: "-50% income!", duration: 30, weight: 15, kind: "coinMult", value: 0.5, color: "#e63946" },
-  { id: "cosmic", name: "Cosmic Alignment", desc: "+500% all production!", duration: 15, weight: 5, kind: "coinMult", value: 6, color: "#b388eb" },
-  { id: "surge", name: "Prestige Surge", desc: "+100% prestige points!", duration: 60, weight: 15, kind: "prestigeMult", value: 2, color: "#c77dff" },
+  { id: "cosmic", name: "Cosmic Alignment", desc: "+50% all production!", duration: 15, weight: 5, kind: "coinMult", value: 6, color: "#b388eb" },
+  { id: "surge", name: "Prestige Surge", desc: "+10% prestige points!", duration: 60, weight: 15, kind: "prestigeMult", value: 2, color: "#c77dff" },
 ];
 Game.config.events = EVENTS;
 Game.config.eventMinDelay = 120; // seconds
@@ -496,34 +504,34 @@ Game.config.eventMaxDelay = 300;
    Power effects use explicit `mult` values (direct multipliers, including penalties when mult < 1). */
 const TALENTS = [
   // Economics branch (10)
-  { id: "talent_econ_0", branch: "economics", name: "Legacy Ledger", cost: 10, type: "globalMult", value: 0.05, desc: "+5% global production.", requires: null },
-  { id: "talent_econ_1", branch: "economics", name: "Efficient Tribute", cost: 20, type: "prestigeGain", value: 0.1, desc: "+10% prestige points earned.", requires: "talent_econ_0" },
-  { id: "talent_econ_2", branch: "economics", name: "Investment Guild", cost: 35, type: "costReduction", value: 0.05, desc: "-5% building and upgrade costs.", requires: "talent_econ_1" },
-  { id: "talent_econ_3", branch: "economics", name: "Golden Touch", cost: 50, type: "clickMult", value: 0.2, desc: "+20% click value.", requires: "talent_econ_2" },
-  { id: "talent_econ_4", branch: "economics", name: "Compound Legacy", cost: 80, type: "globalMult", value: 0.08, desc: "+8% global production.", requires: "talent_econ_3" },
-  { id: "talent_econ_5", branch: "economics", name: "Prosperity Engines", cost: 120, type: "rpMult", value: 0.15, desc: "+15% research point gain.", requires: "talent_econ_4" },
-  { id: "talent_econ_6", branch: "economics", name: "Prestige Arbitrage", cost: 180, type: "prestigeGain", value: 0.15, desc: "+15% prestige points earned.", requires: "talent_econ_5" },
-  { id: "talent_econ_7", branch: "economics", name: "Lean Procurement", cost: 260, type: "costReduction", value: 0.06, desc: "-6% building and upgrade costs.", requires: "talent_econ_6" },
-  { id: "talent_econ_8", branch: "economics", name: "Hypercapitalism", cost: 380, type: "globalMult", value: 0.12, desc: "+12% global production.", requires: "talent_econ_7" },
-  { id: "talent_econ_9", branch: "economics", name: "Eternal Treasury", cost: 550, type: "clickMult", value: 0.35, desc: "+35% click value.", requires: "talent_econ_8" },
+  { id: "talent_econ_0", branch: "economics", name: "Legacy Ledger", cost: 10, type: "globalMult", value: 0.05, desc: "+0.5% global production.", requires: null },
+  { id: "talent_econ_1", branch: "economics", name: "Efficient Tribute", cost: 20, type: "prestigeGain", value: 0.1, desc: "+1% prestige points earned.", requires: "talent_econ_0" },
+  { id: "talent_econ_2", branch: "economics", name: "Investment Guild", cost: 35, type: "costReduction", value: 0.05, desc: "-0.5% building and upgrade costs.", requires: "talent_econ_1" },
+  { id: "talent_econ_3", branch: "economics", name: "Golden Touch", cost: 50, type: "clickMult", value: 0.2, desc: "+2% click value.", requires: "talent_econ_2" },
+  { id: "talent_econ_4", branch: "economics", name: "Compound Legacy", cost: 80, type: "globalMult", value: 0.08, desc: "+0.8% global production.", requires: "talent_econ_3" },
+  { id: "talent_econ_5", branch: "economics", name: "Prosperity Engines", cost: 120, type: "rpMult", value: 0.15, desc: "+1.5% research point gain.", requires: "talent_econ_4" },
+  { id: "talent_econ_6", branch: "economics", name: "Prestige Arbitrage", cost: 180, type: "prestigeGain", value: 0.15, desc: "+1.5% prestige points earned.", requires: "talent_econ_5" },
+  { id: "talent_econ_7", branch: "economics", name: "Lean Procurement", cost: 260, type: "costReduction", value: 0.06, desc: "-0.6% building and upgrade costs.", requires: "talent_econ_6" },
+  { id: "talent_econ_8", branch: "economics", name: "Hypercapitalism", cost: 380, type: "globalMult", value: 0.12, desc: "+1.2% global production.", requires: "talent_econ_7" },
+  { id: "talent_econ_9", branch: "economics", name: "Eternal Treasury", cost: 550, type: "clickMult", value: 0.35, desc: "+3.5% click value.", requires: "talent_econ_8" },
 
   // Industry branch (10)
-  { id: "talent_ind_0", branch: "industry", name: "Fertile Soil", cost: 15, type: "buildingMult", building: "farm", value: 0.25, desc: "+25% Farm output.", requires: null },
-  { id: "talent_ind_1", branch: "industry", name: "Deep Shafts", cost: 25, type: "buildingMult", building: "mine", value: 0.25, desc: "+25% Mine output.", requires: "talent_ind_0" },
-  { id: "talent_ind_2", branch: "industry", name: "Efficient Assembly", cost: 40, type: "buildingMult", building: "factory", value: 0.2, desc: "+20% Factory output.", requires: "talent_ind_1" },
-  { id: "talent_ind_3", branch: "industry", name: "Smart Grid", cost: 65, type: "buildingMult", building: "powerplant", value: 0.2, desc: "+20% Power Plant output.", requires: "talent_ind_2" },
-  { id: "talent_ind_4", branch: "industry", name: "Academic Grants", cost: 90, type: "buildingMult", building: "university", value: 0.25, desc: "+25% University output.", requires: "talent_ind_3" },
-  { id: "talent_ind_5", branch: "industry", name: "Quantum Servers", cost: 140, type: "buildingMult", building: "datacenter", value: 0.3, desc: "+30% Data Center output.", requires: "talent_ind_4" },
-  { id: "talent_ind_6", branch: "industry", name: "Orbital Logistics", cost: 220, type: "buildingMult", building: "spaceport", value: 0.3, desc: "+30% Space Port output.", requires: "talent_ind_5" },
-  { id: "talent_ind_7", branch: "industry", name: "Stellar Refinement", cost: 320, type: "buildingMult", building: "refinery", value: 0.35, desc: "+35% Refinery output.", requires: "talent_ind_6" },
-  { id: "talent_ind_8", branch: "industry", name: "Nexus Optimization", cost: 480, type: "buildingMult", building: "galacticnexus", value: 0.4, desc: "+40% Galactic Nexus output.", requires: "talent_ind_7" },
-  { id: "talent_ind_9", branch: "industry", name: "Interstellar Supply Chain", cost: 700, type: "globalMult", value: 0.15, desc: "+15% global production.", requires: "talent_ind_8" },
+  { id: "talent_ind_0", branch: "industry", name: "Fertile Soil", cost: 15, type: "buildingMult", building: "farm", value: 0.25, desc: "+2.5% Farm output.", requires: null },
+  { id: "talent_ind_1", branch: "industry", name: "Deep Shafts", cost: 25, type: "buildingMult", building: "mine", value: 0.25, desc: "+2.5% Mine output.", requires: "talent_ind_0" },
+  { id: "talent_ind_2", branch: "industry", name: "Efficient Assembly", cost: 40, type: "buildingMult", building: "factory", value: 0.2, desc: "+2% Factory output.", requires: "talent_ind_1" },
+  { id: "talent_ind_3", branch: "industry", name: "Smart Grid", cost: 65, type: "buildingMult", building: "powerplant", value: 0.2, desc: "+2% Power Plant output.", requires: "talent_ind_2" },
+  { id: "talent_ind_4", branch: "industry", name: "Academic Grants", cost: 90, type: "buildingMult", building: "university", value: 0.25, desc: "+2.5% University output.", requires: "talent_ind_3" },
+  { id: "talent_ind_5", branch: "industry", name: "Quantum Servers", cost: 140, type: "buildingMult", building: "datacenter", value: 0.3, desc: "+3% Data Center output.", requires: "talent_ind_4" },
+  { id: "talent_ind_6", branch: "industry", name: "Orbital Logistics", cost: 220, type: "buildingMult", building: "spaceport", value: 0.3, desc: "+3% Space Port output.", requires: "talent_ind_5" },
+  { id: "talent_ind_7", branch: "industry", name: "Stellar Refinement", cost: 320, type: "buildingMult", building: "refinery", value: 0.35, desc: "+3.5% Refinery output.", requires: "talent_ind_6" },
+  { id: "talent_ind_8", branch: "industry", name: "Nexus Optimization", cost: 480, type: "buildingMult", building: "galacticnexus", value: 0.4, desc: "+4% Galactic Nexus output.", requires: "talent_ind_7" },
+  { id: "talent_ind_9", branch: "industry", name: "Interstellar Supply Chain", cost: 700, type: "globalMult", value: 0.15, desc: "+1.5% global production.", requires: "talent_ind_8" },
 
   // Climate branch (4 passive + 6 active powers)
-  { id: "talent_climate_0", branch: "climate", name: "Weather Bureau", cost: 20, type: "rpMult", value: 0.1, desc: "+10% research point gain.", requires: null },
-  { id: "talent_climate_1", branch: "climate", name: "Forecasting Models", cost: 35, type: "globalMult", value: 0.06, desc: "+6% global production.", requires: "talent_climate_0" },
-  { id: "talent_climate_2", branch: "climate", name: "Seasonal Harvest", cost: 55, type: "buildingMult", building: "farm", value: 0.3, desc: "+30% Farm output.", requires: "talent_climate_1" },
-  { id: "talent_climate_3", branch: "climate", name: "Geological Survey", cost: 80, type: "buildingMult", building: "mine", value: 0.3, desc: "+30% Mine output.", requires: "talent_climate_2" },
+  { id: "talent_climate_0", branch: "climate", name: "Weather Bureau", cost: 20, type: "rpMult", value: 0.1, desc: "+1% research point gain.", requires: null },
+  { id: "talent_climate_1", branch: "climate", name: "Forecasting Models", cost: 35, type: "globalMult", value: 0.06, desc: "+0.6% global production.", requires: "talent_climate_0" },
+  { id: "talent_climate_2", branch: "climate", name: "Seasonal Harvest", cost: 55, type: "buildingMult", building: "farm", value: 0.3, desc: "+3% Farm output.", requires: "talent_climate_1" },
+  { id: "talent_climate_3", branch: "climate", name: "Geological Survey", cost: 80, type: "buildingMult", building: "mine", value: 0.3, desc: "+3% Mine output.", requires: "talent_climate_2" },
 
   {
     id: "talent_climate_4",
@@ -620,7 +628,7 @@ const TALENTS = [
     powerId: "quantum_storm",
     duration: 25,
     cooldown: 320,
-    desc: "Trigger a quantum storm: doubles global output and prestige gain, but weakens clicks.",
+    desc: "Trigger a quantum storm: +10% global output, +8% prestige gain, -5% click value.",
     requires: "talent_climate_8",
     effects: [
       { type: "globalMult", mult: 2.0 },
@@ -814,16 +822,16 @@ Object.keys(SKILL_TREE_NAMES).forEach((branch) => {
     const id = "skill_" + branch + "_" + index;
     const cost = Math.floor((SKILL_BASE_COST + index * SKILL_COST_INCREMENT) * (branch === "hashforge" ? HASHFORGE_COST_MULTIPLIER : 1));
     let desc = "";
-    if (effect.type === "buildingMult") desc = "+" + Math.round(effect.value * 100) + "% " + ((Game.config.buildingMap[effect.building] && Game.config.buildingMap[effect.building].name) || "Building") + " output.";
-    else if (effect.type === "costReduction") desc = "-" + Math.round(effect.value * 100) + "% building/upgrade cost.";
-    else if (effect.type === "globalMult") desc = "+" + Math.round(effect.value * 100) + "% global production.";
-    else if (effect.type === "clickMult") desc = "+" + Math.round(effect.value * 100) + "% click value.";
-    else if (effect.type === "rpMult") desc = "+" + Math.round(effect.value * 100) + "% research gain.";
-    else if (effect.type === "prestigeGain") desc = "+" + Math.round(effect.value * 100) + "% prestige gain.";
-    else if (effect.type === "milestoneMult") desc = "+" + Math.round(effect.value * 100) + "% milestone power.";
+    if (effect.type === "buildingMult") desc = "+" + scaledDisplayPct(effect.value) + "% " + ((Game.config.buildingMap[effect.building] && Game.config.buildingMap[effect.building].name) || "Building") + " output.";
+    else if (effect.type === "costReduction") desc = "-" + scaledDisplayPct(effect.value) + "% building/upgrade cost.";
+    else if (effect.type === "globalMult") desc = "+" + scaledDisplayPct(effect.value) + "% global production.";
+    else if (effect.type === "clickMult") desc = "+" + scaledDisplayPct(effect.value) + "% click value.";
+    else if (effect.type === "rpMult") desc = "+" + scaledDisplayPct(effect.value) + "% research gain.";
+    else if (effect.type === "prestigeGain") desc = "+" + scaledDisplayPct(effect.value) + "% prestige gain.";
+    else if (effect.type === "milestoneMult") desc = "+" + scaledDisplayPct(effect.value) + "% milestone power.";
     else if (effect.type === "eventDelayMult") desc = "Events occur more often.";
-    else if (effect.type === "minerEfficiency") desc = "+" + Math.round(effect.value * 100) + "% bitcoin miner efficiency.";
-    else if (effect.type === "btcPriceMult") desc = "+" + Math.round(effect.value * 100) + "% BTC sell value.";
+    else if (effect.type === "minerEfficiency") desc = "+" + scaledDisplayPct(effect.value) + "% bitcoin miner efficiency.";
+    else if (effect.type === "btcPriceMult") desc = "+" + scaledDisplayPct(effect.value) + "% BTC sell value.";
     else if (effect.type === "stockFeeReduction") desc = "Reduce stock trade fees.";
     else if (effect.type === "stockInsight") desc = "Unlock stock trend insight.";
     else if (effect.type === "clickCpsFractionMult") desc = "Clicks gain more from CPS.";
