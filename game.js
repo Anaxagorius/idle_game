@@ -12,6 +12,12 @@
   Game.defaultState = function () {
     const buildings = {};
     cfg.buildings.forEach((b) => (buildings[b.id] = 0));
+    const subBuildings = {};
+    const subBuildingUpgrades = {};
+    (cfg.subBuildings || []).forEach((sb) => {
+      subBuildings[sb.id] = 0;
+      subBuildingUpgrades[sb.id] = 0;
+    });
     return {
       coins: 0,
       lifetimeCoins: 0,
@@ -20,6 +26,8 @@
       researchPoints: 0,
       ascensionShards: 0,
       buildings,
+      subBuildings,
+      subBuildingUpgrades,
       upgrades: {},
       research: {},
       achievements: {},
@@ -133,6 +141,11 @@
       }
     }
 
+    function subBuildingEffectMultiplier(effectValue, owned, upgradeMult) {
+      const rawMult = 1 + effectValue * owned * upgradeMult;
+      return Math.max(cfg.MIN_BUILDING_MULTIPLIER, rawMult);
+    }
+
     // Research effects
     cfg.research.forEach((r) => {
       if (!s.research[r.id]) return;
@@ -196,6 +209,19 @@
       const def = cfg.talentPowerMap[p.id];
       if (!def || !def.effects) return;
       def.effects.forEach((effect) => applyEffect(effect));
+    });
+
+    // Sub-building specialization effects
+    (cfg.subBuildings || []).forEach((sb) => {
+      const owned = s.subBuildings && s.subBuildings[sb.id] ? s.subBuildings[sb.id] : 0;
+      if (!owned) return;
+      const level = Math.max(0, Math.min(cfg.SUB_BUILDING_MAX_UPGRADES, (s.subBuildingUpgrades && s.subBuildingUpgrades[sb.id]) || 0));
+      const upgradeMult = 1 + level * cfg.SUB_BUILDING_UPGRADE_STEP;
+      sb.effects.forEach((effect) => {
+        const effectMult = subBuildingEffectMultiplier(effect.value, owned, upgradeMult);
+        const current = m.buildingMult[effect.target] || 1;
+        m.buildingMult[effect.target] = current * effectMult;
+      });
     });
 
     // 0.1 multiplier = maximum 90% total cost reduction.

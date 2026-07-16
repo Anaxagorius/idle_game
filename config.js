@@ -117,6 +117,100 @@ Game.config.buildings = BUILDING_DATA;
 Game.config.buildingMap = {};
 BUILDING_DATA.forEach((b) => (Game.config.buildingMap[b.id] = b));
 
+/* --------------------------------------------------------------------------
+   Sub-buildings (3 per non-worker building)
+   -------------------------------------------------------------------------- */
+const SUB_BUILDING_PARENT_COST = 1;
+const SUB_BUILDING_MAX_UPGRADES = 2;
+const SUB_BUILDING_UPGRADE_STEP = 0.35;
+const MIN_BUILDING_MULTIPLIER = 0.1;
+const SUB_BUILDING_UPGRADE_COST_FACTORS = [12, 60];
+// Sub-building effects are intentionally tuned as moderate tradeoffs:
+// each option gives a meaningful boost while applying a smaller penalty.
+const SUB_BUILDING_EFFECT_SETS = [
+  [{ self: 0.12 }, { next: -0.04 }],
+  [{ prev: 0.08 }, { self: 0.06 }, { next: -0.06 }],
+  [{ self: 0.14 }, { prev: -0.07 }],
+];
+const DEFAULT_SUB_NAMES = ["Specialization Wing", "Optimization Hub", "Tradeoff Module"];
+const SUB_BUILDING_NAMES = {
+  farm: ["Silo", "Tractor Garage", "Animal Husbandry"],
+  mine: ["Coal Shaft", "Iron Pit", "Gold Vein"],
+  factory: ["Assembly Cell", "Machine Shop", "Foundry Line"],
+  bank: ["Vault Wing", "Loan Office", "Trading Desk"],
+  corporation: ["Regional HQ", "Logistics Hub", "Media Division"],
+  laboratory: ["Test Rig", "Clean Room", "Prototype Bay"],
+  powerplant: ["Boiler Hall", "Turbine Wing", "Storage Grid"],
+  refinery: ["Cracker Unit", "Blend Tower", "Catalyst Lab"],
+  shipyard: ["Slipway", "Dock Crane", "Hull Forge"],
+  university: ["Campus Annex", "Research Wing", "Scholar Guild"],
+  datacenter: ["Server Cluster", "Cooling Plant", "AI Rack"],
+  spaceport: ["Fuel Depot", "Orbital Pad", "Cargo Terminal"],
+  orbital: ["Solar Ring", "Habitat Node", "Dock Ring"],
+  mooncolony: ["Ice Extractor", "Lunar Dome", "Helium Trench"],
+  marscolony: ["Green Dome", "Dust Processor", "Drone Depot"],
+  dysonswarm: ["Collector Array", "Relay Node", "Forge Pod"],
+  galacticnexus: ["Trade Spire", "Warp Anchor", "Council Core"],
+};
+
+function formatSignedPercentage(v) {
+  const percent = v * 100;
+  const rounded = Number.isInteger(percent) ? percent.toFixed(0) : percent.toFixed(1);
+  return (v >= 0 ? "+" : "") + rounded + "%";
+}
+function wrapIndex(index, length) {
+  return (index + length) % length;
+}
+function subDesc(effects, nameMap) {
+  return effects
+    .map((e) => formatSignedPercentage(e.value) + " " + nameMap[e.target])
+    .join(" • ");
+}
+
+const SUB_BUILDINGS = [];
+const subParents = BUILDING_DATA.filter((b) => b.id !== "worker");
+const subNameMap = {};
+BUILDING_DATA.forEach((b) => {
+  subNameMap[b.id] = b.name;
+});
+subParents.forEach((b, i) => {
+  const prev = subParents[wrapIndex(i - 1, subParents.length)];
+  const next = subParents[wrapIndex(i + 1, subParents.length)];
+  const names = SUB_BUILDING_NAMES[b.id] || DEFAULT_SUB_NAMES;
+  const effectSets = SUB_BUILDING_EFFECT_SETS.map((set) =>
+    set.map((effect) => ({
+      target: effect.self !== undefined ? b.id : effect.prev !== undefined ? prev.id : next.id,
+      value: effect.self !== undefined ? effect.self : effect.prev !== undefined ? effect.prev : effect.next,
+    }))
+  );
+  for (let subIndex = 0; subIndex < 3; subIndex++) {
+    const effects = effectSets[subIndex];
+    SUB_BUILDINGS.push({
+      id: b.id + "_sub" + subIndex,
+      parent: b.id,
+      index: subIndex,
+      name: names[subIndex] || DEFAULT_SUB_NAMES[subIndex],
+      parentCost: SUB_BUILDING_PARENT_COST,
+      effects,
+      desc: subDesc(effects, subNameMap),
+      upgradeCosts: SUB_BUILDING_UPGRADE_COST_FACTORS.map((factor) => b.baseCost * factor),
+    });
+  }
+});
+
+Game.config.SUB_BUILDING_PARENT_COST = SUB_BUILDING_PARENT_COST;
+Game.config.SUB_BUILDING_MAX_UPGRADES = SUB_BUILDING_MAX_UPGRADES;
+Game.config.SUB_BUILDING_UPGRADE_STEP = SUB_BUILDING_UPGRADE_STEP;
+Game.config.MIN_BUILDING_MULTIPLIER = MIN_BUILDING_MULTIPLIER;
+Game.config.subBuildings = SUB_BUILDINGS;
+Game.config.subBuildingMap = {};
+Game.config.subBuildingsByParent = {};
+SUB_BUILDINGS.forEach((sb) => {
+  Game.config.subBuildingMap[sb.id] = sb;
+  if (!Game.config.subBuildingsByParent[sb.parent]) Game.config.subBuildingsByParent[sb.parent] = [];
+  Game.config.subBuildingsByParent[sb.parent].push(sb);
+});
+
 /* Build the full upgrade list (108) */
 const UPGRADES = [];
 BUILDING_DATA.forEach((b) => {

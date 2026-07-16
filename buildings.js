@@ -124,6 +124,80 @@
   };
 
   /* ---------------------------------------------------------------------
+     Sub-buildings
+     --------------------------------------------------------------------- */
+  Buildings.subBuildingsForParent = function (buildingId) {
+    return cfg.subBuildingsByParent[buildingId] || [];
+  };
+  function normalizeSubAmount(amountArg) {
+    if (amountArg === undefined || amountArg === null) return 1;
+    return Math.max(0, Math.floor(amountArg));
+  }
+
+  Buildings.allocatedParentUnits = function (buildingId) {
+    const subs = Buildings.subBuildingsForParent(buildingId);
+    return subs.reduce((sum, sb) => sum + (Game.state.subBuildings[sb.id] || 0), 0);
+  };
+
+  Buildings.availableParentUnits = function (buildingId) {
+    const owned = Game.state.buildings[buildingId] || 0;
+    const allocated = Buildings.allocatedParentUnits(buildingId);
+    return Math.max(0, owned - allocated);
+  };
+
+  Buildings.canBuySubBuilding = function (subId, amountArg) {
+    const sb = cfg.subBuildingMap[subId];
+    if (!sb) return false;
+    const amount = normalizeSubAmount(amountArg);
+    if (amount <= 0) return false;
+    return Buildings.availableParentUnits(sb.parent) >= amount;
+  };
+
+  Buildings.buySubBuilding = function (subId, amountArg) {
+    const sb = cfg.subBuildingMap[subId];
+    if (!sb) return 0;
+    const amount = normalizeSubAmount(amountArg);
+    if (amount <= 0) return 0;
+    const available = Buildings.availableParentUnits(sb.parent);
+    const bought = Math.min(amount, available);
+    if (bought <= 0) return 0;
+    Game.state.subBuildings[sb.id] = (Game.state.subBuildings[sb.id] || 0) + bought;
+    Game.recalculate();
+    return bought;
+  };
+
+  Buildings.subUpgradeLevel = function (subId) {
+    return Math.max(0, (Game.state.subBuildingUpgrades && Game.state.subBuildingUpgrades[subId]) || 0);
+  };
+
+  Buildings.subUpgradeCost = function (subId) {
+    const sb = cfg.subBuildingMap[subId];
+    if (!sb) return Infinity;
+    const level = Buildings.subUpgradeLevel(subId);
+    if (level >= cfg.SUB_BUILDING_MAX_UPGRADES) return Infinity;
+    const reduction = (Game.state._mult && Game.state._mult.costReduction) || 1;
+    return sb.upgradeCosts[level] * reduction;
+  };
+
+  Buildings.canUpgradeSubBuilding = function (subId) {
+    const sb = cfg.subBuildingMap[subId];
+    if (!sb) return false;
+    const level = Buildings.subUpgradeLevel(subId);
+    if (level >= cfg.SUB_BUILDING_MAX_UPGRADES) return false;
+    return Game.state.coins >= Buildings.subUpgradeCost(subId);
+  };
+
+  Buildings.upgradeSubBuilding = function (subId) {
+    if (!Buildings.canUpgradeSubBuilding(subId)) return false;
+    const cost = Buildings.subUpgradeCost(subId);
+    Game.state.coins -= cost;
+    Game.state.stats.totalCoinsSpent += cost;
+    Game.state.subBuildingUpgrades[subId] = Buildings.subUpgradeLevel(subId) + 1;
+    Game.recalculate();
+    return true;
+  };
+
+  /* ---------------------------------------------------------------------
      Upgrades
      --------------------------------------------------------------------- */
   Buildings.upgradeUnlocked = function (upgradeId) {
