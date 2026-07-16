@@ -161,7 +161,7 @@
       var county = counties[ids[i]];
       totalCps += Diplomacy.countyYield(ids[i], county);
       totalIntel += county.intel;
-      hostility += Math.max(0, -county.relation) + county.suspicion * 0.3;
+      hostility += Math.max(0, -county.relation) + county.suspicion * cfg.DIPLOMACY_SUSPICION_HOSTILITY_WEIGHT;
       totalInfluence += county.influence * Math.max(0, county.relation + 25) / 125;
     }
     return {
@@ -303,9 +303,29 @@
       county.influence = clamp(county.influence - cfg.DIPLOMACY_INFLUENCE_DECAY * dt, cfg.DIPLOMACY_STAT_MIN, cfg.DIPLOMACY_STAT_MAX);
       county.intel = clamp(county.intel - cfg.DIPLOMACY_INTEL_DECAY * dt, cfg.DIPLOMACY_STAT_MIN, cfg.DIPLOMACY_STAT_MAX);
 
-      var prosperityTarget = clamp(44 + county.relation * 0.12 - county.suspicion * 0.1, 18, 82);
-      var tradeTarget = clamp(32 + county.relation * 0.16 + county.influence * 0.08 - county.suspicion * 0.08, 10, 88);
-      var relationTarget = clamp(-20 + county.prosperity * 0.45 + county.influence * 0.2 - county.suspicion * 0.5, -55, 35);
+      var prosperityTarget = clamp(
+        cfg.DIPLOMACY_PROSPERITY_TARGET_BASE +
+          county.relation * cfg.DIPLOMACY_PROSPERITY_RELATION_FACTOR -
+          county.suspicion * cfg.DIPLOMACY_PROSPERITY_SUSPICION_FACTOR,
+        cfg.DIPLOMACY_PROSPERITY_TARGET_MIN,
+        cfg.DIPLOMACY_PROSPERITY_TARGET_MAX
+      );
+      var tradeTarget = clamp(
+        cfg.DIPLOMACY_TRADE_TARGET_BASE +
+          county.relation * cfg.DIPLOMACY_TRADE_RELATION_FACTOR +
+          county.influence * cfg.DIPLOMACY_TRADE_INFLUENCE_FACTOR -
+          county.suspicion * cfg.DIPLOMACY_TRADE_SUSPICION_FACTOR,
+        cfg.DIPLOMACY_TRADE_TARGET_MIN,
+        cfg.DIPLOMACY_TRADE_TARGET_MAX
+      );
+      var relationTarget = clamp(
+        cfg.DIPLOMACY_RELATION_TARGET_BASE +
+          county.prosperity * cfg.DIPLOMACY_RELATION_PROSPERITY_FACTOR +
+          county.influence * cfg.DIPLOMACY_RELATION_INFLUENCE_FACTOR -
+          county.suspicion * cfg.DIPLOMACY_RELATION_SUSPICION_FACTOR,
+        cfg.DIPLOMACY_RELATION_TARGET_MIN,
+        cfg.DIPLOMACY_RELATION_TARGET_MAX
+      );
 
       county.prosperity = clamp(
         county.prosperity + Math.max(-cfg.DIPLOMACY_PROSPERITY_SWING * dt, Math.min(cfg.DIPLOMACY_PROSPERITY_SWING * dt, prosperityTarget - county.prosperity)),

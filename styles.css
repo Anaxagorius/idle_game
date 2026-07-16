@@ -888,6 +888,7 @@ textarea#save-string {
   cursor: pointer;
 }
 .county-roster-button:hover,
+.county-roster-button:focus-visible,
 .county-roster-button.roster-focus {
   border-color: var(--gold);
   transform: translateY(-1px);
@@ -964,6 +965,7 @@ textarea#save-string {
   cursor: pointer;
 }
 .diplo-action-card:hover { border-color: var(--gold); transform: translateY(-1px); }
+.diplo-action-card:focus-visible { border-color: var(--gold); transform: translateY(-1px); outline: none; }
 .diplo-action-card.disabled {
   opacity: 0.6;
   border-color: var(--border);

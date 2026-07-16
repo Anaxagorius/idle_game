@@ -9,6 +9,7 @@
 
   var SVG_W = 780;
   var SVG_H = 400;
+  var UI_SEPARATOR = ' • ';
 
   /* ── helpers ───────────────────────────────────────────────────────────── */
   function svgEl(tag, attrs) {
@@ -554,7 +555,7 @@
           'style="border-left:3px solid ' + row.county.color + '">' +
           '<span class="county-roster-main">' +
             '<span class="roster-county-name">' + row.county.name + '</span>' +
-            '<span class="county-roster-meta">Trade +' + Game.formatNumber(row.yield) + '/s • Suspicion ' + statValue(countyState.suspicion) + '</span>' +
+            '<span class="county-roster-meta">Trade +' + Game.formatNumber(row.yield) + '/s' + UI_SEPARATOR + 'Suspicion ' + statValue(countyState.suspicion) + '</span>' +
           '</span>' +
           '<span class="county-status ' + status.className + '">' + status.emoji + ' ' + status.label + '</span>' +
         '</button>';
@@ -596,7 +597,7 @@
           'onclick="Game.MapUI.runDiplomacyAction(\'' + countyId + '\', \'' + action.id + '\')">' +
           '<span class="diplo-action-name">' + action.name + '</span>' +
           '<span class="diplo-action-desc">' + action.desc + '</span>' +
-          '<span class="diplo-action-cost">' + costBits.join(' • ') + ' • ' + Game.formatTime(action.cooldown || 0) + ' cd</span>' +
+          '<span class="diplo-action-cost">' + costBits.join(UI_SEPARATOR) + UI_SEPARATOR + Game.formatTime(action.cooldown || 0) + ' cd</span>' +
           '<span class="diplo-action-state">' + (availability.ok ? 'Ready' : availability.reason) + '</span>' +
         '</button>'
       );
