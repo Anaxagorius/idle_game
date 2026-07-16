@@ -973,7 +973,7 @@ textarea#save-string {
   cursor: not-allowed;
 }
 .diplo-action-name { font-weight: 700; color: var(--cyan); }
-/* Keep room for roughly 2-3 lines so action cards stay aligned in the grid. */
+/* Keep roughly 34px of room for 2-3 description lines so action cards stay aligned in the grid. */
 .diplo-action-desc { font-size: 12px; color: var(--muted); min-height: var(--diplo-action-desc-min-height); }
 .diplo-action-cost,
 .diplo-action-state { font-size: 11px; color: var(--gold-2); }

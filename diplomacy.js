@@ -27,6 +27,10 @@
     return clamp(total, min, max);
   }
 
+  function moveTowardsTarget(current, target, maxDelta) {
+    return current + Math.max(-maxDelta, Math.min(maxDelta, target - current));
+  }
+
   function countyIndex(countyId) {
     for (var i = 0; i < MapData.COUNTIES.length; i++) {
       if (MapData.COUNTIES[i].id === countyId) return i;
@@ -113,7 +117,7 @@
         coins = county.trade * 10 + county.prosperity * 5;
         break;
       case "smuggling_ring":
-        coins = county.trade * county.prosperity * 0.32;
+        coins = county.trade * county.prosperity * cfg.DIPLOMACY_SMUGGLING_REWARD_MULT;
         break;
       case "joint_venture":
         coins = county.trade * 22 + county.prosperity * 16;
@@ -369,21 +373,9 @@
         cfg.DIPLOMACY_RELATION_TARGET_MAX
       );
 
-      county.prosperity = clamp(
-        county.prosperity + Math.max(-cfg.DIPLOMACY_PROSPERITY_SWING * dt, Math.min(cfg.DIPLOMACY_PROSPERITY_SWING * dt, prosperityTarget - county.prosperity)),
-        cfg.DIPLOMACY_STAT_MIN,
-        cfg.DIPLOMACY_STAT_MAX
-      );
-      county.trade = clamp(
-        county.trade + Math.max(-cfg.DIPLOMACY_TRADE_SWING * dt, Math.min(cfg.DIPLOMACY_TRADE_SWING * dt, tradeTarget - county.trade)),
-        cfg.DIPLOMACY_STAT_MIN,
-        cfg.DIPLOMACY_STAT_MAX
-      );
-      county.relation = clamp(
-        county.relation + Math.max(-cfg.DIPLOMACY_RELATION_DECAY * dt, Math.min(cfg.DIPLOMACY_RELATION_DECAY * dt, relationTarget - county.relation)),
-        cfg.DIPLOMACY_RELATION_MIN,
-        cfg.DIPLOMACY_RELATION_MAX
-      );
+      county.prosperity = clamp(moveTowardsTarget(county.prosperity, prosperityTarget, cfg.DIPLOMACY_PROSPERITY_SWING * dt), cfg.DIPLOMACY_STAT_MIN, cfg.DIPLOMACY_STAT_MAX);
+      county.trade = clamp(moveTowardsTarget(county.trade, tradeTarget, cfg.DIPLOMACY_TRADE_SWING * dt), cfg.DIPLOMACY_STAT_MIN, cfg.DIPLOMACY_STAT_MAX);
+      county.relation = clamp(moveTowardsTarget(county.relation, relationTarget, cfg.DIPLOMACY_RELATION_DECAY * dt), cfg.DIPLOMACY_RELATION_MIN, cfg.DIPLOMACY_RELATION_MAX);
     }
   };
 

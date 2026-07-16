@@ -7,8 +7,8 @@
   var MapData = Game.Map;
   var MapUI = {};
 
-  var SVG_W = 780;
-  var SVG_H = 400;
+  var SVG_WIDTH = 780;
+  var SVG_HEIGHT = 400;
   var UI_SEPARATOR = ' • ';
   var RIVAL_DIMMED_OPACITY = 0.62;
   var NEMESIS_DIMMED_OPACITY = 0.72;
@@ -79,7 +79,7 @@
     var svgId = isMini ? 'mini-map-svg' : isSelector ? 'selector-map-svg' : 'full-map-svg';
 
     var svg = svgEl('svg', {
-      viewBox: '0 0 ' + SVG_W + ' ' + SVG_H,
+      viewBox: '0 0 ' + SVG_WIDTH + ' ' + SVG_HEIGHT,
       width: '100%',
       class: 'ns-map ns-map--' + mode,
       id: svgId,
@@ -91,7 +91,7 @@
 
     // Ocean background
     svg.appendChild(svgEl('rect', {
-      x: 0, y: 0, width: SVG_W, height: SVG_H,
+      x: 0, y: 0, width: SVG_WIDTH, height: SVG_HEIGHT,
       fill: '#1a4a6e', rx: 8,
     }));
 
@@ -105,7 +105,7 @@
     // Province title (full / selector)
     if (!isMini) {
       var title = svgEl('text', {
-        x: SVG_W / 2, y: 18,
+        x: SVG_WIDTH / 2, y: 18,
         'text-anchor': 'middle',
         fill: '#e6ecff',
         'font-size': 13,
@@ -228,7 +228,7 @@
     // Compass rose (full only)
     if (isFull) {
       var compass = svgEl('text', {
-        x: SVG_W - 16, y: SVG_H - 10,
+        x: SVG_WIDTH - 16, y: SVG_HEIGHT - 10,
         'text-anchor': 'end',
         fill: '#e6ecff',
         'font-size': 11,
@@ -603,7 +603,7 @@
           'onclick="Game.MapUI.runDiplomacyAction(\'' + countyId + '\', \'' + action.id + '\')">' +
           '<span class="diplo-action-name">' + action.name + '</span>' +
           '<span class="diplo-action-desc">' + action.desc + '</span>' +
-          '<span class="diplo-action-cost">' + costBits.join(UI_SEPARATOR) + UI_SEPARATOR + Game.formatTime(action.cooldown || 0) + ' cd</span>' +
+          '<span class="diplo-action-cost">' + costBits.join(UI_SEPARATOR) + UI_SEPARATOR + Game.formatTime(action.cooldown || 0) + ' cooldown</span>' +
           '<span class="diplo-action-state">' + (availability.ok ? 'Ready' : availability.reason) + '</span>' +
         '</button>'
       );
