@@ -419,8 +419,8 @@
         let actionText = "";
         if (owned) actionText = "Unlocked";
         else if (!available) actionText = "Requires prior node";
-        else if (affordable) actionText = "Buy " + fmt(n.cost) + " PP";
-        else actionText = "Need " + fmt(n.cost) + " PP";
+        else if (affordable) actionText = "Buy " + fmt(n.cost) + " Prestige";
+        else actionText = "Need " + fmt(n.cost) + " Prestige";
         const card = make("div", "skill-node" + (owned ? " purchased" : available ? "" : " locked"));
         card.style.borderColor = owned ? "#43aa8b" : tree.color;
         card.innerHTML =
@@ -596,7 +596,7 @@
   UI.updateStocks = function () {
     if (!built.stocks || !UI._stockRows) return;
     const s = Game.state;
-    const mults = s._mult || Game.computeMultipliers();
+    const mults = s._mult || { stockInsight: 0 };
     const summary = el("stock-summary");
     summary.innerHTML =
       '<div class="stat-row"><span class="stat-key">Portfolio Value</span><span class="stat-val">' + fmt(Game.Stocks.portfolioValue()) + " coins</span></div>" +

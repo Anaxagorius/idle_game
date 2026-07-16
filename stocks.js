@@ -20,9 +20,8 @@
   }
 
   Stocks.feeRate = function () {
-    const mults = Game.state._mult || Game.computeMultipliers();
-    const reduction = Math.max(0, 1 - ((mults.stockFeeReduction || 1) - 1));
-    return Math.max(0, cfg.STOCK_TRADING_FEE * reduction);
+    const mults = Game.state._mult || { stockFeeReduction: 1 };
+    return Math.max(0, cfg.STOCK_TRADING_FEE / Math.max(1, mults.stockFeeReduction || 1));
   };
 
   Stocks.buy = function (stockId, shares) {
@@ -89,8 +88,8 @@
       s.stockTickTimer -= cfg.STOCK_TICK_SECONDS;
       const marketEventRoll = Math.random();
       let eventShift = 0;
-      if (marketEventRoll < 0.03) eventShift = -0.08;
-      else if (marketEventRoll > 0.97) eventShift = 0.1;
+      if (marketEventRoll < cfg.STOCK_EVENT_BEAR_CHANCE) eventShift = cfg.STOCK_EVENT_BEAR_SHIFT;
+      else if (marketEventRoll > cfg.STOCK_EVENT_BULL_CHANCE) eventShift = cfg.STOCK_EVENT_BULL_SHIFT;
       cfg.stocks.forEach((st) => {
         const price = s.stocks[st.id];
         const sectorDrift = st.drift + (Math.random() - 0.5) * st.volatility;

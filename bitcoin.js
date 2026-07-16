@@ -70,14 +70,14 @@
     const use = Bitcoin.energyConsumption();
     const prod = Bitcoin.energyProduction();
     const ratio = use <= 0 ? 1 : Math.min(1, Math.max(0, prod / use));
-    const mults = s._mult || Game.computeMultipliers();
+    const mults = s._mult || { minerEfficiency: 1 };
     return base * ratio * (mults.minerEfficiency || 1);
   };
 
   Bitcoin.sellAll = function () {
     const s = Game.state;
     if (s.btc <= 0) return false;
-    const mults = s._mult || Game.computeMultipliers();
+    const mults = s._mult || { btcPriceMult: 1 };
     const revenue = s.btc * s.btcPrice * (mults.btcPriceMult || 1);
     s.coins += revenue;
     s.lifetimeCoins += revenue;
@@ -100,7 +100,7 @@
     s.btcMarketTime = (s.btcMarketTime || 0) + dtSeconds;
     const osc = Math.sin(s.btcMarketTime / cfg.BTC_PRICE_OSCILLATION_PERIOD) * cfg.BTC_PRICE_OSCILLATION;
     const noise = (Math.random() - 0.5) * cfg.BTC_PRICE_VOLATILITY;
-    s.btcPrice *= 1 + osc * cfg.BTC_PRICE_OSC_SCALE + noise * cfg.BTC_PRICE_NOISE_SCALE;
+    s.btcPrice *= 1 + osc + noise;
     s.btcPrice = Math.max(cfg.BTC_MIN_PRICE, Math.min(cfg.BTC_MAX_PRICE, s.btcPrice));
   };
 

@@ -803,12 +803,15 @@ const SKILL_TREE_EFFECTS = {
   ],
 };
 
+const SKILL_BASE_COST = 12;
+const SKILL_COST_INCREMENT = 8;
+const HASHFORGE_COST_MULTIPLIER = 1.05;
 const SKILL_TREE_NODES = [];
 Object.keys(SKILL_TREE_NAMES).forEach((branch) => {
   SKILL_TREE_NAMES[branch].forEach((name, index) => {
     const effect = SKILL_TREE_EFFECTS[branch][index];
     const id = "skill_" + branch + "_" + index;
-    const cost = Math.floor((12 + index * 8) * (branch === "hashforge" ? 1.05 : 1));
+    const cost = Math.floor((SKILL_BASE_COST + index * SKILL_COST_INCREMENT) * (branch === "hashforge" ? HASHFORGE_COST_MULTIPLIER : 1));
     let desc = "";
     if (effect.type === "buildingMult") desc = "+" + Math.round(effect.value * 100) + "% " + Game.config.buildingMap[effect.building].name + " output.";
     else if (effect.type === "costReduction") desc = "-" + Math.round(effect.value * 100) + "% building/upgrade cost.";
@@ -899,8 +902,6 @@ Game.config.BTC_MAX_PRICE = 300000;
 Game.config.BTC_PRICE_OSCILLATION = 0.12;
 Game.config.BTC_PRICE_VOLATILITY = 0.05;
 Game.config.BTC_PRICE_OSCILLATION_PERIOD = 20;
-Game.config.BTC_PRICE_OSC_SCALE = 0.1;
-Game.config.BTC_PRICE_NOISE_SCALE = 0.03;
 
 /* --------------------------------------------------------------------------
    Stock Market
@@ -924,6 +925,10 @@ Game.config.STOCK_TRADING_FEE = 0.01;
 Game.config.STOCK_DIVIDEND_SECONDS = 30;
 Game.config.STOCK_DIVIDEND_PRICE_THRESHOLD_MULT = 1.1;
 Game.config.STOCK_DIVIDEND_RATE = 0.0005;
+Game.config.STOCK_EVENT_BEAR_CHANCE = 0.03;
+Game.config.STOCK_EVENT_BULL_CHANCE = 0.97;
+Game.config.STOCK_EVENT_BEAR_SHIFT = -0.08;
+Game.config.STOCK_EVENT_BULL_SHIFT = 0.1;
 
 Game.config.MIN_EVENT_DELAY_MULT = 0.5;
 Game.config.MAX_EVENT_DELAY_MULT = 1.5;
