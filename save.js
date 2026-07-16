@@ -73,6 +73,7 @@
     if (!fresh.energyProducers || typeof fresh.energyProducers !== "object") fresh.energyProducers = {};
     if (!fresh.btcMiners || typeof fresh.btcMiners !== "object") fresh.btcMiners = {};
     if (!fresh.batteries || typeof fresh.batteries !== "object") fresh.batteries = {};
+    if (!fresh.coinFarmers || typeof fresh.coinFarmers !== "object") fresh.coinFarmers = {};
     if (!fresh.stocks || typeof fresh.stocks !== "object") fresh.stocks = {};
     if (!fresh.stockHistory || typeof fresh.stockHistory !== "object") fresh.stockHistory = {};
     if (!fresh.portfolio || typeof fresh.portfolio !== "object") fresh.portfolio = {};
@@ -84,6 +85,9 @@
     });
     (cfg.batteries || []).forEach((b) => {
       if (typeof fresh.batteries[b.id] !== "number") fresh.batteries[b.id] = 0;
+    });
+    (cfg.coinFarmers || []).forEach((f) => {
+      if (typeof fresh.coinFarmers[f.id] !== "number") fresh.coinFarmers[f.id] = 0;
     });
     (cfg.stocks || []).forEach((st) => {
       if (typeof fresh.stocks[st.id] !== "number") fresh.stocks[st.id] = st.basePrice;

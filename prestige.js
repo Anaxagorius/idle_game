@@ -28,6 +28,7 @@
     (cfg.energyProducers || []).forEach((p) => (s.energyProducers[p.id] = 0));
     (cfg.btcMiners || []).forEach((m) => (s.btcMiners[m.id] = 0));
     (cfg.batteries || []).forEach((b) => (s.batteries[b.id] = 0));
+    (cfg.coinFarmers || []).forEach((f) => (s.coinFarmers[f.id] = 0));
     s.energyCap = cfg.BTC_BASE_ENERGY_CAP;
     (cfg.stocks || []).forEach((st) => {
       s.stocks[st.id] = st.basePrice;
@@ -129,6 +130,22 @@
     s.activeEvents = [];
     s.activeTalentPowers = [];
     s.activeSkillPowers = [];
+    s.energy = 0;
+    s.btc = 0;
+    s.btcMarketTime = 0;
+    s.btcPrice = cfg.BTC_BASE_PRICE;
+    (cfg.energyProducers || []).forEach((p) => (s.energyProducers[p.id] = 0));
+    (cfg.btcMiners || []).forEach((m) => (s.btcMiners[m.id] = 0));
+    (cfg.batteries || []).forEach((b) => (s.batteries[b.id] = 0));
+    (cfg.coinFarmers || []).forEach((f) => (s.coinFarmers[f.id] = 0));
+    s.energyCap = cfg.BTC_BASE_ENERGY_CAP;
+    (cfg.stocks || []).forEach((st) => {
+      s.stocks[st.id] = st.basePrice;
+      s.stockHistory[st.id] = [st.basePrice];
+      s.portfolio[st.id] = { shares: 0, avgCost: 0 };
+    });
+    s.stockTickTimer = 0;
+    s.stockDividendTimer = 0;
     // Automation toggles reset (features must be re-unlocked via research)
     s.automation.autoClick = false;
     s.automation.autoBuy = false;

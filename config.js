@@ -625,6 +625,10 @@ function tierBuilding(state, tier, count) {
 function upgradeCount(state) {
   return Object.keys(state.upgrades).filter((k) => state.upgrades[k]).length;
 }
+function totalOwnedInGroup(group) {
+  if (!group || typeof group !== "object") return 0;
+  return Object.keys(group).reduce((sum, key) => sum + (group[key] || 0), 0);
+}
 
 const ACHIEVEMENTS = [
   // Clicking
@@ -686,6 +690,13 @@ const ACHIEVEMENTS = [
   { id: "upgrade10", name: "Optimizer", desc: "Buy 10 upgrades.", bonus: 0.03, check: (s) => upgradeCount(s) >= 10, progress: (s) => upgradeCount(s) / 10 },
   { id: "upgrade50", name: "Perfectionist", desc: "Buy 50 upgrades.", bonus: 0.1, check: (s) => upgradeCount(s) >= 50, progress: (s) => upgradeCount(s) / 50 },
   { id: "upgrade108", name: "Fully Upgraded", desc: "Buy all 108 upgrades.", bonus: 0.25, check: (s) => upgradeCount(s) >= 108, progress: (s) => upgradeCount(s) / 108 },
+  // Bitcoin + energy
+  { id: "btcfirst", name: "First Satoshi", desc: "Mine 0.01 BTC total.", bonus: 0.03, check: (s) => (s.stats.totalBtcMined || 0) >= 0.01, progress: (s) => (s.stats.totalBtcMined || 0) / 0.01 },
+  { id: "btcstack", name: "Stacker", desc: "Hold 1 BTC at once.", bonus: 0.05, check: (s) => (s.btc || 0) >= 1, progress: (s) => (s.btc || 0) / 1 },
+  { id: "energyvault", name: "Energy Vault", desc: "Store 10K energy.", bonus: 0.05, check: (s) => (s.energyCap || 0) >= 1e4, progress: (s) => (s.energyCap || 0) / 1e4 },
+  { id: "gridoperator", name: "Grid Operator", desc: "Own 25 energy producers.", bonus: 0.05, check: (s) => totalOwnedInGroup(s.energyProducers) >= 25, progress: (s) => totalOwnedInGroup(s.energyProducers) / 25 },
+  { id: "hashboss", name: "Hash Boss", desc: "Own 25 bitcoin miners.", bonus: 0.06, check: (s) => totalOwnedInGroup(s.btcMiners) >= 25, progress: (s) => totalOwnedInGroup(s.btcMiners) / 25 },
+  { id: "coinfarmer", name: "Coin Farmer", desc: "Own 25 coin farmers.", bonus: 0.06, check: (s) => totalOwnedInGroup(s.coinFarmers) >= 25, progress: (s) => totalOwnedInGroup(s.coinFarmers) / 25 },
   // Special
   { id: "industrialgiant", name: "Industrial Giant", desc: "Own 1,000 Factories.", bonus: 0.1, check: (s) => (s.buildings.factory || 0) >= 1000, progress: (s) => (s.buildings.factory || 0) / 1000 },
   { id: "masterascendant", name: "Grand Ascendant", desc: "Ascend 100 times (bonus prestige).", bonus: 0.25, check: (s) => s.stats.ascensionCount >= 100, progress: (s) => s.stats.ascensionCount / 100 },
@@ -734,6 +745,17 @@ function ms(id, name, desc, check, progress) {
 // Upgrades (3)
 [10, 50, 108].forEach((n) => {
   ms("msupgrade" + n, "Upgrades x" + n, "Buy " + n + " upgrades.", (s) => upgradeCount(s) >= n, (s) => upgradeCount(s) / n);
+});
+// Bitcoin + energy (6)
+[
+  ["msbtc1", "Bitcoin: 1", "Mine 1 BTC total.", (s) => (s.stats.totalBtcMined || 0) >= 1, (s) => (s.stats.totalBtcMined || 0) / 1],
+  ["msbtc100", "Bitcoin: 100", "Mine 100 BTC total.", (s) => (s.stats.totalBtcMined || 0) >= 100, (s) => (s.stats.totalBtcMined || 0) / 100],
+  ["msenergy10k", "Grid: 10K", "Generate 10K energy total.", (s) => (s.stats.totalEnergyGenerated || 0) >= 1e4, (s) => (s.stats.totalEnergyGenerated || 0) / 1e4],
+  ["msenergy1m", "Grid: 1M", "Generate 1M energy total.", (s) => (s.stats.totalEnergyGenerated || 0) >= 1e6, (s) => (s.stats.totalEnergyGenerated || 0) / 1e6],
+  ["msbattery", "Battery Wall", "Reach 100K energy capacity.", (s) => (s.energyCap || 0) >= 1e5, (s) => (s.energyCap || 0) / 1e5],
+  ["mscoinfarm", "Coin Farm", "Own 100 coin farmers.", (s) => totalOwnedInGroup(s.coinFarmers) >= 100, (s) => totalOwnedInGroup(s.coinFarmers) / 100],
+].forEach(([id, name, desc, check, progress]) => {
+  ms(id, name, desc, check, progress);
 });
 Game.config.milestones = MILESTONES;
 
@@ -983,7 +1005,7 @@ GODS_TITANS.forEach((gt) => {
 });
 
 /* --------------------------------------------------------------------------
-   Skill Trees (6 branches x 8 nodes)
+   Skill Trees (8 branches x 8 nodes)
    -------------------------------------------------------------------------- */
 const SKILL_TREE_BRANCHES = {
   civic: { name: "Civic", color: "#f6c453" },
@@ -992,6 +1014,8 @@ const SKILL_TREE_BRANCHES = {
   spiritual: { name: "Spiritual", color: "#b388eb" },
   military: { name: "Military", color: "#ef476f" },
   hashforge: { name: "Hash Forge", color: "#48cae4" },
+  energygrid: { name: "Energy Grid", color: "#90e0ef" },
+  blockchain: { name: "Blockchain", color: "#ffb703" },
 };
 
 const SKILL_TREE_NAMES = {
@@ -1001,6 +1025,8 @@ const SKILL_TREE_NAMES = {
   spiritual: ["Temple Network", "Ritual Discipline", "Pilgrim Unity", "Meditative Economy", "Sacred Oaths", "Harmony Doctrine", "Transcendent Creed", "Eternal Chorus"],
   military: ["Logistics Corps", "Drill Grounds", "Tactical Schools", "Armor Works", "Fleet Doctrine", "War Office", "Combined Arms", "Strategic Command"],
   hashforge: ["Finger Conditioning", "Click Cadence", "Reflex Overdrive", "Input Pipeline", "Burst Protocol", "Hyper Tapping", "Neural Rhythm", "Mythic Throughput"],
+  energygrid: ["Capacitor Discipline", "Battery Standards", "Collector Crews", "Grid Balancing", "Thermal Routing", "Reserve Margins", "Regional Microgrids", "Black Start Doctrine"],
+  blockchain: ["Cold Wallets", "Hash Boards", "Liquidity Routing", "Validator Swarms", "Difficulty Games", "Market Timing", "Chain Foundries", "Blockspace Dominion"],
 };
 
 const SKILL_TREE_EFFECTS = {
@@ -1064,6 +1090,26 @@ const SKILL_TREE_EFFECTS = {
     { type: "autoClickBoost", value: 1, penaltyType: "globalMult", penaltyMult: 0.98 },
     { type: "clickMult", value: 0.2, penaltyType: "globalMult", penaltyMult: 0.975 },
   ],
+  energygrid: [
+    { type: "energyProduction", value: 0.16 },
+    { type: "energyCapacity", value: 0.22 },
+    { type: "energyClick", value: 0.24 },
+    { type: "buildingMult", building: "powerplant", value: 0.18, penaltyType: "btcClick", penaltyMult: 0.98 },
+    { type: "coinFarmerYield", value: 0.12, penaltyType: "btcPriceMult", penaltyMult: 0.98 },
+    { type: "energyProduction", value: 0.2, penaltyType: "clickMult", penaltyMult: 0.98 },
+    { type: "energyCapacity", value: 0.28, penaltyType: "globalMult", penaltyMult: 0.985 },
+    { type: "skillPower", powerId: "grid_overdrive" },
+  ],
+  blockchain: [
+    { type: "btcClick", value: 0.18 },
+    { type: "minerEfficiency", value: 0.12 },
+    { type: "btcPriceMult", value: 0.08 },
+    { type: "coinFarmerYield", value: 0.14 },
+    { type: "minerEfficiency", value: 0.16, penaltyType: "energyProduction", penaltyMult: 0.97 },
+    { type: "btcClick", value: 0.22, penaltyType: "costReduction", penaltyMult: 1.02 },
+    { type: "btcPriceMult", value: 0.12, penaltyType: "globalMult", penaltyMult: 0.985 },
+    { type: "skillPower", powerId: "hash_surge" },
+  ],
 };
 
 const SKILL_BASE_COST = 12;
@@ -1087,11 +1133,16 @@ Object.keys(SKILL_TREE_NAMES).forEach((branch) => {
     else if (effect.type === "eventDelayMult") desc = "Events occur more often.";
     else if (effect.type === "minerEfficiency") desc = "+" + scaledDisplayPct(effect.value) + "% bitcoin miner efficiency.";
     else if (effect.type === "btcPriceMult") desc = "+" + scaledDisplayPct(effect.value) + "% BTC sell value.";
+    else if (effect.type === "energyProduction") desc = "+" + scaledDisplayPct(effect.value) + "% energy production.";
+    else if (effect.type === "energyCapacity") desc = "+" + scaledDisplayPct(effect.value) + "% battery capacity.";
+    else if (effect.type === "energyClick") desc = "+" + scaledDisplayPct(effect.value) + "% manual energy collection.";
+    else if (effect.type === "btcClick") desc = "+" + scaledDisplayPct(effect.value) + "% manual bitcoin farming.";
+    else if (effect.type === "coinFarmerYield") desc = "+" + scaledDisplayPct(effect.value) + "% coin farmer yield.";
     else if (effect.type === "stockFeeReduction") desc = "Reduce stock trade fees.";
     else if (effect.type === "stockInsight") desc = "Unlock stock trend insight.";
     else if (effect.type === "clickCpsFractionMult") desc = "Clicks gain more from CPS.";
     else if (effect.type === "autoClickBoost") desc = "Boost auto-click speed.";
-    else if (effect.type === "skillPower") desc = "Unlock power: Research Burst.";
+    else if (effect.type === "skillPower") desc = effect.powerId === "grid_overdrive" ? "Unlock power: Grid Overdrive." : effect.powerId === "hash_surge" ? "Unlock power: Hash Surge." : "Unlock power: Research Burst.";
     if (effect.penaltyType) desc += " Tradeoff applies.";
     SKILL_TREE_NODES.push({
       id,
@@ -1129,6 +1180,31 @@ Game.config.skillPowers = {
       { type: "globalMult", mult: 0.9 },
     ],
   },
+  grid_overdrive: {
+    id: "grid_overdrive",
+    name: "Grid Overdrive",
+    desc: "Supercharge generators and batteries, but hash boards lose efficiency.",
+    duration: 40,
+    cooldown: 260,
+    effects: [
+      { type: "energyProduction", mult: 2.4 },
+      { type: "energyCapacity", mult: 1.5 },
+      { type: "minerEfficiency", mult: 0.75 },
+    ],
+  },
+  hash_surge: {
+    id: "hash_surge",
+    name: "Hash Surge",
+    desc: "Run a mining blitz that strengthens bitcoin and coin farms while the rest of the empire slows.",
+    duration: 30,
+    cooldown: 280,
+    effects: [
+      { type: "minerEfficiency", mult: 2.5 },
+      { type: "btcClick", mult: 2.2 },
+      { type: "coinFarmerYield", mult: 1.8 },
+      { type: "globalMult", mult: 0.92 },
+    ],
+  },
 };
 
 /* --------------------------------------------------------------------------
@@ -1138,26 +1214,44 @@ const ENERGY_PRODUCERS = [
   { id: "solar_panel", name: "Solar Panel", baseCost: 20000, energyPerSec: 2 },
   { id: "wind_turbine", name: "Wind Turbine", baseCost: 150000, energyPerSec: 12 },
   { id: "coal_generator", name: "Coal Generator", baseCost: 900000, energyPerSec: 45 },
-  { id: "nuclear_reactor", name: "Nuclear Reactor", baseCost: 6000000, energyPerSec: 180 },
-  { id: "fusion_cell", name: "Fusion Cell", baseCost: 40000000, energyPerSec: 650 },
+  { id: "hydro_dam", name: "Hydro Dam", baseCost: 2500000, energyPerSec: 110 },
+  { id: "geothermal_plant", name: "Geothermal Plant", baseCost: 8000000, energyPerSec: 260 },
+  { id: "nuclear_reactor", name: "Nuclear Reactor", baseCost: 24000000, energyPerSec: 620 },
+  { id: "fusion_cell", name: "Fusion Cell", baseCost: 90000000, energyPerSec: 1500 },
+  { id: "orbital_solar", name: "Orbital Solar Array", baseCost: 320000000, energyPerSec: 4200 },
 ];
 
 const BTC_MINERS = [
   { id: "gpu_rig", name: "Basic GPU Rig", baseCost: 50000, energyUse: 4, btcPerSec: 0.00005 },
   { id: "asic_miner", name: "ASIC Miner", baseCost: 450000, energyUse: 22, btcPerSec: 0.00032 },
   { id: "mining_farm", name: "Mining Farm", baseCost: 2800000, energyUse: 120, btcPerSec: 0.0022 },
-  { id: "quantum_miner", name: "Quantum Miner", baseCost: 18000000, energyUse: 650, btcPerSec: 0.014 },
+  { id: "immersion_pool", name: "Immersion Pool", baseCost: 12000000, energyUse: 380, btcPerSec: 0.009 },
+  { id: "quantum_miner", name: "Quantum Miner", baseCost: 55000000, energyUse: 1250, btcPerSec: 0.03 },
+  { id: "lunar_array", name: "Lunar Mining Array", baseCost: 240000000, energyUse: 4200, btcPerSec: 0.11 },
+  { id: "singularity_core", name: "Singularity Core", baseCost: 1200000000, energyUse: 15000, btcPerSec: 0.45 },
 ];
 
 const BATTERIES = [
   { id: "small_battery", name: "Small Battery", baseCost: 35000, capacity: 100 },
-  { id: "large_battery", name: "Large Battery", baseCost: 300000, capacity: 800 },
-  { id: "quantum_cell", name: "Quantum Cell", baseCost: 2500000, capacity: 7000 },
+  { id: "grid_battery", name: "Grid Battery", baseCost: 300000, capacity: 800 },
+  { id: "megapack", name: "Megapack", baseCost: 2500000, capacity: 5000 },
+  { id: "supercapacitor_bank", name: "Supercapacitor Bank", baseCost: 20000000, capacity: 30000 },
+  { id: "quantum_cell", name: "Quantum Cell", baseCost: 150000000, capacity: 150000 },
+];
+
+const COIN_FARMERS = [
+  { id: "crypto_kiosk", name: "Crypto Kiosk", baseCost: 40000, energyUse: 3, coinsPerSec: 40 },
+  { id: "staking_rack", name: "Staking Rack", baseCost: 250000, energyUse: 16, coinsPerSec: 280 },
+  { id: "validator_hub", name: "Validator Hub", baseCost: 1200000, energyUse: 75, coinsPerSec: 1500 },
+  { id: "yield_cluster", name: "Yield Cluster", baseCost: 6500000, energyUse: 280, coinsPerSec: 7800 },
+  { id: "mev_router", name: "MEV Router", baseCost: 36000000, energyUse: 950, coinsPerSec: 42000 },
+  { id: "chain_foundry", name: "Chain Foundry", baseCost: 190000000, energyUse: 3200, coinsPerSec: 220000 },
 ];
 
 Game.config.energyProducers = ENERGY_PRODUCERS;
 Game.config.btcMiners = BTC_MINERS;
 Game.config.batteries = BATTERIES;
+Game.config.coinFarmers = COIN_FARMERS;
 Game.config.BTC_EQUIPMENT_COST_SCALE = 1.17;
 Game.config.BTC_BASE_ENERGY_CAP = 250;
 Game.config.BTC_BASE_PRICE = 25000;
@@ -1166,6 +1260,9 @@ Game.config.BTC_MAX_PRICE = 300000;
 Game.config.BTC_PRICE_OSCILLATION = 0.12;
 Game.config.BTC_PRICE_VOLATILITY = 0.05;
 Game.config.BTC_PRICE_OSCILLATION_PERIOD = 20;
+Game.config.BTC_BASE_MANUAL_ENERGY = 20;
+Game.config.BTC_BASE_MANUAL_BTC = 0.00008;
+Game.config.BTC_MANUAL_MINE_ENERGY_COST = 18;
 
 /* --------------------------------------------------------------------------
    Stock Market

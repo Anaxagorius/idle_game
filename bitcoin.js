@@ -1,6 +1,6 @@
 /* ==========================================================================
    Idle Empire Ultimate - bitcoin.js
-   Energy production, mining hardware, BTC generation, and BTC selling.
+   Energy production, manual bitcoin farming, mining hardware and BTC selling.
    ========================================================================== */
 
 (function () {
@@ -11,91 +11,189 @@
     return (Game.state[group] && Game.state[group][id]) || 0;
   }
 
+  function mult(name, fallback) {
+    const mults = Game.state._mult || {};
+    const value = mults[name];
+    return value === undefined ? (fallback === undefined ? 1 : fallback) : value;
+  }
+
+  function clampEnergy(value) {
+    return Math.max(0, Math.min(Bitcoin.energyCap(), value || 0));
+  }
+
+  function purchaseEquipment(list, group, id) {
+    const def = list.find((item) => item.id === id);
+    if (!def) return false;
+    const owned = ownedCount(group, id);
+    const cost = Bitcoin.equipmentCost(def.baseCost, owned);
+    if (Game.state.coins < cost) return false;
+    Game.state.coins -= cost;
+    Game.state.stats.totalCoinsSpent += cost;
+    Game.state[group][id] = owned + 1;
+    return true;
+  }
+
   Bitcoin.equipmentCost = function (baseCost, owned) {
     return baseCost * Math.pow(cfg.BTC_EQUIPMENT_COST_SCALE, owned);
   };
 
   Bitcoin.buyProducer = function (id) {
-    const def = cfg.energyProducers.find((p) => p.id === id);
-    if (!def) return false;
-    const owned = ownedCount("energyProducers", id);
-    const cost = Bitcoin.equipmentCost(def.baseCost, owned);
-    if (Game.state.coins < cost) return false;
-    Game.state.coins -= cost;
-    Game.state.stats.totalCoinsSpent += cost;
-    Game.state.energyProducers[id] = owned + 1;
-    return true;
+    return purchaseEquipment(cfg.energyProducers, "energyProducers", id);
   };
 
   Bitcoin.buyMiner = function (id) {
-    const def = cfg.btcMiners.find((m) => m.id === id);
-    if (!def) return false;
-    const owned = ownedCount("btcMiners", id);
-    const cost = Bitcoin.equipmentCost(def.baseCost, owned);
-    if (Game.state.coins < cost) return false;
-    Game.state.coins -= cost;
-    Game.state.stats.totalCoinsSpent += cost;
-    Game.state.btcMiners[id] = owned + 1;
-    return true;
+    return purchaseEquipment(cfg.btcMiners, "btcMiners", id);
   };
 
   Bitcoin.buyBattery = function (id) {
-    const def = cfg.batteries.find((b) => b.id === id);
-    if (!def) return false;
-    const owned = ownedCount("batteries", id);
-    const cost = Bitcoin.equipmentCost(def.baseCost, owned);
-    if (Game.state.coins < cost) return false;
-    Game.state.coins -= cost;
-    Game.state.stats.totalCoinsSpent += cost;
-    Game.state.batteries[id] = owned + 1;
-    return true;
+    return purchaseEquipment(cfg.batteries, "batteries", id);
   };
 
-  Bitcoin.energyProduction = function () {
+  Bitcoin.buyCoinFarmer = function (id) {
+    return purchaseEquipment(cfg.coinFarmers || [], "coinFarmers", id);
+  };
+
+  Bitcoin.energyProductionBase = function () {
     return cfg.energyProducers.reduce((sum, p) => sum + p.energyPerSec * ownedCount("energyProducers", p.id), 0);
   };
 
-  Bitcoin.energyConsumption = function () {
+  Bitcoin.energyProduction = function () {
+    return Bitcoin.energyProductionBase() * mult("energyProduction", 1);
+  };
+
+  Bitcoin.minerDemand = function () {
     return cfg.btcMiners.reduce((sum, m) => sum + m.energyUse * ownedCount("btcMiners", m.id), 0);
   };
 
-  Bitcoin.batteryCapacity = function () {
+  Bitcoin.coinFarmerDemand = function () {
+    return (cfg.coinFarmers || []).reduce((sum, f) => sum + f.energyUse * ownedCount("coinFarmers", f.id), 0);
+  };
+
+  Bitcoin.energyConsumption = function () {
+    return Bitcoin.minerDemand() + Bitcoin.coinFarmerDemand();
+  };
+
+  Bitcoin.batteryCapacityBase = function () {
     return cfg.batteries.reduce((sum, b) => sum + b.capacity * ownedCount("batteries", b.id), 0);
   };
 
-  Bitcoin.miningRate = function () {
+  Bitcoin.batteryCapacity = function () {
+    return Bitcoin.batteryCapacityBase() * mult("energyCapacity", 1);
+  };
+
+  Bitcoin.energyCap = function () {
+    return Math.max(0, cfg.BTC_BASE_ENERGY_CAP + Bitcoin.batteryCapacity());
+  };
+
+  Bitcoin.baseMiningRate = function () {
+    return cfg.btcMiners.reduce((sum, m) => sum + m.btcPerSec * ownedCount("btcMiners", m.id), 0);
+  };
+
+  Bitcoin.baseCoinFarmerRate = function () {
+    return (cfg.coinFarmers || []).reduce((sum, f) => sum + f.coinsPerSec * ownedCount("coinFarmers", f.id), 0);
+  };
+
+  Bitcoin.manualEnergyGain = function () {
+    const batteries = cfg.batteries.reduce((sum, b) => sum + ownedCount("batteries", b.id), 0);
+    return cfg.BTC_BASE_MANUAL_ENERGY * mult("energyClick", 1) * (1 + batteries * 0.03);
+  };
+
+  Bitcoin.manualBitcoinGain = function () {
+    const miners = cfg.btcMiners.reduce((sum, m) => sum + ownedCount("btcMiners", m.id), 0);
+    return cfg.BTC_BASE_MANUAL_BTC * mult("btcClick", 1) * (1 + miners * 0.02);
+  };
+
+  Bitcoin.manualMineEnergyCost = function () {
+    return cfg.BTC_MANUAL_MINE_ENERGY_COST;
+  };
+
+  Bitcoin.collectEnergy = function () {
+    const gain = Bitcoin.manualEnergyGain();
+    const before = Game.state.energy;
+    Game.state.energy = clampEnergy(before + gain);
+    const actual = Game.state.energy - before;
+    if (actual <= 0) return false;
+    Game.state.stats.totalEnergyCollected = (Game.state.stats.totalEnergyCollected || 0) + actual;
+    Game.state.stats.totalEnergyGenerated = (Game.state.stats.totalEnergyGenerated || 0) + actual;
+    return true;
+  };
+
+  Bitcoin.farmBitcoin = function () {
     const s = Game.state;
-    const base = cfg.btcMiners.reduce((sum, m) => sum + m.btcPerSec * ownedCount("btcMiners", m.id), 0);
-    if (base <= 0) return 0;
-    const use = Bitcoin.energyConsumption();
-    const prod = Bitcoin.energyProduction();
-    const ratio = use <= 0 ? 1 : Math.min(1, Math.max(0, prod / use));
-    const mults = s._mult || { minerEfficiency: 1 };
-    return base * ratio * (mults.minerEfficiency || 1);
+    const energyCost = Bitcoin.manualMineEnergyCost();
+    if (s.energy < energyCost) return false;
+    const gain = Bitcoin.manualBitcoinGain();
+    s.energy -= energyCost;
+    s.btc += gain;
+    s.stats.totalEnergySpent = (s.stats.totalEnergySpent || 0) + energyCost;
+    s.stats.totalBtcMined = (s.stats.totalBtcMined || 0) + gain;
+    s.stats.totalManualBtcMined = (s.stats.totalManualBtcMined || 0) + gain;
+    return true;
+  };
+
+  Bitcoin.snapshot = function (dtSeconds) {
+    const s = Game.state;
+    s.energyCap = Bitcoin.energyCap();
+    const dt = Math.max(0.05, dtSeconds || 1);
+    const production = Bitcoin.energyProduction();
+    const minerDemand = Bitcoin.minerDemand();
+    const coinDemand = Bitcoin.coinFarmerDemand();
+    const totalDemand = minerDemand + coinDemand;
+    const availableEnergy = Math.max(0, s.energy) + production * dt;
+    const ratio = totalDemand <= 0 ? 1 : Math.min(1, availableEnergy / (totalDemand * dt));
+    const miningRate = Bitcoin.baseMiningRate() * ratio * mult("minerEfficiency", 1);
+    const coinRate = Bitcoin.baseCoinFarmerRate() * ratio * mult("coinFarmerYield", 1);
+    const projectedEnergy = clampEnergy(Math.max(0, s.energy) + production * dt - totalDemand * ratio * dt);
+    return {
+      production,
+      minerDemand,
+      coinDemand,
+      totalDemand,
+      activityRatio: ratio,
+      miningRate,
+      coinRate,
+      projectedEnergy,
+    };
+  };
+
+  Bitcoin.miningRate = function () {
+    return Bitcoin.snapshot(1).miningRate;
+  };
+
+  Bitcoin.coinFarmerRate = function () {
+    return Bitcoin.snapshot(1).coinRate;
   };
 
   Bitcoin.sellAll = function () {
     const s = Game.state;
     if (s.btc <= 0) return false;
-    const mults = s._mult || { btcPriceMult: 1 };
-    const revenue = s.btc * s.btcPrice * (mults.btcPriceMult || 1);
+    const sold = s.btc;
+    const revenue = sold * s.btcPrice * mult("btcPriceMult", 1);
     s.coins += revenue;
     s.lifetimeCoins += revenue;
     s.stats.totalCoinsEarned += revenue;
+    s.stats.totalBtcSold = (s.stats.totalBtcSold || 0) + sold;
     s.btc = 0;
     return true;
   };
 
   Bitcoin.update = function (dtSeconds) {
     const s = Game.state;
-    const production = Bitcoin.energyProduction();
-    const consumption = Bitcoin.energyConsumption();
-    s.energyCap = Math.max(0, cfg.BTC_BASE_ENERGY_CAP + Bitcoin.batteryCapacity());
-    s.energy += (production - consumption) * dtSeconds;
-    if (s.energy < 0) s.energy = 0;
-    if (s.energy > s.energyCap) s.energy = s.energyCap;
+    s.energyCap = Bitcoin.energyCap();
+    const snap = Bitcoin.snapshot(dtSeconds);
+    const produced = snap.production * dtSeconds;
+    const consumed = snap.totalDemand * snap.activityRatio * dtSeconds;
+    s.energy = clampEnergy(s.energy + produced - consumed);
+    s.stats.totalEnergyGenerated = (s.stats.totalEnergyGenerated || 0) + produced;
+    s.stats.totalEnergySpent = (s.stats.totalEnergySpent || 0) + consumed;
 
-    s.btc += Bitcoin.miningRate() * dtSeconds;
+    const mined = snap.miningRate * dtSeconds;
+    const farmedCoins = snap.coinRate * dtSeconds;
+    s.btc += mined;
+    s.stats.totalBtcMined = (s.stats.totalBtcMined || 0) + mined;
+    s.coins += farmedCoins;
+    s.lifetimeCoins += farmedCoins;
+    s.stats.totalCoinsEarned += farmedCoins;
 
     s.btcMarketTime = (s.btcMarketTime || 0) + dtSeconds;
     const osc = Math.sin(s.btcMarketTime / cfg.BTC_PRICE_OSCILLATION_PERIOD) * cfg.BTC_PRICE_OSCILLATION;
