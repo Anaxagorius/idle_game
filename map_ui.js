@@ -549,16 +549,16 @@
       var countyState = row.state;
       var status = row.status;
       var isFocused = s.map && s.map.focusCounty === row.county.id;
-      html +=
-        '<button class="county-roster-row county-roster-button' + (isFocused ? ' roster-focus' : '') + '" ' +
-          'onclick="Game.MapUI.selectCountyDiplomacy(\'' + row.county.id + '\')" ' +
-          'style="border-left:3px solid ' + row.county.color + '">' +
-          '<span class="county-roster-main">' +
-            '<span class="roster-county-name">' + row.county.name + '</span>' +
-            '<span class="county-roster-meta">Trade +' + Game.formatNumber(row.yield) + '/s' + UI_SEPARATOR + 'Suspicion ' + statValue(countyState.suspicion) + '</span>' +
-          '</span>' +
-          '<span class="county-status ' + status.className + '">' + status.emoji + ' ' + status.label + '</span>' +
-        '</button>';
+      html += `
+        <button class="county-roster-row county-roster-button${isFocused ? ' roster-focus' : ''}"
+          onclick="Game.MapUI.selectCountyDiplomacy('${row.county.id}')"
+          style="border-left:3px solid ${row.county.color}">
+          <span class="county-roster-main">
+            <span class="roster-county-name">${row.county.name}</span>
+            <span class="county-roster-meta">Trade +${Game.formatNumber(row.yield)}/s${UI_SEPARATOR}Suspicion ${statValue(countyState.suspicion)}</span>
+          </span>
+          <span class="county-status ${status.className}">${status.emoji} ${status.label}</span>
+        </button>`;
     }
     roster.innerHTML = html;
   };

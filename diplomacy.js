@@ -7,6 +7,7 @@
   var cfg = Game.config;
   var MapData = Game.Map;
   var Diplomacy = {};
+  var OUTCOME_SEPARATOR = " • ";
 
   function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
@@ -14,6 +15,10 @@
 
   function round2(value) {
     return Math.round(value * 100) / 100;
+  }
+
+  function hostilityFromRelation(relation) {
+    return Math.max(0, -relation);
   }
 
   function countyIndex(countyId) {
@@ -28,11 +33,36 @@
     var index = countyIndex(countyId);
     var resourceCount = county && county.resources ? county.resources.length : 0;
     return {
-      relation: clamp(-58 + ((index * 17 + resourceCount * 5) % 74), cfg.DIPLOMACY_RELATION_MIN, cfg.DIPLOMACY_RELATION_MAX),
-      prosperity: clamp(34 + resourceCount * 6 + ((index * 7) % 18), 18, 84),
-      trade: clamp(18 + resourceCount * 5 + ((index * 11) % 22), 10, 90),
-      influence: clamp(10 + ((index * 9) % 26), cfg.DIPLOMACY_STAT_MIN, 70),
-      suspicion: clamp(8 + ((index * 4) % 14), cfg.DIPLOMACY_STAT_MIN, 60),
+      relation: clamp(
+        cfg.DIPLOMACY_RELATION_SEED_BASE +
+          ((index * cfg.DIPLOMACY_RELATION_SEED_INDEX_FACTOR + resourceCount * cfg.DIPLOMACY_RELATION_SEED_RESOURCE_FACTOR) % cfg.DIPLOMACY_RELATION_SEED_MOD),
+        cfg.DIPLOMACY_RELATION_MIN,
+        cfg.DIPLOMACY_RELATION_MAX
+      ),
+      prosperity: clamp(
+        cfg.DIPLOMACY_PROSPERITY_SEED_BASE +
+          resourceCount * cfg.DIPLOMACY_PROSPERITY_SEED_RESOURCE_FACTOR +
+          ((index * cfg.DIPLOMACY_PROSPERITY_SEED_INDEX_FACTOR) % cfg.DIPLOMACY_PROSPERITY_SEED_MOD),
+        cfg.DIPLOMACY_PROSPERITY_SEED_MIN,
+        cfg.DIPLOMACY_PROSPERITY_SEED_MAX
+      ),
+      trade: clamp(
+        cfg.DIPLOMACY_TRADE_SEED_BASE +
+          resourceCount * cfg.DIPLOMACY_TRADE_SEED_RESOURCE_FACTOR +
+          ((index * cfg.DIPLOMACY_TRADE_SEED_INDEX_FACTOR) % cfg.DIPLOMACY_TRADE_SEED_MOD),
+        cfg.DIPLOMACY_TRADE_SEED_MIN,
+        cfg.DIPLOMACY_TRADE_SEED_MAX
+      ),
+      influence: clamp(
+        cfg.DIPLOMACY_INFLUENCE_SEED_BASE + ((index * cfg.DIPLOMACY_INFLUENCE_SEED_INDEX_FACTOR) % cfg.DIPLOMACY_INFLUENCE_SEED_MOD),
+        cfg.DIPLOMACY_STAT_MIN,
+        cfg.DIPLOMACY_INFLUENCE_SEED_MAX
+      ),
+      suspicion: clamp(
+        cfg.DIPLOMACY_SUSPICION_SEED_BASE + ((index * cfg.DIPLOMACY_SUSPICION_SEED_INDEX_FACTOR) % cfg.DIPLOMACY_SUSPICION_SEED_MOD),
+        cfg.DIPLOMACY_STAT_MIN,
+        cfg.DIPLOMACY_SUSPICION_SEED_MAX
+      ),
       intel: 0,
       cooldowns: {},
       lastAction: "",
@@ -161,7 +191,7 @@
       var county = counties[ids[i]];
       totalCps += Diplomacy.countyYield(ids[i], county);
       totalIntel += county.intel;
-      hostility += Math.max(0, -county.relation) + county.suspicion * cfg.DIPLOMACY_SUSPICION_HOSTILITY_WEIGHT;
+      hostility += hostilityFromRelation(county.relation) + county.suspicion * cfg.DIPLOMACY_SUSPICION_HOSTILITY_WEIGHT;
       totalInfluence += county.influence * Math.max(0, county.relation + 25) / 125;
     }
     return {
@@ -272,7 +302,7 @@
     county.lastActionAt = Game.state.stats.playTime || 0;
     county.lastOutcome =
       action.name +
-      " • " +
+      OUTCOME_SEPARATOR +
       (rewards.coins > 0 ? "+" + Game.formatNumber(rewards.coins) + " coins " : "") +
       (rewards.rp > 0 ? "+" + Game.formatNumber(rewards.rp) + " RP " : "") +
       "rel " + (action.relation >= 0 ? "+" : "") + (action.relation || 0);
