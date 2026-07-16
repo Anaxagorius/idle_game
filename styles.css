@@ -649,6 +649,7 @@ textarea#save-string {
   --uploaded-map-offset-y: -9%;
   --uploaded-map-mask-width: 31%;
   --uploaded-map-mask-height: 29%;
+  --uploaded-map-opacity: 0.95;
   position: absolute;
   inset: 0;
   overflow: hidden;
@@ -661,7 +662,7 @@ textarea#save-string {
   width: var(--uploaded-map-scale);
   height: var(--uploaded-map-scale);
   border: 0;
-  opacity: 0.95;
+  opacity: var(--uploaded-map-opacity);
   transform: translate(var(--uploaded-map-offset-x), var(--uploaded-map-offset-y));
 }
 .uploaded-map-legend-mask {
@@ -671,7 +672,7 @@ textarea#save-string {
   width: var(--uploaded-map-mask-width);
   height: var(--uploaded-map-mask-height);
   background: #f3f0e8;
-  opacity: 0.95;
+  opacity: var(--uploaded-map-opacity);
 }
 .uploaded-map-fallback {
   display: none;
