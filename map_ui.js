@@ -9,13 +9,14 @@
 
   var SVG_W = 780;
   var SVG_H = 400;
+  var PDF_VIEW_PARAMS = '#toolbar=0&navpanes=0&scrollbar=0&view=FitH';
   var ALLOWED_UPLOADED_MAP_FILES = { 'Nova_Scotia.pdf': true };
   var UPLOADED_MAP_FILE = 'Nova_Scotia.pdf';
   var UPLOADED_MAP_PDF = buildUploadedMapPdfPath(UPLOADED_MAP_FILE);
 
   function buildUploadedMapPdfPath(fileName) {
     if (!fileName || !ALLOWED_UPLOADED_MAP_FILES[fileName]) return null;
-    return encodeURIComponent(fileName) + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH';
+    return encodeURIComponent(fileName) + PDF_VIEW_PARAMS;
   }
 
   /* ── helpers ───────────────────────────────────────────────────────────── */
@@ -230,14 +231,14 @@
       var backdrop = document.createElement('div');
       backdrop.className = 'uploaded-map-backdrop';
 
-      var pdf = document.createElement('object');
-      pdf.className = 'uploaded-map-pdf';
-      pdf.type = 'application/pdf';
-      pdf.setAttribute('aria-hidden', 'true');
-      pdf.addEventListener('error', function () {
-        backdrop.classList.add('uploaded-map-backdrop--unavailable');
-      });
       if (UPLOADED_MAP_PDF) {
+        var pdf = document.createElement('object');
+        pdf.className = 'uploaded-map-pdf';
+        pdf.type = 'application/pdf';
+        pdf.setAttribute('aria-hidden', 'true');
+        pdf.addEventListener('error', function () {
+          backdrop.classList.add('uploaded-map-backdrop--unavailable');
+        });
         pdf.data = UPLOADED_MAP_PDF;
         backdrop.appendChild(pdf);
       } else {

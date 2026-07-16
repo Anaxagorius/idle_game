@@ -676,9 +676,11 @@ textarea#save-string {
   opacity: var(--uploaded-map-opacity);
 }
 .uploaded-map-fallback {
-  display: none;
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  visibility: hidden;
+  opacity: 0;
   align-items: center;
   justify-content: center;
   text-align: center;
@@ -693,7 +695,8 @@ textarea#save-string {
   display: none;
 }
 .uploaded-map-backdrop--unavailable .uploaded-map-fallback {
-  display: flex;
+  visibility: visible;
+  opacity: 1;
 }
 
 .county-poly { transition: opacity 0.2s, stroke-width 0.15s; }
