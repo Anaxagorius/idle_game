@@ -198,6 +198,8 @@ header {
 .building-owned { color: var(--gold); font-size: 13px; }
 .building-role { color: var(--muted); font-size: 12px; }
 .building-suballoc { color: var(--blue); font-size: 11px; margin-top: 2px; }
+.building-req { color: var(--cyan); font-size: 11px; margin-top: 2px; }
+.building-req.missing { color: var(--red); }
 .building-cps { color: var(--green); font-size: 12px; margin-top: 2px; }
 .buy-button {
   min-width: 130px;

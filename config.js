@@ -55,6 +55,10 @@ Game.config = {
   RESEARCH_RESET_RP_GAIN: 10,
   CLICK_CPS_FRACTION: 0.05,
   MAX_COST_REDUCTION_MULT: 0.1,
+  BONUS_EFFECTIVENESS_MULT: 0.1,
+  GAIN_EFFECTIVENESS_MULT: 0.1,
+  // How many of the previous building are consumed to buy one current building, by target tier.
+  BUILDING_PREREQ_BY_TIER: { 1: 10, 2: 50, 3: 1000 },
 };
 
 /* --------------------------------------------------------------------------
@@ -632,4 +636,85 @@ Game.config.talentPowerMap = {};
 TALENTS.forEach((t) => {
   Game.config.talentMap[t.id] = t;
   if (t.type === "power" && t.powerId) Game.config.talentPowerMap[t.powerId] = t;
+});
+
+/* --------------------------------------------------------------------------
+   Ascension Shard Upgrades: Gods and Titans
+   -------------------------------------------------------------------------- */
+const GODS_TITANS = [
+  // effect values are fractional: 0.08 = +8%, -0.03 = -3%
+  {
+    id: "god_harvest",
+    name: "Demeter's Blessing",
+    cost: 3,
+    desc: "Farms produce more, mines produce less.",
+    effects: [
+      { type: "buildingMult", building: "farm", value: 0.08 },
+      { type: "buildingMult", building: "mine", value: -0.03 },
+    ],
+    requires: null,
+  },
+  {
+    id: "titan_forge",
+    name: "Hephaestus' Forge",
+    cost: 4,
+    desc: "Factories and refineries improve, click value weakens.",
+    effects: [
+      { type: "buildingMult", building: "factory", value: 0.08 },
+      { type: "buildingMult", building: "refinery", value: 0.06 },
+      { type: "clickMult", value: -0.04 },
+    ],
+    requires: "god_harvest",
+  },
+  {
+    id: "god_wisdom",
+    name: "Athena's Insight",
+    cost: 5,
+    desc: "Research gains rise, prestige point growth slows slightly.",
+    effects: [
+      { type: "rpMult", value: 0.08 },
+      { type: "prestigeGain", value: -0.03 },
+    ],
+    requires: "titan_forge",
+  },
+  {
+    id: "titan_storm",
+    name: "Atlas' Burden",
+    cost: 7,
+    desc: "Global output rises, costs become a bit higher.",
+    effects: [
+      { type: "globalMult", value: 0.07 },
+      { type: "costReduction", value: -0.04 },
+    ],
+    requires: "god_wisdom",
+  },
+  {
+    id: "god_fortune",
+    name: "Tyche's Favor",
+    cost: 9,
+    desc: "Prestige gains and banks improve, universities lose some output.",
+    effects: [
+      { type: "prestigeGain", value: 0.06 },
+      { type: "buildingMult", building: "bank", value: 0.08 },
+      { type: "buildingMult", building: "university", value: -0.04 },
+    ],
+    requires: "titan_storm",
+  },
+  {
+    id: "titan_void",
+    name: "Cronus' Reflection",
+    cost: 12,
+    desc: "Late-game buildings improve while early workers weaken.",
+    effects: [
+      { type: "buildingMult", building: "dysonswarm", value: 0.07 },
+      { type: "buildingMult", building: "galacticnexus", value: 0.07 },
+      { type: "buildingMult", building: "worker", value: -0.05 },
+    ],
+    requires: "god_fortune",
+  },
+];
+Game.config.godsTitans = GODS_TITANS;
+Game.config.godTitanMap = {};
+GODS_TITANS.forEach((gt) => {
+  Game.config.godTitanMap[gt.id] = gt;
 });

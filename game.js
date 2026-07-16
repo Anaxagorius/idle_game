@@ -44,6 +44,7 @@
       unlocked: {}, // automation features unlocked via research
       activeEvents: [],
       talents: {},
+      godsTitans: {},
       talentCooldowns: {},
       activeTalentPowers: [],
       nextEventTime: 0,
@@ -83,9 +84,21 @@
      --------------------------------------------------------------------- */
   Game.computeMultipliers = function () {
     const s = Game.state;
+    const bonusScale = cfg.BONUS_EFFECTIVENESS_MULT || 1;
+    function scaleBonus(value) {
+      return (value || 0) * bonusScale;
+    }
+    function scaledMultiplierFromEffect(effect) {
+      if (effect.mult !== undefined) {
+        if (effect.mult > 1) return 1 + (effect.mult - 1) * bonusScale;
+        if (effect.mult < 1) return 1 - (1 - effect.mult) * bonusScale;
+        return 1;
+      }
+      return 1 + scaleBonus(effect.value || 0);
+    }
     const m = {
-      prestige: 1 + s.prestigePoints * cfg.PRESTIGE_PER_POINT_MULT,
-      ascension: 1 + s.ascensionShards * cfg.ASCENSION_PER_SHARD_MULT,
+      prestige: 1 + s.prestigePoints * cfg.PRESTIGE_PER_POINT_MULT * bonusScale,
+      ascension: 1 + s.ascensionShards * cfg.ASCENSION_PER_SHARD_MULT * bonusScale,
       researchCoin: 1,
       researchBuilding: 1,
       researchGlobal: 1,
@@ -106,7 +119,7 @@
       if (!effect || !effect.type) return;
       const type = effect.type;
       // value -> additive bonus (1 + value), mult -> direct multiplier.
-      const effectMultiplier = effect.mult !== undefined ? effect.mult : 1 + (effect.value || 0);
+      const effectMultiplier = scaledMultiplierFromEffect(effect);
       if (type === "globalMult") {
         m.talentGlobal *= effectMultiplier;
       } else if (type === "clickMult") {
@@ -117,7 +130,8 @@
         m.prestigeGain *= effectMultiplier;
       } else if (type === "costReduction") {
         // costReduction uses subtraction (1 - value); negative values are ignored.
-        const reduction = effect.mult !== undefined ? effect.mult : 1 - Math.max(0, effect.value || 0);
+        const value = scaleBonus(effect.value || 0);
+        const reduction = effect.mult !== undefined ? effect.mult : 1 - value;
         m.costReduction *= reduction;
       } else if (type === "buildingMult") {
         const buildingId = effect.building;
@@ -135,7 +149,7 @@
     // Research effects
     cfg.research.forEach((r) => {
       if (!s.research[r.id]) return;
-      const v = r.value;
+      const v = scaleBonus(r.value);
       if (r.effectType === "coin") {
         m.researchCoin *= 1 + v;
         m.costReduction *= 1 - Math.min(0.5, v * 0.05);
@@ -157,17 +171,23 @@
       applyEffect(t);
     });
 
+    // Ascension shard tradeoff upgrades (permanent)
+    cfg.godsTitans.forEach((gt) => {
+      if (!s.godsTitans[gt.id] || !gt.effects) return;
+      gt.effects.forEach((effect) => applyEffect(effect));
+    });
+
     // Achievement bonuses (additive)
     let achBonus = 0;
     cfg.achievements.forEach((a) => {
-      if (s.achievements[a.id]) achBonus += a.bonus;
+      if (s.achievements[a.id]) achBonus += scaleBonus(a.bonus);
     });
     m.achievement = 1 + achBonus;
 
     // Milestone bonuses (additive)
     let msBonus = 0;
     cfg.milestones.forEach((ml) => {
-      if (s.milestones[ml.id]) msBonus += ml.bonus;
+      if (s.milestones[ml.id]) msBonus += scaleBonus(ml.bonus);
     });
     m.milestone = 1 + msBonus;
 
@@ -175,8 +195,13 @@
     s.activeEvents.forEach((ev) => {
       const def = cfg.events.find((e) => e.id === ev.id);
       if (!def) return;
-      if (def.kind === "coinMult") m.event *= def.value;
-      else if (def.kind === "prestigeMult") m.prestigeGain *= def.value;
+      if (def.kind === "coinMult") {
+        const v = def.value > 1 ? 1 + (def.value - 1) * bonusScale : def.value;
+        m.event *= v;
+      } else if (def.kind === "prestigeMult") {
+        const v = def.value > 1 ? 1 + (def.value - 1) * bonusScale : def.value;
+        m.prestigeGain *= v;
+      }
     });
 
     // Active talent powers
@@ -236,7 +261,9 @@
     if (!mults) mults = s._mult;
     if (!mults) mults = Game.computeMultipliers();
     const buildingMult = (mults.buildingMult && mults.buildingMult[buildingId]) || 1;
-    return owned * b.baseCps * Math.pow(2, upgradeLevels) * buildingMult;
+    const bonusScale = cfg.BONUS_EFFECTIVENESS_MULT === undefined ? 1 : cfg.BONUS_EFFECTIVENESS_MULT;
+    const upgradeStepMult = 1 + bonusScale;
+    return owned * b.baseCps * Math.pow(upgradeStepMult, upgradeLevels) * buildingMult;
   };
 
   /* ---------------------------------------------------------------------
@@ -252,7 +279,8 @@
     });
 
     const cps = baseCps * m.global;
-    s._cps = cps;
+    const gainScale = cfg.GAIN_EFFECTIVENESS_MULT || 1;
+    s._cps = cps * gainScale;
     s._baseCps = baseCps;
     s._mult = m;
 
@@ -261,12 +289,12 @@
       (s.buildings.laboratory || 0) * 0.2 +
       (s.buildings.university || 0) * 2 +
       (s.buildings.datacenter || 0) * 5;
-    s._rps = rpBase * m.researchGlobal * m.prestige * (1 + s.ascensionShards * cfg.ASCENSION_PER_SHARD_MULT) * m.rpGain;
+    s._rps = rpBase * m.researchGlobal * m.prestige * (1 + s.ascensionShards * cfg.ASCENSION_PER_SHARD_MULT * (cfg.BONUS_EFFECTIVENESS_MULT || 1)) * m.rpGain * gainScale;
 
     // Click value: flat scaled by global mult + fraction of CPS
-    s._clickValue = (1 * m.global + cps * cfg.CLICK_CPS_FRACTION) * m.clickMult;
+    s._clickValue = ((1 * m.global + cps * cfg.CLICK_CPS_FRACTION) * m.clickMult) * gainScale;
 
-    return { cps, rps: s._rps, clickValue: s._clickValue, m };
+    return { cps: s._cps, rps: s._rps, clickValue: s._clickValue, m };
   };
 
   /* ---------------------------------------------------------------------
@@ -289,7 +317,7 @@
     const s = Game.state;
     const m = s._mult || Game.computeMultipliers();
     const raw = Math.sqrt(s.lifetimeCoins / cfg.PRESTIGE_REQUIRED_COINS);
-    return Math.floor(raw * m.prestigeGain);
+    return Math.floor(raw * m.prestigeGain * (cfg.GAIN_EFFECTIVENESS_MULT || 1));
   };
 
   /* ---------------------------------------------------------------------
