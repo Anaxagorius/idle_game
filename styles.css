@@ -634,6 +634,40 @@ textarea#save-string {
 .ns-map--mini { max-height: 160px; }
 .ns-map--full { max-height: 480px; }
 .ns-map--selector { max-height: 360px; }
+.map-svg-frame {
+  position: relative;
+  width: 100%;
+  isolation: isolate;
+}
+.map-svg-frame .ns-map {
+  position: relative;
+  z-index: 2;
+}
+.uploaded-map-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  z-index: 1;
+  pointer-events: none;
+  background: #173f5c;
+}
+.uploaded-map-pdf {
+  width: 124%;
+  height: 124%;
+  border: 0;
+  opacity: 0.95;
+  transform: translate(-11%, -9%);
+}
+.uploaded-map-legend-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 31%;
+  height: 29%;
+  background: #f3f0e8;
+  opacity: 0.95;
+}
 
 .county-poly { transition: opacity 0.2s, stroke-width 0.15s; }
 .county-label { user-select: none; }

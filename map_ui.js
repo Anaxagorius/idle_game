@@ -9,6 +9,7 @@
 
   var SVG_W = 780;
   var SVG_H = 400;
+  var UPLOADED_MAP_PDF = 'Nova_Scotia.pdf#toolbar=0&navpanes=0&scrollbar=0&view=FitH';
 
   /* ── helpers ───────────────────────────────────────────────────────────── */
   function svgEl(tag, attrs) {
@@ -50,6 +51,7 @@
     var isMini = mode === 'mini';
     var isSelector = mode === 'selector';
     var isFull = mode === 'full';
+    var useUploadedBackdrop = isFull;
 
     var svgId = isMini ? 'mini-map-svg' : isSelector ? 'selector-map-svg' : 'full-map-svg';
 
@@ -68,6 +70,7 @@
     svg.appendChild(svgEl('rect', {
       x: 0, y: 0, width: SVG_W, height: SVG_H,
       fill: '#1a4a6e', rx: 8,
+      opacity: useUploadedBackdrop ? 0.35 : 1,
     }));
 
     // Canso Causeway (thin dashed bridge between mainland and Cape Breton)
@@ -100,16 +103,16 @@
 
       var strokeColor = '#fff';
       var strokeWidth = isMini ? 0.8 : 1.5;
-      var countyOpacity = 0.9;
+      var countyOpacity = useUploadedBackdrop ? 0.45 : 0.9;
       var extraFilter = '';
 
       if (isEmpire) {
         strokeColor = '#ffd700';
         strokeWidth = isMini ? 2 : 3;
-        countyOpacity = 1;
+        countyOpacity = useUploadedBackdrop ? 0.82 : 1;
         if (!isMini) extraFilter = 'url(#county-glow)';
       } else if (selectedCounty && !isSelector) {
-        countyOpacity = 0.55;
+        countyOpacity = useUploadedBackdrop ? 0.25 : 0.55;
       }
 
       var polyAttrs = {
@@ -213,7 +216,30 @@
     }
 
     container.innerHTML = '';
-    container.appendChild(svg);
+    if (useUploadedBackdrop) {
+      var frame = document.createElement('div');
+      frame.className = 'map-svg-frame';
+
+      var backdrop = document.createElement('div');
+      backdrop.className = 'uploaded-map-backdrop';
+
+      var pdf = document.createElement('object');
+      pdf.className = 'uploaded-map-pdf';
+      pdf.type = 'application/pdf';
+      pdf.data = UPLOADED_MAP_PDF;
+      pdf.setAttribute('aria-hidden', 'true');
+      backdrop.appendChild(pdf);
+
+      var legendMask = document.createElement('div');
+      legendMask.className = 'uploaded-map-legend-mask';
+      backdrop.appendChild(legendMask);
+
+      frame.appendChild(backdrop);
+      frame.appendChild(svg);
+      container.appendChild(frame);
+    } else {
+      container.appendChild(svg);
+    }
 
     // Interaction for selector mode
     if (isSelector) {
