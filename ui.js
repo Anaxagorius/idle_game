@@ -1046,6 +1046,27 @@
     node.classList.add("pulse");
   }
 
+  function autoFlash(node) {
+    node.classList.remove("auto-flash");
+    void node.offsetWidth; // force reflow so animation restarts
+    node.classList.add("auto-flash");
+    setTimeout(() => node.classList.remove("auto-flash"), 350);
+  }
+
+  const AUTO_CLICK_VISUAL_THROTTLE_MS = 120; // ~8 visuals/sec max
+  let _lastAutoClickVisual = 0;
+  UI.autoClickVisual = function (value) {
+    const now = Date.now();
+    if (now - _lastAutoClickVisual < AUTO_CLICK_VISUAL_THROTTLE_MS) return;
+    _lastAutoClickVisual = now;
+    autoFlash(refs.coinButton);
+    const rect = refs.coinButton.getBoundingClientRect();
+    UI.spawnClickFloat(
+      { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 },
+      value
+    );
+  };
+
   /* Prestige/ascension action buttons (wired after DOM ready) */
   UI.wirePrestigeButtons = function () {
     el("btn-prestige").addEventListener("click", () => {
