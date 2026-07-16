@@ -91,6 +91,9 @@
         offlineEarnings: 0,
         totalCoinsEarned: 0,
         skillNodesPurchased: 0,
+        diplomaticActions: 0,
+        diplomacyCoins: 0,
+        diplomacyResearch: 0,
       },
       settings: {
         notifications: true,
@@ -98,6 +101,8 @@
       map: {
         selectedCounty: null,
         pins: [],
+        counties: {},
+        focusCounty: null,
       },
       lastSave: Date.now(),
       lastTick: Date.now(),
@@ -351,27 +356,31 @@
   Game.recalculate = function () {
     const s = Game.state;
     const m = Game.computeMultipliers();
+    const diplomacy = Game.Diplomacy && Game.Diplomacy.getBonuses
+      ? Game.Diplomacy.getBonuses()
+      : { coinsPerSecond: 0, globalMult: 1, clickMult: 1, rpMult: 1 };
 
     let baseCps = 0;
     cfg.buildings.forEach((b) => {
       baseCps += Game.buildingCps(b.id, m);
     });
 
-    const cps = baseCps * m.global;
+    const cps = baseCps * m.global * diplomacy.globalMult;
     const gainScale = cfg.GAIN_EFFECTIVENESS_MULT || 1;
-    s._cps = cps * gainScale;
+    s._cps = (cps + diplomacy.coinsPerSecond) * gainScale;
     s._baseCps = baseCps;
     s._mult = m;
+    s._mult.diplomacy = diplomacy;
 
     // RP production: laboratories, universities, data centers
     const rpBase =
       (s.buildings.laboratory || 0) * 0.2 +
       (s.buildings.university || 0) * 2 +
       (s.buildings.datacenter || 0) * 5;
-    s._rps = rpBase * m.researchGlobal * m.prestige * (1 + s.ascensionShards * cfg.ASCENSION_PER_SHARD_MULT * (cfg.BONUS_EFFECTIVENESS_MULT || 1)) * m.rpGain * gainScale;
+    s._rps = rpBase * m.researchGlobal * m.prestige * (1 + s.ascensionShards * cfg.ASCENSION_PER_SHARD_MULT * (cfg.BONUS_EFFECTIVENESS_MULT || 1)) * m.rpGain * diplomacy.rpMult * gainScale;
 
     // Click value: flat scaled by global mult + fraction of CPS
-    s._clickValue = ((1 * m.global + cps * cfg.CLICK_CPS_FRACTION * m.clickCpsFractionMult) * m.clickMult) * gainScale;
+    s._clickValue = ((1 * m.global * diplomacy.globalMult + cps * cfg.CLICK_CPS_FRACTION * m.clickCpsFractionMult) * m.clickMult * diplomacy.clickMult) * gainScale;
 
     return { cps: s._cps, rps: s._rps, clickValue: s._clickValue, m };
   };
@@ -425,6 +434,7 @@
     if (Game.SkillTrees && Game.SkillTrees.update) Game.SkillTrees.update();
     if (Game.Bitcoin && Game.Bitcoin.update) Game.Bitcoin.update(dtSeconds);
     if (Game.Stocks && Game.Stocks.update) Game.Stocks.update(dtSeconds);
+    if (Game.Diplomacy && Game.Diplomacy.update) Game.Diplomacy.update(dtSeconds);
     Game.Automation.update(dtSeconds);
     Game.Achievements.check();
     Game.Milestones.check();

@@ -92,7 +92,12 @@
       if (typeof fresh.portfolio[st.id].shares !== "number") fresh.portfolio[st.id].shares = 0;
       if (typeof fresh.portfolio[st.id].avgCost !== "number") fresh.portfolio[st.id].avgCost = 0;
     });
+    if (!fresh.map || typeof fresh.map !== "object") fresh.map = {};
+    if (!Array.isArray(fresh.map.pins)) fresh.map.pins = [];
+    if (!fresh.map.counties || typeof fresh.map.counties !== "object") fresh.map.counties = {};
+    if (typeof fresh.map.focusCounty !== "string") fresh.map.focusCounty = null;
     Game.state = fresh;
+    if (Game.Diplomacy && Game.Diplomacy.ensureState) Game.Diplomacy.ensureState();
     Game.recalculate();
   };
 
