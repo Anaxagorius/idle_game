@@ -516,17 +516,19 @@
     const producers = el("energy-producer-list");
     const miners = el("btc-miner-list");
     const batteries = el("battery-list");
-    if (!producers || !miners || !batteries) return;
+    const coinFarmers = el("coin-farmer-list");
+    if (!producers || !miners || !batteries || !coinFarmers) return;
     producers.innerHTML = "";
     miners.innerHTML = "";
     batteries.innerHTML = "";
-    UI._btcRows = { producers: {}, miners: {}, batteries: {} };
+    coinFarmers.innerHTML = "";
+    UI._btcRows = { producers: {}, miners: {}, batteries: {}, coinFarmers: {} };
 
     cfg.energyProducers.forEach((p) => {
       const row = make("div", "market-card");
       row.innerHTML =
         '<div class="market-title">' + p.name + "</div>" +
-        '<div class="market-desc">+' + p.energyPerSec + " energy/sec</div>" +
+        '<div class="market-desc">+' + fmt(p.energyPerSec) + " energy/sec</div>" +
         '<button class="settings-btn">Buy</button>';
       const btn = row.querySelector("button");
       btn.addEventListener("click", () => {
@@ -539,7 +541,7 @@
       const row = make("div", "market-card");
       row.innerHTML =
         '<div class="market-title">' + m.name + "</div>" +
-        '<div class="market-desc">' + m.btcPerSec + " BTC/sec • " + m.energyUse + " energy/sec</div>" +
+        '<div class="market-desc">' + fmt(m.btcPerSec) + " BTC/sec • " + fmt(m.energyUse) + " energy/sec</div>" +
         '<button class="settings-btn">Buy</button>';
       const btn = row.querySelector("button");
       btn.addEventListener("click", () => {
@@ -561,6 +563,31 @@
       batteries.appendChild(row);
       UI._btcRows.batteries[b.id] = { row, btn, def: b };
     });
+    (cfg.coinFarmers || []).forEach((f) => {
+      const row = make("div", "market-card");
+      row.innerHTML =
+        '<div class="market-title">' + f.name + "</div>" +
+        '<div class="market-desc">' + fmt(f.coinsPerSec) + " coins/sec • " + fmt(f.energyUse) + " energy/sec</div>" +
+        '<button class="settings-btn">Buy</button>';
+      const btn = row.querySelector("button");
+      btn.addEventListener("click", () => {
+        if (Game.Bitcoin.buyCoinFarmer(f.id)) UI.update();
+      });
+      coinFarmers.appendChild(row);
+      UI._btcRows.coinFarmers[f.id] = { row, btn, def: f };
+    });
+    const collectBtn = el("btn-collect-energy");
+    if (collectBtn) {
+      collectBtn.onclick = () => {
+        if (Game.Bitcoin.collectEnergy()) UI.update();
+      };
+    }
+    const farmBtn = el("btn-farm-btc");
+    if (farmBtn) {
+      farmBtn.onclick = () => {
+        if (Game.Bitcoin.farmBitcoin()) UI.update();
+      };
+    }
     const sellBtn = el("btn-sell-btc");
     if (sellBtn) {
       sellBtn.onclick = () => {
@@ -574,31 +601,41 @@
     if (!built.bitcoin || !UI._btcRows) return;
     const s = Game.state;
     const stats = el("bitcoin-stats");
-    const ep = Game.Bitcoin.energyProduction();
-    const ec = Game.Bitcoin.energyConsumption();
-    const br = Game.Bitcoin.miningRate();
+    const snap = Game.Bitcoin.snapshot(1);
+    const collectBtn = el("btn-collect-energy");
+    const farmBtn = el("btn-farm-btc");
+    const sellBtn = el("btn-sell-btc");
     stats.innerHTML =
       '<div class="stat-row"><span class="stat-key">BTC Price</span><span class="stat-val">' + fmt(s.btcPrice) + " coins</span></div>" +
       '<div class="stat-row"><span class="stat-key">BTC Holdings</span><span class="stat-val">' + fmt(s.btc) + "</span></div>" +
       '<div class="stat-row"><span class="stat-key">Energy</span><span class="stat-val">' + fmt(s.energy) + " / " + fmt(s.energyCap) + "</span></div>" +
-      '<div class="stat-row"><span class="stat-key">Net Energy</span><span class="stat-val">' + fmt(ep - ec) + " / sec</span></div>" +
-      '<div class="stat-row"><span class="stat-key">Mining Rate</span><span class="stat-val">' + fmt(br) + " BTC / sec</span></div>";
+      '<div class="stat-row"><span class="stat-key">Energy Production</span><span class="stat-val">' + fmt(snap.production) + " / sec</span></div>" +
+      '<div class="stat-row"><span class="stat-key">Energy Demand</span><span class="stat-val">' + fmt(snap.totalDemand) + " / sec</span></div>" +
+      '<div class="stat-row"><span class="stat-key">Grid Utilization</span><span class="stat-val">' + Math.round(snap.activityRatio * 100) + '%</span></div>' +
+      '<div class="stat-row"><span class="stat-key">Mining Rate</span><span class="stat-val">' + fmt(snap.miningRate) + " BTC / sec</span></div>" +
+      '<div class="stat-row"><span class="stat-key">Coin Farmer Yield</span><span class="stat-val">' + fmt(snap.coinRate) + " coins / sec</span></div>" +
+      '<div class="stat-row"><span class="stat-key">Collect Energy</span><span class="stat-val">+' + fmt(Game.Bitcoin.manualEnergyGain()) + "</span></div>" +
+      '<div class="stat-row"><span class="stat-key">Farm Bitcoin</span><span class="stat-val">+' + fmt(Game.Bitcoin.manualBitcoinGain()) + " BTC for " + fmt(Game.Bitcoin.manualMineEnergyCost()) + " energy</span></div>";
+
+    setBtn(collectBtn, s.energy < s.energyCap);
+    setBtn(farmBtn, s.energy >= Game.Bitcoin.manualMineEnergyCost());
+    setBtn(sellBtn, Game.Bitcoin.canSell());
 
     Object.keys(UI._btcRows.producers).forEach((id) => {
       const r = UI._btcRows.producers[id];
       const owned = s.energyProducers[id] || 0;
       const cost = Game.Bitcoin.equipmentCost(r.def.baseCost, owned);
       r.btn.textContent = "Buy (" + fmt(cost) + ")";
-      r.row.querySelector(".market-desc").textContent = "+" + r.def.energyPerSec + " energy/sec • owned: " + fmt(owned);
-      r.btn.disabled = s.coins < cost;
+      r.row.querySelector(".market-desc").textContent = "+" + fmt(r.def.energyPerSec) + " energy/sec • owned: " + fmt(owned);
+      setBtn(r.btn, s.coins >= cost);
     });
     Object.keys(UI._btcRows.miners).forEach((id) => {
       const r = UI._btcRows.miners[id];
       const owned = s.btcMiners[id] || 0;
       const cost = Game.Bitcoin.equipmentCost(r.def.baseCost, owned);
       r.btn.textContent = "Buy (" + fmt(cost) + ")";
-      r.row.querySelector(".market-desc").textContent = r.def.btcPerSec + " BTC/sec • " + r.def.energyUse + " energy/sec • owned: " + fmt(owned);
-      r.btn.disabled = s.coins < cost;
+      r.row.querySelector(".market-desc").textContent = fmt(r.def.btcPerSec) + " BTC/sec • " + fmt(r.def.energyUse) + " energy/sec • owned: " + fmt(owned);
+      setBtn(r.btn, s.coins >= cost);
     });
     Object.keys(UI._btcRows.batteries).forEach((id) => {
       const r = UI._btcRows.batteries[id];
@@ -606,7 +643,15 @@
       const cost = Game.Bitcoin.equipmentCost(r.def.baseCost, owned);
       r.btn.textContent = "Buy (" + fmt(cost) + ")";
       r.row.querySelector(".market-desc").textContent = "+" + fmt(r.def.capacity) + " energy cap • owned: " + fmt(owned);
-      r.btn.disabled = s.coins < cost;
+      setBtn(r.btn, s.coins >= cost);
+    });
+    Object.keys(UI._btcRows.coinFarmers).forEach((id) => {
+      const r = UI._btcRows.coinFarmers[id];
+      const owned = s.coinFarmers[id] || 0;
+      const cost = Game.Bitcoin.equipmentCost(r.def.baseCost, owned);
+      r.btn.textContent = "Buy (" + fmt(cost) + ")";
+      r.row.querySelector(".market-desc").textContent = fmt(r.def.coinsPerSec) + " coins/sec • " + fmt(r.def.energyUse) + " energy/sec • owned: " + fmt(owned);
+      setBtn(r.btn, s.coins >= cost);
     });
   };
 
@@ -897,7 +942,14 @@
       ["Talent Powers Used", fmt(stats.powersActivated || 0)],
       ["Bitcoin Holdings", fmt(s.btc)],
       ["BTC Price", fmt(s.btcPrice)],
+      ["Lifetime BTC Mined", fmt(stats.totalBtcMined || 0)],
+      ["BTC Sold", fmt(stats.totalBtcSold || 0)],
+      ["Manual BTC Mined", fmt(stats.totalManualBtcMined || 0)],
       ["Energy", fmt(s.energy) + " / " + fmt(s.energyCap)],
+      ["Energy Generated", fmt(stats.totalEnergyGenerated || 0)],
+      ["Energy Spent", fmt(stats.totalEnergySpent || 0)],
+      ["Manual Energy Collected", fmt(stats.totalEnergyCollected || 0)],
+      ["Coin Farmer Rate", fmt(Game.Bitcoin ? Game.Bitcoin.coinFarmerRate() : 0)],
       ["Portfolio Value", fmt(Game.Stocks ? Game.Stocks.portfolioValue() : 0)],
       ["Prestige Points", fmt(s.prestigePoints)],
       ["Lifetime Prestige Points", fmt(s.lifetimePrestigePoints)],
@@ -980,6 +1032,7 @@
      --------------------------------------------------------------------- */
   UI.update = function () {
     const s = Game.state;
+    if (Game.Bitcoin && Game.Bitcoin.energyCap) s.energyCap = Game.Bitcoin.energyCap();
     refs.coins.textContent = fmt(s.coins);
     refs.cps.textContent = fmt(s._cps) + " / sec";
     refs.clickValue.textContent = "+" + fmt(s._clickValue) + " / click";
@@ -988,8 +1041,8 @@
     toggleWrap(refs.ppWrap, s.prestigePoints > 0 || s.lifetimePrestigePoints > 0 || Game.Prestige.canPrestige());
     toggleWrap(refs.rpWrap, s.researchPoints > 0 || s.stats.researchCompleted > 0 || (s.buildings.laboratory || 0) > 0);
     toggleWrap(refs.asWrap, s.ascensionShards > 0 || s.stats.ascensionCount > 0);
-    toggleWrap(refs.btcWrap, s.btc > 0 || Object.values(s.btcMiners || {}).some((v) => v > 0));
-    toggleWrap(refs.energyWrap, Object.values(s.energyProducers || {}).some((v) => v > 0) || Object.values(s.btcMiners || {}).some((v) => v > 0));
+    toggleWrap(refs.btcWrap, s.btc > 0 || (s.stats.totalBtcMined || 0) > 0 || Object.values(s.btcMiners || {}).some((v) => v > 0));
+    toggleWrap(refs.energyWrap, s.energy > 0 || Object.values(s.energyProducers || {}).some((v) => v > 0) || Object.values(s.btcMiners || {}).some((v) => v > 0) || Object.values(s.coinFarmers || {}).some((v) => v > 0) || Object.values(s.batteries || {}).some((v) => v > 0));
     refs.pp.textContent = fmt(s.prestigePoints);
     refs.rp.textContent = fmt(s.researchPoints);
     refs.as.textContent = fmt(s.ascensionShards);

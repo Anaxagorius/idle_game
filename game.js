@@ -15,9 +15,11 @@
     const energyProducers = {};
     const btcMiners = {};
     const batteries = {};
+    const coinFarmers = {};
     (cfg.energyProducers || []).forEach((p) => (energyProducers[p.id] = 0));
     (cfg.btcMiners || []).forEach((m) => (btcMiners[m.id] = 0));
     (cfg.batteries || []).forEach((b) => (batteries[b.id] = 0));
+    (cfg.coinFarmers || []).forEach((f) => (coinFarmers[f.id] = 0));
     const stocks = {};
     const stockHistory = {};
     const portfolio = {};
@@ -73,6 +75,7 @@
       energyProducers,
       btcMiners,
       batteries,
+      coinFarmers,
       stocks,
       stockHistory,
       portfolio,
@@ -94,6 +97,12 @@
         diplomaticActions: 0,
         diplomacyCoins: 0,
         diplomacyResearch: 0,
+        totalEnergyGenerated: 0,
+        totalEnergySpent: 0,
+        totalEnergyCollected: 0,
+        totalBtcMined: 0,
+        totalManualBtcMined: 0,
+        totalBtcSold: 0,
       },
       settings: {
         notifications: true,
@@ -156,6 +165,11 @@
       clickCpsFractionMult: 1,
       minerEfficiency: 1,
       btcPriceMult: 1,
+      energyProduction: 1,
+      energyCapacity: 1,
+      energyClick: 1,
+      btcClick: 1,
+      coinFarmerYield: 1,
       stockFeeReduction: 1,
       stockInsight: 0,
       autoClickBoost: 0,
@@ -192,6 +206,16 @@
         m.minerEfficiency *= effectMultiplier;
       } else if (type === "btcPriceMult") {
         m.btcPriceMult *= effectMultiplier;
+      } else if (type === "energyProduction") {
+        m.energyProduction *= effectMultiplier;
+      } else if (type === "energyCapacity") {
+        m.energyCapacity *= effectMultiplier;
+      } else if (type === "energyClick") {
+        m.energyClick *= effectMultiplier;
+      } else if (type === "btcClick") {
+        m.btcClick *= effectMultiplier;
+      } else if (type === "coinFarmerYield") {
+        m.coinFarmerYield *= effectMultiplier;
       } else if (type === "stockFeeReduction") {
         m.stockFeeReduction *= effectMultiplier;
       } else if (type === "stockInsight") {
