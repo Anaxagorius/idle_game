@@ -47,8 +47,9 @@
     if (a.autoClick && Automation.isUnlocked("autoClick")) {
       autoClickAccumulator += Automation.clicksPerSecond() * dt;
       while (autoClickAccumulator >= 1) {
-        Game.click();
+        const v = Game.click();
         autoClickAccumulator -= 1;
+        if (Game.UI && Game.UI.autoClickVisual) Game.UI.autoClickVisual(v);
       }
     }
 
