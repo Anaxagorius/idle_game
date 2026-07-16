@@ -72,7 +72,7 @@
 
     // Canso Causeway (thin dashed bridge between mainland and Cape Breton)
     svg.appendChild(svgEl('line', {
-      x1: 548, y1: 155, x2: 558, y2: 182,
+      x1: 563, y1: 169, x2: 572, y2: 155,
       stroke: '#ccc', 'stroke-width': 3, 'stroke-dasharray': '4,3',
       opacity: 0.8,
     }));
@@ -113,7 +113,7 @@
       }
 
       var polyAttrs = {
-        points: county.points,
+        d: county.path,
         fill: county.color,
         stroke: strokeColor,
         'stroke-width': strokeWidth,
@@ -123,7 +123,7 @@
       };
       if (extraFilter) polyAttrs.filter = extraFilter;
 
-      var poly = svgEl('polygon', polyAttrs);
+      var poly = svgEl('path', polyAttrs);
       svg.appendChild(poly);
 
       // County name label (not on mini-map)
