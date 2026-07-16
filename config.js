@@ -718,3 +718,203 @@ Game.config.godTitanMap = {};
 GODS_TITANS.forEach((gt) => {
   Game.config.godTitanMap[gt.id] = gt;
 });
+
+/* --------------------------------------------------------------------------
+   Skill Trees (6 branches x 8 nodes)
+   -------------------------------------------------------------------------- */
+const SKILL_TREE_BRANCHES = {
+  civic: { name: "Civic", color: "#f6c453" },
+  engineering: { name: "Engineering", color: "#e07a5f" },
+  education: { name: "Education", color: "#4ea8de" },
+  spiritual: { name: "Spiritual", color: "#b388eb" },
+  military: { name: "Military", color: "#ef476f" },
+  hashforge: { name: "Hash Forge", color: "#48cae4" },
+};
+
+const SKILL_TREE_NAMES = {
+  civic: ["Town Hall Charters", "Civil Services", "Public Works", "Policy Coordination", "Bureau of Trade", "Urban Harmonization", "Grand Senate", "Unified Commonwealth"],
+  engineering: ["Blueprint Standards", "Precision Tooling", "Process Control", "Industrial Optimization", "Power Architecture", "Deep Infrastructure", "Megaproject Cadence", "Singularity Fabrication"],
+  education: ["Literacy Program", "Open Libraries", "Scholarly Exchange", "Applied Academia", "Research Consortium", "Experimental Campus", "Think Tank Assembly", "Cognitive Nexus"],
+  spiritual: ["Temple Network", "Ritual Discipline", "Pilgrim Unity", "Meditative Economy", "Sacred Oaths", "Harmony Doctrine", "Transcendent Creed", "Eternal Chorus"],
+  military: ["Logistics Corps", "Drill Grounds", "Tactical Schools", "Armor Works", "Fleet Doctrine", "War Office", "Combined Arms", "Strategic Command"],
+  hashforge: ["Finger Conditioning", "Click Cadence", "Reflex Overdrive", "Input Pipeline", "Burst Protocol", "Hyper Tapping", "Neural Rhythm", "Mythic Throughput"],
+};
+
+const SKILL_TREE_EFFECTS = {
+  civic: [
+    { type: "globalMult", value: 0.04 },
+    { type: "costReduction", value: 0.03 },
+    { type: "clickMult", value: 0.06 },
+    { type: "eventDelayMult", mult: 0.95 },
+    { type: "stockFeeReduction", value: 0.04 },
+    { type: "globalMult", value: 0.05, penaltyType: "rpMult", penaltyMult: 0.97 },
+    { type: "costReduction", value: 0.04, penaltyType: "rpMult", penaltyMult: 0.96 },
+    { type: "stockFeeReduction", value: 0.06, penaltyType: "rpMult", penaltyMult: 0.95 },
+  ],
+  engineering: [
+    { type: "buildingMult", building: "factory", value: 0.14 },
+    { type: "buildingMult", building: "mine", value: 0.14 },
+    { type: "buildingMult", building: "refinery", value: 0.14 },
+    { type: "buildingMult", building: "powerplant", value: 0.16 },
+    { type: "costReduction", value: 0.03 },
+    { type: "minerEfficiency", value: 0.08, penaltyType: "globalMult", penaltyMult: 0.98 },
+    { type: "minerEfficiency", value: 0.1, penaltyType: "globalMult", penaltyMult: 0.975 },
+    { type: "stockInsight", value: 1, penaltyType: "globalMult", penaltyMult: 0.97 },
+  ],
+  education: [
+    { type: "rpMult", value: 0.08 },
+    { type: "buildingMult", building: "university", value: 0.18 },
+    { type: "buildingMult", building: "laboratory", value: 0.18 },
+    { type: "buildingMult", building: "datacenter", value: 0.2, penaltyType: "clickMult", penaltyMult: 0.97 },
+    { type: "btcPriceMult", value: 0.05, penaltyType: "clickMult", penaltyMult: 0.97 },
+    { type: "stockInsight", value: 1 },
+    { type: "rpMult", value: 0.1 },
+    { type: "skillPower", powerId: "research_burst" },
+  ],
+  spiritual: [
+    { type: "prestigeGain", value: 0.06 },
+    { type: "globalMult", value: 0.04 },
+    { type: "milestoneMult", value: 0.05 },
+    { type: "prestigeGain", value: 0.07 },
+    { type: "globalMult", value: 0.05, penaltyType: "automationMult", penaltyMult: 0.97 },
+    { type: "prestigeGain", value: 0.08, penaltyType: "automationMult", penaltyMult: 0.96 },
+    { type: "globalMult", value: 0.06, penaltyType: "automationMult", penaltyMult: 0.95 },
+    { type: "milestoneMult", value: 0.08, penaltyType: "automationMult", penaltyMult: 0.94 },
+  ],
+  military: [
+    { type: "buildingMult", building: "factory", value: 0.12 },
+    { type: "buildingMult", building: "shipyard", value: 0.14 },
+    { type: "globalMult", value: 0.04 },
+    { type: "clickMult", value: 0.08 },
+    { type: "buildingMult", building: "refinery", value: 0.14, penaltyType: "costReduction", penaltyMult: 1.02 },
+    { type: "globalMult", value: 0.05, penaltyType: "costReduction", penaltyMult: 1.025 },
+    { type: "buildingMult", building: "spaceport", value: 0.16, penaltyType: "costReduction", penaltyMult: 1.03 },
+    { type: "clickMult", value: 0.12, penaltyType: "costReduction", penaltyMult: 1.035 },
+  ],
+  hashforge: [
+    { type: "clickMult", value: 0.12 },
+    { type: "clickCpsFractionMult", value: 0.08 },
+    { type: "clickMult", value: 0.14 },
+    { type: "autoClickBoost", value: 1, penaltyType: "globalMult", penaltyMult: 0.985 },
+    { type: "clickCpsFractionMult", value: 0.1, penaltyType: "globalMult", penaltyMult: 0.985 },
+    { type: "clickMult", value: 0.16, penaltyType: "globalMult", penaltyMult: 0.98 },
+    { type: "autoClickBoost", value: 1, penaltyType: "globalMult", penaltyMult: 0.98 },
+    { type: "clickMult", value: 0.2, penaltyType: "globalMult", penaltyMult: 0.975 },
+  ],
+};
+
+const SKILL_TREE_NODES = [];
+Object.keys(SKILL_TREE_NAMES).forEach((branch) => {
+  SKILL_TREE_NAMES[branch].forEach((name, index) => {
+    const effect = SKILL_TREE_EFFECTS[branch][index];
+    const id = "skill_" + branch + "_" + index;
+    const cost = Math.floor((12 + index * 8) * (branch === "hashforge" ? 1.05 : 1));
+    let desc = "";
+    if (effect.type === "buildingMult") desc = "+" + Math.round(effect.value * 100) + "% " + Game.config.buildingMap[effect.building].name + " output.";
+    else if (effect.type === "costReduction") desc = "-" + Math.round(effect.value * 100) + "% building/upgrade cost.";
+    else if (effect.type === "globalMult") desc = "+" + Math.round(effect.value * 100) + "% global production.";
+    else if (effect.type === "clickMult") desc = "+" + Math.round(effect.value * 100) + "% click value.";
+    else if (effect.type === "rpMult") desc = "+" + Math.round(effect.value * 100) + "% research gain.";
+    else if (effect.type === "prestigeGain") desc = "+" + Math.round(effect.value * 100) + "% prestige gain.";
+    else if (effect.type === "milestoneMult") desc = "+" + Math.round(effect.value * 100) + "% milestone power.";
+    else if (effect.type === "eventDelayMult") desc = "Events occur more often.";
+    else if (effect.type === "minerEfficiency") desc = "+" + Math.round(effect.value * 100) + "% bitcoin miner efficiency.";
+    else if (effect.type === "btcPriceMult") desc = "+" + Math.round(effect.value * 100) + "% BTC sell value.";
+    else if (effect.type === "stockFeeReduction") desc = "Reduce stock trade fees.";
+    else if (effect.type === "stockInsight") desc = "Unlock stock trend insight.";
+    else if (effect.type === "clickCpsFractionMult") desc = "Clicks gain more from CPS.";
+    else if (effect.type === "autoClickBoost") desc = "Boost auto-click speed.";
+    else if (effect.type === "skillPower") desc = "Unlock power: Research Burst.";
+    if (effect.penaltyType) desc += " Tradeoff applies.";
+    SKILL_TREE_NODES.push({
+      id,
+      tree: branch,
+      index,
+      name,
+      cost,
+      requires: index > 0 ? "skill_" + branch + "_" + (index - 1) : null,
+      ...effect,
+      desc,
+    });
+  });
+});
+
+Game.config.skillTreeBranches = SKILL_TREE_BRANCHES;
+Game.config.skillTreeNodes = SKILL_TREE_NODES;
+Game.config.skillTreeNodeMap = {};
+Game.config.skillTreeNodesByTree = {};
+SKILL_TREE_NODES.forEach((n) => {
+  Game.config.skillTreeNodeMap[n.id] = n;
+  if (!Game.config.skillTreeNodesByTree[n.tree]) Game.config.skillTreeNodesByTree[n.tree] = [];
+  Game.config.skillTreeNodesByTree[n.tree].push(n);
+});
+
+Game.config.skillPowers = {
+  research_burst: {
+    id: "research_burst",
+    name: "Research Burst",
+    desc: "Temporarily boosts RP gain and reduces global output.",
+    duration: 30,
+    cooldown: 240,
+    effects: [
+      { type: "rpMult", mult: 2.2 },
+      { type: "globalMult", mult: 0.9 },
+    ],
+  },
+};
+
+/* --------------------------------------------------------------------------
+   Bitcoin Mining
+   -------------------------------------------------------------------------- */
+const ENERGY_PRODUCERS = [
+  { id: "solar_panel", name: "Solar Panel", baseCost: 20000, energyPerSec: 2 },
+  { id: "wind_turbine", name: "Wind Turbine", baseCost: 150000, energyPerSec: 12 },
+  { id: "coal_generator", name: "Coal Generator", baseCost: 900000, energyPerSec: 45 },
+  { id: "nuclear_reactor", name: "Nuclear Reactor", baseCost: 6000000, energyPerSec: 180 },
+  { id: "fusion_cell", name: "Fusion Cell", baseCost: 40000000, energyPerSec: 650 },
+];
+
+const BTC_MINERS = [
+  { id: "gpu_rig", name: "Basic GPU Rig", baseCost: 50000, energyUse: 4, btcPerSec: 0.00005 },
+  { id: "asic_miner", name: "ASIC Miner", baseCost: 450000, energyUse: 22, btcPerSec: 0.00032 },
+  { id: "mining_farm", name: "Mining Farm", baseCost: 2800000, energyUse: 120, btcPerSec: 0.0022 },
+  { id: "quantum_miner", name: "Quantum Miner", baseCost: 18000000, energyUse: 650, btcPerSec: 0.014 },
+];
+
+const BATTERIES = [
+  { id: "small_battery", name: "Small Battery", baseCost: 35000, capacity: 100 },
+  { id: "large_battery", name: "Large Battery", baseCost: 300000, capacity: 800 },
+  { id: "quantum_cell", name: "Quantum Cell", baseCost: 2500000, capacity: 7000 },
+];
+
+Game.config.energyProducers = ENERGY_PRODUCERS;
+Game.config.btcMiners = BTC_MINERS;
+Game.config.batteries = BATTERIES;
+Game.config.BTC_EQUIPMENT_COST_SCALE = 1.17;
+Game.config.BTC_BASE_ENERGY_CAP = 250;
+Game.config.BTC_BASE_PRICE = 25000;
+Game.config.BTC_MIN_PRICE = 3000;
+Game.config.BTC_MAX_PRICE = 300000;
+Game.config.BTC_PRICE_OSCILLATION = 0.12;
+Game.config.BTC_PRICE_VOLATILITY = 0.05;
+
+/* --------------------------------------------------------------------------
+   Stock Market
+   -------------------------------------------------------------------------- */
+const STOCKS = [
+  { id: "stock_novatek", ticker: "NVT", name: "NovaTek Systems", sector: "Tech", basePrice: 42, volatility: 0.032, drift: 0.0012 },
+  { id: "stock_solaris", ticker: "SLR", name: "Solaris Energy", sector: "Energy", basePrice: 34, volatility: 0.028, drift: 0.001 },
+  { id: "stock_ironpeak", ticker: "IRP", name: "IronPeak Mining", sector: "Industry", basePrice: 29, volatility: 0.035, drift: 0.0008 },
+  { id: "stock_aurum", ticker: "AUR", name: "Aurum Finance", sector: "Finance", basePrice: 51, volatility: 0.03, drift: 0.0011 },
+  { id: "stock_hyperlane", ticker: "HYP", name: "Hyperlane Logistics", sector: "Logistics", basePrice: 24, volatility: 0.027, drift: 0.0009 },
+  { id: "stock_orbitex", ticker: "ORX", name: "Orbitex Aerospace", sector: "Space", basePrice: 63, volatility: 0.04, drift: 0.0013 },
+  { id: "stock_biozen", ticker: "BZN", name: "BioZen Labs", sector: "Biotech", basePrice: 38, volatility: 0.031, drift: 0.001 },
+  { id: "stock_quantis", ticker: "QNT", name: "Quantis Compute", sector: "Compute", basePrice: 57, volatility: 0.036, drift: 0.0012 },
+  { id: "stock_tidewater", ticker: "TDW", name: "Tidewater Foods", sector: "Consumer", basePrice: 19, volatility: 0.022, drift: 0.0007 },
+  { id: "stock_crown", ticker: "CRW", name: "Crown Estates", sector: "Realty", basePrice: 47, volatility: 0.026, drift: 0.0009 },
+];
+Game.config.stocks = STOCKS;
+Game.config.STOCK_TICK_SECONDS = 5;
+Game.config.STOCK_HISTORY_POINTS = 20;
+Game.config.STOCK_TRADING_FEE = 0.01;
+Game.config.STOCK_DIVIDEND_SECONDS = 30;

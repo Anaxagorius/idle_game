@@ -67,6 +67,31 @@
       if (typeof fresh.subBuildingUpgrades[sb.id] !== "number") fresh.subBuildingUpgrades[sb.id] = 0;
       fresh.subBuildingUpgrades[sb.id] = Math.max(0, Math.min(cfg.SUB_BUILDING_MAX_UPGRADES, fresh.subBuildingUpgrades[sb.id]));
     });
+    if (!fresh.skillTrees || typeof fresh.skillTrees !== "object") fresh.skillTrees = {};
+    if (!fresh.skillCooldowns || typeof fresh.skillCooldowns !== "object") fresh.skillCooldowns = {};
+    if (!Array.isArray(fresh.activeSkillPowers)) fresh.activeSkillPowers = [];
+    if (!fresh.energyProducers || typeof fresh.energyProducers !== "object") fresh.energyProducers = {};
+    if (!fresh.btcMiners || typeof fresh.btcMiners !== "object") fresh.btcMiners = {};
+    if (!fresh.batteries || typeof fresh.batteries !== "object") fresh.batteries = {};
+    if (!fresh.stocks || typeof fresh.stocks !== "object") fresh.stocks = {};
+    if (!fresh.stockHistory || typeof fresh.stockHistory !== "object") fresh.stockHistory = {};
+    if (!fresh.portfolio || typeof fresh.portfolio !== "object") fresh.portfolio = {};
+    (cfg.energyProducers || []).forEach((p) => {
+      if (typeof fresh.energyProducers[p.id] !== "number") fresh.energyProducers[p.id] = 0;
+    });
+    (cfg.btcMiners || []).forEach((m) => {
+      if (typeof fresh.btcMiners[m.id] !== "number") fresh.btcMiners[m.id] = 0;
+    });
+    (cfg.batteries || []).forEach((b) => {
+      if (typeof fresh.batteries[b.id] !== "number") fresh.batteries[b.id] = 0;
+    });
+    (cfg.stocks || []).forEach((st) => {
+      if (typeof fresh.stocks[st.id] !== "number") fresh.stocks[st.id] = st.basePrice;
+      if (!Array.isArray(fresh.stockHistory[st.id])) fresh.stockHistory[st.id] = [fresh.stocks[st.id]];
+      if (!fresh.portfolio[st.id] || typeof fresh.portfolio[st.id] !== "object") fresh.portfolio[st.id] = { shares: 0, avgCost: 0 };
+      if (typeof fresh.portfolio[st.id].shares !== "number") fresh.portfolio[st.id].shares = 0;
+      if (typeof fresh.portfolio[st.id].avgCost !== "number") fresh.portfolio[st.id].avgCost = 0;
+    });
     Game.state = fresh;
     Game.recalculate();
   };

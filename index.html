@@ -31,6 +31,14 @@
         <span class="label">Ascension Shards</span>
         <span class="value" id="res-as">0</span>
       </div>
+      <div class="resource btc" id="res-btc-wrap" style="display:none">
+        <span class="label">Bitcoin</span>
+        <span class="value" id="res-btc">0</span>
+      </div>
+      <div class="resource energy" id="res-energy-wrap" style="display:none">
+        <span class="label">Energy</span>
+        <span class="value" id="res-energy">0 / 0</span>
+      </div>
       <div class="active-events" id="active-events"></div>
     </div>
   </header>
@@ -41,6 +49,9 @@
     <button class="tab-button" data-tab="map">🗺️ Map</button>
     <button class="tab-button" data-tab="research">Research</button>
     <button class="tab-button" data-tab="automation">Automation</button>
+    <button class="tab-button" data-tab="skilltrees">Skill Trees</button>
+    <button class="tab-button" data-tab="bitcoin">⛏️ Bitcoin</button>
+    <button class="tab-button" data-tab="stocks">📈 Stocks</button>
     <button class="tab-button" data-tab="achievements">Achievements</button>
     <button class="tab-button" data-tab="milestones">Milestones</button>
     <button class="tab-button" data-tab="prestige">Prestige</button>
@@ -129,6 +140,44 @@
         <h2>Purchase Amount</h2>
         <p class="muted">Controls how many buildings are bought per click and by Auto Buy.</p>
         <div class="amount-selector" id="buy-amount-selector"></div>
+      </div>
+    </section>
+
+    <section id="tab-skilltrees" class="tab-content">
+      <div class="panel">
+        <h2>Skill Trees</h2>
+        <p class="muted">Spend Prestige Points to unlock branch-based bonuses and tradeoffs.</p>
+        <div id="skilltree-list" class="skilltree-list"></div>
+        <h3>Skill Powers</h3>
+        <div id="skill-power-list" class="talent-power-list"></div>
+      </div>
+    </section>
+
+    <section id="tab-bitcoin" class="tab-content">
+      <div class="panel">
+        <h2>Bitcoin Mining</h2>
+        <div class="bitcoin-stats" id="bitcoin-stats"></div>
+        <button class="settings-btn" id="btn-sell-btc">Sell All BTC</button>
+      </div>
+      <div class="panel">
+        <h2>Energy Producers</h2>
+        <div id="energy-producer-list" class="market-grid"></div>
+      </div>
+      <div class="panel">
+        <h2>Mining Equipment</h2>
+        <div id="btc-miner-list" class="market-grid"></div>
+      </div>
+      <div class="panel">
+        <h2>Batteries</h2>
+        <div id="battery-list" class="market-grid"></div>
+      </div>
+    </section>
+
+    <section id="tab-stocks" class="tab-content">
+      <div class="panel">
+        <h2>Stock Market</h2>
+        <div class="stock-summary" id="stock-summary"></div>
+        <div id="stock-list"></div>
       </div>
     </section>
 
@@ -272,7 +321,10 @@
   <script src="milestones.js"></script>
   <script src="prestige.js"></script>
   <script src="talents.js"></script>
+  <script src="skilltrees.js"></script>
   <script src="automation.js"></script>
+  <script src="bitcoin.js"></script>
+  <script src="stocks.js"></script>
   <script src="events.js"></script>
   <script src="save.js"></script>
   <script src="map_ui.js"></script>

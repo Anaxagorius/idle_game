@@ -10,7 +10,9 @@
   Events.scheduleNext = function () {
     const min = cfg.eventMinDelay;
     const max = cfg.eventMaxDelay;
-    const delay = min + Math.random() * (max - min);
+    const mults = Game.state._mult || Game.computeMultipliers();
+    const delayMult = Math.max(0.5, Math.min(1.5, mults.eventDelayMult || 1));
+    const delay = (min + Math.random() * (max - min)) * delayMult;
     Game.state.nextEventTime = Game.state.stats.playTime + delay;
   };
 

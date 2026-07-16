@@ -15,7 +15,10 @@
     const tier = Game.Research.autoclickTier();
     if (tier <= 0) return 0;
     // tier 1 -> 1/s, scaling up to ~50/s at max tiers
-    return Math.min(50, tier * tier + tier * 2);
+    const mults = Game.state._mult || Game.computeMultipliers();
+    const boostedTier = tier + (mults.autoClickBoost || 0);
+    const raw = Math.min(50, boostedTier * boostedTier + boostedTier * 2);
+    return raw * (mults.automationMult || 1);
   };
 
   Automation.isUnlocked = function (feature) {
