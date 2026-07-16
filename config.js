@@ -849,13 +849,14 @@ SKILL_TREE_NODES.forEach((n) => {
   Game.config.skillTreeNodesByTree[n.tree].push(n);
 });
 
+const RESEARCH_BURST_COOLDOWN = 240;
 Game.config.skillPowers = {
   research_burst: {
     id: "research_burst",
     name: "Research Burst",
     desc: "Temporarily boosts RP gain and reduces global output.",
     duration: 30,
-    cooldown: 240,
+    cooldown: RESEARCH_BURST_COOLDOWN,
     effects: [
       { type: "rpMult", mult: 2.2 },
       { type: "globalMult", mult: 0.9 },
@@ -897,6 +898,9 @@ Game.config.BTC_MIN_PRICE = 3000;
 Game.config.BTC_MAX_PRICE = 300000;
 Game.config.BTC_PRICE_OSCILLATION = 0.12;
 Game.config.BTC_PRICE_VOLATILITY = 0.05;
+Game.config.BTC_PRICE_OSCILLATION_PERIOD = 20;
+Game.config.BTC_PRICE_OSC_SCALE = 0.1;
+Game.config.BTC_PRICE_NOISE_SCALE = 0.03;
 
 /* --------------------------------------------------------------------------
    Stock Market
@@ -918,3 +922,8 @@ Game.config.STOCK_TICK_SECONDS = 5;
 Game.config.STOCK_HISTORY_POINTS = 20;
 Game.config.STOCK_TRADING_FEE = 0.01;
 Game.config.STOCK_DIVIDEND_SECONDS = 30;
+Game.config.STOCK_DIVIDEND_PRICE_THRESHOLD_MULT = 1.1;
+Game.config.STOCK_DIVIDEND_RATE = 0.0005;
+
+Game.config.MIN_EVENT_DELAY_MULT = 0.5;
+Game.config.MAX_EVENT_DELAY_MULT = 1.5;

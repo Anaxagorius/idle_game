@@ -98,9 +98,9 @@
     s.btc += Bitcoin.miningRate() * dtSeconds;
 
     s.btcMarketTime = (s.btcMarketTime || 0) + dtSeconds;
-    const osc = Math.sin(s.btcMarketTime / 20) * cfg.BTC_PRICE_OSCILLATION;
+    const osc = Math.sin(s.btcMarketTime / cfg.BTC_PRICE_OSCILLATION_PERIOD) * cfg.BTC_PRICE_OSCILLATION;
     const noise = (Math.random() - 0.5) * cfg.BTC_PRICE_VOLATILITY;
-    s.btcPrice *= 1 + osc * 0.1 + noise * 0.03;
+    s.btcPrice *= 1 + osc * cfg.BTC_PRICE_OSC_SCALE + noise * cfg.BTC_PRICE_NOISE_SCALE;
     s.btcPrice = Math.max(cfg.BTC_MIN_PRICE, Math.min(cfg.BTC_MAX_PRICE, s.btcPrice));
   };
 

@@ -109,8 +109,8 @@
       cfg.stocks.forEach((st) => {
         const p = s.portfolio[st.id];
         if (!p || p.shares <= 0) return;
-        if (s.stocks[st.id] < st.basePrice * 1.1) return;
-        payout += p.shares * s.stocks[st.id] * 0.0005;
+        if (s.stocks[st.id] < st.basePrice * cfg.STOCK_DIVIDEND_PRICE_THRESHOLD_MULT) return;
+        payout += p.shares * s.stocks[st.id] * cfg.STOCK_DIVIDEND_RATE;
       });
       if (payout > 0) {
         s.coins += payout;
