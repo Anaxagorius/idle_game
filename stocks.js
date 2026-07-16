@@ -93,7 +93,7 @@
       cfg.stocks.forEach((st) => {
         const price = s.stocks[st.id];
         const sectorDrift = st.drift + (Math.random() - 0.5) * st.volatility;
-        const correlated = eventShift * (0.6 + Math.random() * 0.8);
+        const correlated = eventShift * (cfg.STOCK_EVENT_CORRELATION_MIN + Math.random() * cfg.STOCK_EVENT_CORRELATION_RANGE);
         const next = price * (1 + sectorDrift + correlated);
         s.stocks[st.id] = Math.max(1, next);
         const hist = s.stockHistory[st.id];

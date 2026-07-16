@@ -419,8 +419,8 @@
         let actionText = "";
         if (owned) actionText = "Unlocked";
         else if (!available) actionText = "Requires prior node";
-        else if (affordable) actionText = "Buy " + fmt(n.cost) + " Prestige";
-        else actionText = "Need " + fmt(n.cost) + " Prestige";
+        else if (affordable) actionText = "Buy " + fmt(n.cost) + " Prestige Points";
+        else actionText = "Need " + fmt(n.cost) + " Prestige Points";
         const card = make("div", "skill-node" + (owned ? " purchased" : available ? "" : " locked"));
         card.style.borderColor = owned ? "#43aa8b" : tree.color;
         card.innerHTML =
@@ -607,7 +607,7 @@
       const p = s.portfolio[st.id];
       row.querySelector("[data-price]").textContent = "Price: " + fmt(price) + " coins";
       const trend = Game.Stocks.trend(st.id);
-      row.querySelector("[data-trend]").textContent = mults.stockInsight > 0 ? "Trend: " + trend : "Trend: locked";
+      row.querySelector("[data-trend]").textContent = mults.stockInsight > 0 ? "Trend: " + trend : "Trend: locked (unlock via Engineering/Education)";
       const pnl = p.shares > 0 ? (price - p.avgCost) * p.shares : 0;
       row.querySelector("[data-portfolio]").textContent = "Shares: " + fmt(p.shares) + " • Avg: " + fmt(p.avgCost) + " • P/L: " + fmt(pnl);
       row.querySelector("[data-buy]").disabled = s.coins < price * (1 + Game.Stocks.feeRate());

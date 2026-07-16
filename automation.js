@@ -17,8 +17,8 @@
     // tier 1 -> 1/s, scaling up to ~50/s at max tiers
     const mults = Game.state._mult || { autoClickBoost: 0, automationMult: 1 };
     const boostedTier = tier + (mults.autoClickBoost || 0);
-    const raw = Math.min(50, boostedTier * boostedTier + boostedTier * 2);
-    return raw * (mults.automationMult || 1);
+    const raw = boostedTier * boostedTier + boostedTier * 2;
+    return Math.min(50, raw * (mults.automationMult || 1));
   };
 
   Automation.isUnlocked = function (feature) {

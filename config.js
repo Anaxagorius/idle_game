@@ -805,6 +805,7 @@ const SKILL_TREE_EFFECTS = {
 
 const SKILL_BASE_COST = 12;
 const SKILL_COST_INCREMENT = 8;
+// Hash Forge offers strong click scaling, so its node costs are slightly higher.
 const HASHFORGE_COST_MULTIPLIER = 1.05;
 const SKILL_TREE_NODES = [];
 Object.keys(SKILL_TREE_NAMES).forEach((branch) => {
@@ -853,6 +854,7 @@ SKILL_TREE_NODES.forEach((n) => {
 });
 
 const RESEARCH_BURST_COOLDOWN = 240;
+Game.config.RESEARCH_BURST_COOLDOWN = RESEARCH_BURST_COOLDOWN;
 Game.config.skillPowers = {
   research_burst: {
     id: "research_burst",
@@ -929,6 +931,8 @@ Game.config.STOCK_EVENT_BEAR_CHANCE = 0.03;
 Game.config.STOCK_EVENT_BULL_CHANCE = 0.97;
 Game.config.STOCK_EVENT_BEAR_SHIFT = -0.08;
 Game.config.STOCK_EVENT_BULL_SHIFT = 0.1;
+Game.config.STOCK_EVENT_CORRELATION_MIN = 0.6;
+Game.config.STOCK_EVENT_CORRELATION_RANGE = 0.8;
 
 Game.config.MIN_EVENT_DELAY_MULT = 0.5;
 Game.config.MAX_EVENT_DELAY_MULT = 1.5;
