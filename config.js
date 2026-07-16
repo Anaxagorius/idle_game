@@ -61,6 +61,196 @@ Game.config = {
   BUILDING_PREREQ_BY_TIER: { 1: 10, 2: 50, 3: 200 },
 };
 
+Game.config.DIPLOMACY_RELATION_MIN = -100;
+Game.config.DIPLOMACY_RELATION_MAX = 100;
+Game.config.DIPLOMACY_STAT_MIN = 0;
+Game.config.DIPLOMACY_STAT_MAX = 100;
+Game.config.DIPLOMACY_BASE_TRADE_CPS = 0.00022;
+Game.config.DIPLOMACY_MIN_GLOBAL_MULT = 0.75;
+Game.config.DIPLOMACY_HOSTILITY_PRODUCTION_PENALTY = 0.00045;
+Game.config.DIPLOMACY_PROPAGANDA_CLICK_SCALE = 0.00025;
+Game.config.DIPLOMACY_INTEL_RP_SCALE = 0.0015;
+Game.config.DIPLOMACY_RELATION_DECAY = 0.7;
+Game.config.DIPLOMACY_SUSPICION_DECAY = 0.4;
+Game.config.DIPLOMACY_INFLUENCE_DECAY = 0.14;
+Game.config.DIPLOMACY_INTEL_DECAY = 0.18;
+Game.config.DIPLOMACY_PROSPERITY_SWING = 0.9;
+Game.config.DIPLOMACY_TRADE_SWING = 1.15;
+Game.config.diplomacyStances = [
+  { key: "allied", min: 60, label: "Allied Rival", emoji: "🤝", className: "status-allied", stroke: "#63e6be" },
+  { key: "friendly", min: 25, label: "Friendly Rival", emoji: "🙂", className: "status-friendly", stroke: "#8ce99a" },
+  { key: "wary", min: -10, label: "Wary Rival", emoji: "👀", className: "status-wary", stroke: "#ffd166" },
+  { key: "hostile", min: -45, label: "Hostile Rival", emoji: "📣", className: "status-hostile", stroke: "#ff8a80" },
+  { key: "nemesis", min: -100, label: "Economic Nemesis", emoji: "🧨", className: "status-nemesis", stroke: "#ff5252" },
+];
+Game.config.diplomacyActions = [
+  {
+    id: "trade_deal",
+    name: "Trade Deal",
+    desc: "Open a low-friction market deal to grow commerce and calm tensions.",
+    coinCost: 250,
+    rpCost: 0,
+    cooldown: 45,
+    relation: 8,
+    prosperity: 6,
+    trade: 18,
+    influence: 2,
+    suspicion: -4,
+  },
+  {
+    id: "aid_convoy",
+    name: "Aid Convoy",
+    desc: "Send food, tools and coin reserves to stabilize a county economy.",
+    coinCost: 1200,
+    rpCost: 0,
+    cooldown: 70,
+    relation: 14,
+    prosperity: 18,
+    trade: 5,
+    influence: 4,
+    suspicion: -6,
+  },
+  {
+    id: "cultural_festival",
+    name: "Cultural Festival",
+    desc: "Win hearts with pageantry, media coverage and shared markets.",
+    coinCost: 1800,
+    rpCost: 0,
+    cooldown: 80,
+    relation: 10,
+    prosperity: 5,
+    trade: 4,
+    influence: 18,
+    suspicion: -2,
+  },
+  {
+    id: "propaganda_blitz",
+    name: "Propaganda Blitz",
+    desc: "Flood their papers and radio waves with your narrative.",
+    coinCost: 900,
+    rpCost: 0,
+    cooldown: 55,
+    relation: -4,
+    prosperity: -2,
+    trade: 0,
+    influence: 26,
+    suspicion: 16,
+  },
+  {
+    id: "chastise",
+    name: "Chastise",
+    desc: "Publicly scold their leadership and demand better behavior.",
+    coinCost: 0,
+    rpCost: 0,
+    cooldown: 40,
+    relation: -12,
+    prosperity: -8,
+    trade: -8,
+    influence: 6,
+    suspicion: 6,
+  },
+  {
+    id: "spy_network",
+    name: "Espionage",
+    desc: "Fund spies, leaks and stolen ledgers for secrets and leverage.",
+    coinCost: 1400,
+    rpCost: 4,
+    cooldown: 65,
+    relation: -9,
+    prosperity: 0,
+    trade: -2,
+    influence: 0,
+    suspicion: 22,
+    intel: 18,
+  },
+  {
+    id: "sanctions",
+    name: "Sanctions",
+    desc: "Disrupt their merchants and squeeze their economy for tribute.",
+    coinCost: 2200,
+    rpCost: 0,
+    cooldown: 90,
+    relation: -16,
+    prosperity: -18,
+    trade: -20,
+    influence: -4,
+    suspicion: 10,
+  },
+  {
+    id: "smuggling_ring",
+    name: "Smuggling Ring",
+    desc: "Run gray-market cargo through their docks for quick profit.",
+    coinCost: 1800,
+    rpCost: 0,
+    cooldown: 75,
+    relation: -12,
+    prosperity: 0,
+    trade: 12,
+    influence: 0,
+    suspicion: 20,
+    intel: 10,
+  },
+  {
+    id: "cover_story",
+    name: "Cover Story",
+    desc: "Clean up scandals, bribe witnesses and cool their counterintel.",
+    coinCost: 750,
+    rpCost: 0,
+    cooldown: 35,
+    relation: 4,
+    prosperity: 0,
+    trade: 0,
+    influence: -5,
+    suspicion: -24,
+  },
+  {
+    id: "non_aggression_pact",
+    name: "Non-Aggression Pact",
+    desc: "Freeze active feuds and redirect both counties toward trade.",
+    coinCost: 4500,
+    rpCost: 10,
+    cooldown: 120,
+    minRelation: -20,
+    relation: 18,
+    prosperity: 8,
+    trade: 10,
+    influence: 4,
+    suspicion: -12,
+  },
+  {
+    id: "media_buyout",
+    name: "Media Buyout",
+    desc: "Acquire their loudest outlets and steer public opinion.",
+    coinCost: 6000,
+    rpCost: 0,
+    cooldown: 95,
+    relation: -2,
+    prosperity: 0,
+    trade: 3,
+    influence: 34,
+    suspicion: 14,
+  },
+  {
+    id: "joint_venture",
+    name: "Joint Venture",
+    desc: "Create a prestige industry pact with shared supply chains and R&D.",
+    coinCost: 12000,
+    rpCost: 25,
+    cooldown: 140,
+    minRelation: 15,
+    relation: 14,
+    prosperity: 22,
+    trade: 24,
+    influence: 10,
+    suspicion: -8,
+    intel: 8,
+  },
+];
+Game.config.diplomacyActionMap = {};
+Game.config.diplomacyActions.forEach((action) => {
+  Game.config.diplomacyActionMap[action.id] = action;
+});
+
 /* --------------------------------------------------------------------------
    Buildings (18 total)
    -------------------------------------------------------------------------- */

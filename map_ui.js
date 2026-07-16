@@ -38,6 +38,15 @@
     return defs;
   }
 
+  function diplomacyStatus(countyId) {
+    if (Game.Diplomacy && Game.Diplomacy.describeCounty) return Game.Diplomacy.describeCounty(countyId);
+    return { label: 'Rival', emoji: '⚔', className: 'status-rival', stroke: '#ff8a80' };
+  }
+
+  function statValue(value) {
+    return Math.round(value || 0);
+  }
+
   /* ── build the SVG map ─────────────────────────────────────────────────── */
   /*
    * mode:
@@ -109,7 +118,9 @@
         countyOpacity = 1;
         if (!isMini) extraFilter = 'url(#county-glow)';
       } else if (selectedCounty && !isSelector) {
-        countyOpacity = 0.55;
+        var status = diplomacyStatus(county.id);
+        strokeColor = status.stroke || strokeColor;
+        countyOpacity = status.className === 'status-nemesis' ? 0.72 : 0.62;
       }
 
       var polyAttrs = {
@@ -364,14 +375,16 @@
   MapUI.confirmCountySelection = function (countyId) {
     var county = MapData.COUNTY_MAP[countyId];
     if (!county) return;
-    if (!Game.state.map) Game.state.map = { selectedCounty: null, pins: [] };
+    var previousEmpire = Game.state.map ? Game.state.map.selectedCounty : null;
+    if (!Game.state.map) Game.state.map = { selectedCounty: null, pins: [], counties: {}, focusCounty: null };
     Game.state.map.selectedCounty = countyId;
     Game.state.map.pins = [];
+    if (Game.Diplomacy && Game.Diplomacy.setEmpireCounty) Game.Diplomacy.setEmpireCounty(countyId, previousEmpire);
+    Game.recalculate();
     Game.Save.save();
     MapUI.hideCountySelector();
     Game.UI.toast('You have claimed ' + county.name + ' County as your Empire! 🏴', 'info');
-    MapUI.refresh();
-    MapUI._updateEmpirePanel();
+    MapUI.refreshDiplomacy();
   };
 
   /* Auto-place a building pin into a suitable resource zone in the empire county. */
@@ -411,12 +424,29 @@
     MapUI._updateEmpirePanel();
   };
 
+  MapUI.selectCountyDiplomacy = function (countyId) {
+    if (!Game.state.map) return;
+    Game.state.map.focusCounty = countyId;
+    MapUI.refreshDiplomacy();
+  };
+
+  MapUI.runDiplomacyAction = function (countyId, actionId) {
+    if (Game.Diplomacy && Game.Diplomacy.applyAction) {
+      Game.Diplomacy.applyAction(countyId, actionId);
+    }
+  };
+
   /* Refresh both mini-map and full map SVGs. */
   MapUI.refresh = function () {
     var mini = document.getElementById('mini-map-container');
     if (mini) MapUI.buildSVG(mini, 'mini');
     var full = document.getElementById('full-map-container');
     if (full) MapUI.buildSVG(full, 'full');
+  };
+
+  MapUI.refreshDiplomacy = function () {
+    MapUI.refresh();
+    MapUI._updateEmpirePanel();
   };
 
   /* Update the "Your Empire" info panel on the map tab. */
@@ -433,11 +463,13 @@
       if (miniPanel) miniPanel.innerHTML =
         '<button class="settings-btn btn-tiny" onclick="Game.MapUI.showCountySelector()" style="margin-top:6px">🏴 Choose Your County</button>';
       MapUI._buildCountyRoster();
+      MapUI._updateDiplomacyPanel();
       return;
     }
 
     var county = MapData.COUNTY_MAP[s.map.selectedCounty];
     if (!county) return;
+    var diplomacySummary = Game.Diplomacy && Game.Diplomacy.summary ? Game.Diplomacy.summary() : null;
 
     // Count pins per building type
     var counts = {};
@@ -466,7 +498,16 @@
       ? '<div class="empire-buildings">' + buildingLines + '</div>'
       : '<p class="muted" style="font-size:12px">No buildings placed yet — buy buildings to populate your empire!</p>';
 
-    if (panel) panel.innerHTML = header + desc + buildings;
+    var diplomacyHtml = diplomacySummary
+      ? '<div class="county-summary-grid">' +
+          '<div class="county-summary-stat"><span>Diplomacy Income</span><b>+' + Game.formatNumber(diplomacySummary.coinsPerSecond) + '/s</b></div>' +
+          '<div class="county-summary-stat"><span>Propaganda</span><b>' + (diplomacySummary.clickBonusPct >= 0 ? '+' : '') + diplomacySummary.clickBonusPct.toFixed(1) + '% click</b></div>' +
+          '<div class="county-summary-stat"><span>Intel</span><b>' + (diplomacySummary.rpBonusPct >= 0 ? '+' : '') + diplomacySummary.rpBonusPct.toFixed(1) + '% RP</b></div>' +
+          '<div class="county-summary-stat"><span>Rival Pressure</span><b>' + diplomacySummary.productionPenaltyPct.toFixed(1) + '% CPS</b></div>' +
+        '</div>'
+      : '';
+
+    if (panel) panel.innerHTML = header + desc + diplomacyHtml + buildings;
 
     if (miniPanel) {
       var totalPins = (s.map.pins || []).length;
@@ -478,6 +519,7 @@
     }
 
     MapUI._buildCountyRoster();
+    MapUI._updateDiplomacyPanel();
   };
 
   /* Build the county roster list on the map tab. */
@@ -488,20 +530,99 @@
     var empireId = s.map ? s.map.selectedCounty : null;
 
     var html = '';
-    for (var i = 0; i < MapData.COUNTIES.length; i++) {
-      var c = MapData.COUNTIES[i];
-      var isEmpire = c.id === empireId;
-      var statusLabel = isEmpire
-        ? '<span class="county-status status-empire">👑 Your Empire</span>'
-        : '<span class="county-status status-rival">⚔ Rival</span>';
+    var rows = Game.Diplomacy && Game.Diplomacy.listCounties ? Game.Diplomacy.listCounties() : [];
+    if (!empireId) {
+      for (var i = 0; i < MapData.COUNTIES.length; i++) {
+        var county = MapData.COUNTIES[i];
+        html +=
+          '<div class="county-roster-row" style="border-left:3px solid ' + county.color + '">' +
+            '<span class="roster-county-name">' + county.name + '</span>' +
+            '<span class="county-status status-rival">⚔ Rival</span>' +
+          '</div>';
+      }
+      roster.innerHTML = html;
+      return;
+    }
+    for (var ri = 0; ri < rows.length; ri++) {
+      var row = rows[ri];
+      var countyState = row.state;
+      var status = row.status;
+      var isFocused = s.map && s.map.focusCounty === row.county.id;
       html +=
-        '<div class="county-roster-row' + (isEmpire ? ' roster-empire' : '') + '" ' +
-          'style="border-left:3px solid ' + c.color + '">' +
-          '<span class="roster-county-name">' + c.name + '</span>' +
-          statusLabel +
-        '</div>';
+        '<button class="county-roster-row county-roster-button' + (isFocused ? ' roster-focus' : '') + '" ' +
+          'onclick="Game.MapUI.selectCountyDiplomacy(\'' + row.county.id + '\')" ' +
+          'style="border-left:3px solid ' + row.county.color + '">' +
+          '<span class="county-roster-main">' +
+            '<span class="roster-county-name">' + row.county.name + '</span>' +
+            '<span class="county-roster-meta">Trade +' + Game.formatNumber(row.yield) + '/s • Suspicion ' + statValue(countyState.suspicion) + '</span>' +
+          '</span>' +
+          '<span class="county-status ' + status.className + '">' + status.emoji + ' ' + status.label + '</span>' +
+        '</button>';
     }
     roster.innerHTML = html;
+  };
+
+  MapUI._updateDiplomacyPanel = function () {
+    var panel = document.getElementById('county-diplomacy-panel');
+    if (!panel) return;
+    var s = Game.state;
+    if (!s.map || !s.map.selectedCounty) {
+      panel.innerHTML = '<p class="muted">Choose your home county first to start managing rival counties.</p>';
+      return;
+    }
+    if (!Game.Diplomacy || !Game.Diplomacy.getCountyState) {
+      panel.innerHTML = '<p class="muted">Diplomacy system unavailable.</p>';
+      return;
+    }
+    var countyId = s.map.focusCounty;
+    var county = MapData.COUNTY_MAP[countyId];
+    var countyState = Game.Diplomacy.getCountyState(countyId);
+    if (!county || !countyState) {
+      panel.innerHTML = '<p class="muted">Pick a rival county from the roster to start negotiations.</p>';
+      return;
+    }
+    var status = diplomacyStatus(countyId);
+    var actions = Game.Diplomacy.availableActions(countyId);
+    var actionHtml = actions.map(function (entry) {
+      var action = entry.action;
+      var availability = entry.availability;
+      var costBits = [];
+      if (action.coinCost) costBits.push(Game.formatNumber(action.coinCost) + ' coins');
+      if (action.rpCost) costBits.push(Game.formatNumber(action.rpCost) + ' RP');
+      if (!costBits.length) costBits.push('No direct cost');
+      return (
+        '<button class="diplo-action-card' + (availability.ok ? '' : ' disabled') + '" ' +
+          (availability.ok ? '' : 'disabled ') +
+          'onclick="Game.MapUI.runDiplomacyAction(\'' + countyId + '\', \'' + action.id + '\')">' +
+          '<span class="diplo-action-name">' + action.name + '</span>' +
+          '<span class="diplo-action-desc">' + action.desc + '</span>' +
+          '<span class="diplo-action-cost">' + costBits.join(' • ') + ' • ' + Game.formatTime(action.cooldown || 0) + ' cd</span>' +
+          '<span class="diplo-action-state">' + (availability.ok ? 'Ready' : availability.reason) + '</span>' +
+        '</button>'
+      );
+    }).join('');
+
+    panel.innerHTML =
+      '<div class="county-diplomacy-header" style="border-left:4px solid ' + county.color + '">' +
+        '<div>' +
+          '<div class="county-diplomacy-name">' + county.name + '</div>' +
+          '<div class="county-diplomacy-status ' + status.className + '">' + status.emoji + ' ' + status.label + '</div>' +
+        '</div>' +
+        '<div class="county-diplomacy-yield">+' + Game.formatNumber(Game.Diplomacy.countyYield(countyId)) + '/s</div>' +
+      '</div>' +
+      '<p class="muted" style="font-size:12px;margin:8px 0 10px">' + county.description + '</p>' +
+      '<div class="county-summary-grid">' +
+        '<div class="county-summary-stat"><span>Relation</span><b>' + statValue(countyState.relation) + '</b></div>' +
+        '<div class="county-summary-stat"><span>Prosperity</span><b>' + statValue(countyState.prosperity) + '</b></div>' +
+        '<div class="county-summary-stat"><span>Trade</span><b>' + statValue(countyState.trade) + '</b></div>' +
+        '<div class="county-summary-stat"><span>Influence</span><b>' + statValue(countyState.influence) + '</b></div>' +
+        '<div class="county-summary-stat"><span>Suspicion</span><b>' + statValue(countyState.suspicion) + '</b></div>' +
+        '<div class="county-summary-stat"><span>Intel</span><b>' + statValue(countyState.intel) + '</b></div>' +
+      '</div>' +
+      (countyState.lastOutcome
+        ? '<div class="county-last-outcome">' + countyState.lastOutcome + '</div>'
+        : '<div class="county-last-outcome muted">No recent operation in this county.</div>') +
+      '<div class="diplo-action-grid">' + actionHtml + '</div>';
   };
 
   /* Build the terrain legend element. */
@@ -530,6 +651,7 @@
     MapUI.refresh();
     MapUI._updateEmpirePanel();
     MapUI._buildCountyRoster();
+    MapUI._updateDiplomacyPanel();
 
     // Show county selector for new games
     if (!Game.state.map || !Game.state.map.selectedCounty) {

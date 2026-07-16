@@ -825,6 +825,28 @@ textarea#save-string {
   gap: 4px;
   margin-top: 6px;
 }
+.county-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 8px 0 10px;
+}
+.county-summary-stat {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+}
+.county-summary-stat span {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 3px;
+}
+.county-summary-stat b {
+  color: var(--gold-2);
+  font-size: 13px;
+}
 .empire-building-line {
   display: flex;
   justify-content: space-between;
@@ -858,13 +880,101 @@ textarea#save-string {
   background: var(--panel-2);
   font-size: 12px;
 }
+.county-roster-button {
+  width: 100%;
+  border: 1px solid var(--border);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.county-roster-button:hover,
+.county-roster-button.roster-focus {
+  border-color: var(--gold);
+  transform: translateY(-1px);
+}
 .county-roster-row.roster-empire {
   background: rgba(255, 215, 0, 0.08);
 }
+.county-roster-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 .roster-county-name { font-weight: 600; color: var(--text); }
+.county-roster-meta { color: var(--muted); font-size: 11px; }
 .county-status { font-size: 11px; padding: 2px 7px; border-radius: 12px; }
 .status-empire { background: rgba(255, 215, 0, 0.18); color: var(--gold-2); }
 .status-rival  { background: rgba(230, 57, 70, 0.15); color: #ff8a80; }
+.status-allied { background: rgba(80, 227, 194, 0.18); color: #7ef7d4; }
+.status-friendly { background: rgba(111, 207, 151, 0.18); color: #9ef0b8; }
+.status-wary { background: rgba(255, 209, 102, 0.18); color: #ffd166; }
+.status-hostile { background: rgba(255, 138, 128, 0.18); color: #ff9d94; }
+.status-nemesis { background: rgba(255, 82, 82, 0.18); color: #ff7b7b; }
+
+.county-diplomacy-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  background: var(--panel-2);
+  border-radius: 8px;
+  padding: 10px;
+}
+.county-diplomacy-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gold-2);
+}
+.county-diplomacy-status {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+}
+.county-diplomacy-yield {
+  color: var(--green);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.county-last-outcome {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: var(--text);
+}
+.diplo-action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+}
+.diplo-action-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-2);
+  color: var(--text);
+  padding: 10px;
+  cursor: pointer;
+}
+.diplo-action-card:hover { border-color: var(--gold); transform: translateY(-1px); }
+.diplo-action-card.disabled {
+  opacity: 0.6;
+  border-color: var(--border);
+  cursor: not-allowed;
+}
+.diplo-action-name { font-weight: 700; color: var(--cyan); }
+.diplo-action-desc { font-size: 12px; color: var(--muted); min-height: 34px; }
+.diplo-action-cost,
+.diplo-action-state { font-size: 11px; color: var(--gold-2); }
+.diplo-action-state { color: var(--green); }
+.diplo-action-card.disabled .diplo-action-state { color: #ff9d94; }
 
 /* ── County selector overlay ────────────────────────────────────────────── */
 .county-selector-modal {
