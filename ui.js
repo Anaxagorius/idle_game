@@ -9,7 +9,7 @@
   const UI = {};
 
   let refs = {};
-  let built = { research: false, achievements: false, milestones: false, automation: false };
+  let built = { research: false, achievements: false, milestones: false, automation: false, bitcoin: false, stocks: false };
   let currentTab = "economy";
 
   function el(id) {
@@ -32,9 +32,13 @@
       pp: el("res-pp"),
       rp: el("res-rp"),
       as: el("res-as"),
+      btc: el("res-btc"),
+      energy: el("res-energy"),
       ppWrap: el("res-pp-wrap"),
       rpWrap: el("res-rp-wrap"),
       asWrap: el("res-as-wrap"),
+      btcWrap: el("res-btc-wrap"),
+      energyWrap: el("res-energy-wrap"),
       clickValue: el("click-value"),
       coinButton: el("coin-button"),
       buildingList: el("building-list"),
@@ -61,6 +65,9 @@
     UI.buildAchievements();
     UI.buildMilestones();
     UI.buildAutomation();
+    UI.buildSkillTrees();
+    UI.buildBitcoin();
+    UI.buildStocks();
     UI.buildResearchTabs();
     UI.wireSettings();
     UI.wirePrestigeButtons();
@@ -386,6 +393,233 @@
   };
 
   /* ---------------------------------------------------------------------
+     Skill trees
+     --------------------------------------------------------------------- */
+  UI.buildSkillTrees = function () {
+    // rendered in update call
+  };
+
+  UI.updateSkillTrees = function () {
+    const list = el("skilltree-list");
+    const powerList = el("skill-power-list");
+    if (!list || !powerList || !Game.SkillTrees) return;
+    list.innerHTML = "";
+    Object.keys(cfg.skillTreeBranches).forEach((treeKey) => {
+      const tree = cfg.skillTreeBranches[treeKey];
+      const wrap = make("div", "skilltree");
+      const header = make("div", "skilltree-header", tree.name + " Tree");
+      header.style.borderColor = tree.color;
+      wrap.appendChild(header);
+      const row = make("div", "skilltree-row");
+      const nodes = cfg.skillTreeNodesByTree[treeKey] || [];
+      nodes.forEach((n, idx) => {
+        const owned = Game.SkillTrees.purchased(n.id);
+        const available = Game.SkillTrees.available(n.id);
+        const affordable = Game.SkillTrees.canAfford(n.id);
+        let actionText = "";
+        if (owned) actionText = "Unlocked";
+        else if (!available) actionText = "Requires prior node";
+        else if (affordable) actionText = "Buy " + fmt(n.cost) + " Prestige Points";
+        else actionText = "Need " + fmt(n.cost) + " Prestige Points";
+        const card = make("div", "skill-node" + (owned ? " purchased" : available ? "" : " locked"));
+        card.style.borderColor = owned ? "#43aa8b" : tree.color;
+        card.innerHTML =
+          '<div class="skill-node-name">' + n.name + "</div>" +
+          '<div class="skill-node-desc">' + n.desc + "</div>" +
+          '<button class="talent-buy-btn ' + (owned || !affordable ? "disabled" : "") + '">' + actionText + "</button>";
+        const btn = card.querySelector("button");
+        btn.disabled = owned || !affordable;
+        btn.addEventListener("click", () => {
+          if (Game.SkillTrees.buy(n.id)) UI.update();
+        });
+        const item = make("div", "skill-node-item");
+        item.appendChild(card);
+        if (idx < nodes.length - 1) item.appendChild(make("div", "skill-node-arrow", "→"));
+        row.appendChild(item);
+      });
+      wrap.appendChild(row);
+      list.appendChild(wrap);
+    });
+
+    powerList.innerHTML = "";
+    const activePowerMap = {};
+    Game.SkillTrees.activePowers().forEach((p) => {
+      activePowerMap[p.id] = p.remaining;
+    });
+    Object.keys(cfg.skillPowers || {}).forEach((powerId) => {
+      const p = cfg.skillPowers[powerId];
+      const activeRemaining = activePowerMap[powerId] || 0;
+      const cooldown = Game.SkillTrees.cooldownRemaining(powerId);
+      const ready = Game.SkillTrees.canActivate(powerId);
+      const status = activeRemaining > 0 ? "Active " + Math.ceil(activeRemaining) + "s" : cooldown > 0 ? "Cooldown " + Math.ceil(cooldown) + "s" : "Ready";
+      const row = make("div", "talent-power-row");
+      row.innerHTML =
+        '<div class="talent-power-info">' +
+        '<div class="talent-power-name">' + p.name + "</div>" +
+        '<div class="talent-power-meta">' + Math.ceil(p.duration) + "s duration • " + Math.ceil(p.cooldown) + "s cooldown • " + status + "</div>" +
+        '<div class="talent-power-desc">' + p.desc + "</div>" +
+        "</div>" +
+        '<button class="talent-power-btn ' + (ready ? "" : "disabled") + '">Activate</button>';
+      const btn = row.querySelector("button");
+      btn.disabled = !ready;
+      btn.addEventListener("click", () => {
+        if (Game.SkillTrees.activate(powerId)) UI.update();
+      });
+      powerList.appendChild(row);
+    });
+  };
+
+  /* ---------------------------------------------------------------------
+     Bitcoin
+     --------------------------------------------------------------------- */
+  UI.buildBitcoin = function () {
+    const producers = el("energy-producer-list");
+    const miners = el("btc-miner-list");
+    const batteries = el("battery-list");
+    if (!producers || !miners || !batteries) return;
+    producers.innerHTML = "";
+    miners.innerHTML = "";
+    batteries.innerHTML = "";
+    UI._btcRows = { producers: {}, miners: {}, batteries: {} };
+
+    cfg.energyProducers.forEach((p) => {
+      const row = make("div", "market-card");
+      row.innerHTML =
+        '<div class="market-title">' + p.name + "</div>" +
+        '<div class="market-desc">+' + p.energyPerSec + " energy/sec</div>" +
+        '<button class="settings-btn">Buy</button>';
+      const btn = row.querySelector("button");
+      btn.addEventListener("click", () => {
+        if (Game.Bitcoin.buyProducer(p.id)) UI.update();
+      });
+      producers.appendChild(row);
+      UI._btcRows.producers[p.id] = { row, btn, def: p };
+    });
+    cfg.btcMiners.forEach((m) => {
+      const row = make("div", "market-card");
+      row.innerHTML =
+        '<div class="market-title">' + m.name + "</div>" +
+        '<div class="market-desc">' + m.btcPerSec + " BTC/sec • " + m.energyUse + " energy/sec</div>" +
+        '<button class="settings-btn">Buy</button>';
+      const btn = row.querySelector("button");
+      btn.addEventListener("click", () => {
+        if (Game.Bitcoin.buyMiner(m.id)) UI.update();
+      });
+      miners.appendChild(row);
+      UI._btcRows.miners[m.id] = { row, btn, def: m };
+    });
+    cfg.batteries.forEach((b) => {
+      const row = make("div", "market-card");
+      row.innerHTML =
+        '<div class="market-title">' + b.name + "</div>" +
+        '<div class="market-desc">+' + fmt(b.capacity) + " energy cap</div>" +
+        '<button class="settings-btn">Buy</button>';
+      const btn = row.querySelector("button");
+      btn.addEventListener("click", () => {
+        if (Game.Bitcoin.buyBattery(b.id)) UI.update();
+      });
+      batteries.appendChild(row);
+      UI._btcRows.batteries[b.id] = { row, btn, def: b };
+    });
+    const sellBtn = el("btn-sell-btc");
+    if (sellBtn) {
+      sellBtn.onclick = () => {
+        if (Game.Bitcoin.sellAll()) UI.update();
+      };
+    }
+    built.bitcoin = true;
+  };
+
+  UI.updateBitcoin = function () {
+    if (!built.bitcoin || !UI._btcRows) return;
+    const s = Game.state;
+    const stats = el("bitcoin-stats");
+    const ep = Game.Bitcoin.energyProduction();
+    const ec = Game.Bitcoin.energyConsumption();
+    const br = Game.Bitcoin.miningRate();
+    stats.innerHTML =
+      '<div class="stat-row"><span class="stat-key">BTC Price</span><span class="stat-val">' + fmt(s.btcPrice) + " coins</span></div>" +
+      '<div class="stat-row"><span class="stat-key">BTC Holdings</span><span class="stat-val">' + fmt(s.btc) + "</span></div>" +
+      '<div class="stat-row"><span class="stat-key">Energy</span><span class="stat-val">' + fmt(s.energy) + " / " + fmt(s.energyCap) + "</span></div>" +
+      '<div class="stat-row"><span class="stat-key">Net Energy</span><span class="stat-val">' + fmt(ep - ec) + " / sec</span></div>" +
+      '<div class="stat-row"><span class="stat-key">Mining Rate</span><span class="stat-val">' + fmt(br) + " BTC / sec</span></div>";
+
+    Object.keys(UI._btcRows.producers).forEach((id) => {
+      const r = UI._btcRows.producers[id];
+      const owned = s.energyProducers[id] || 0;
+      const cost = Game.Bitcoin.equipmentCost(r.def.baseCost, owned);
+      r.btn.textContent = "Buy (" + fmt(cost) + ")";
+      r.row.querySelector(".market-desc").textContent = "+" + r.def.energyPerSec + " energy/sec • owned: " + fmt(owned);
+      r.btn.disabled = s.coins < cost;
+    });
+    Object.keys(UI._btcRows.miners).forEach((id) => {
+      const r = UI._btcRows.miners[id];
+      const owned = s.btcMiners[id] || 0;
+      const cost = Game.Bitcoin.equipmentCost(r.def.baseCost, owned);
+      r.btn.textContent = "Buy (" + fmt(cost) + ")";
+      r.row.querySelector(".market-desc").textContent = r.def.btcPerSec + " BTC/sec • " + r.def.energyUse + " energy/sec • owned: " + fmt(owned);
+      r.btn.disabled = s.coins < cost;
+    });
+    Object.keys(UI._btcRows.batteries).forEach((id) => {
+      const r = UI._btcRows.batteries[id];
+      const owned = s.batteries[id] || 0;
+      const cost = Game.Bitcoin.equipmentCost(r.def.baseCost, owned);
+      r.btn.textContent = "Buy (" + fmt(cost) + ")";
+      r.row.querySelector(".market-desc").textContent = "+" + fmt(r.def.capacity) + " energy cap • owned: " + fmt(owned);
+      r.btn.disabled = s.coins < cost;
+    });
+  };
+
+  /* ---------------------------------------------------------------------
+     Stocks
+     --------------------------------------------------------------------- */
+  UI.buildStocks = function () {
+    const list = el("stock-list");
+    if (!list) return;
+    list.innerHTML = "";
+    UI._stockRows = {};
+    cfg.stocks.forEach((st) => {
+      const row = make("div", "stock-row");
+      row.innerHTML =
+        '<div class="stock-meta"><div class="stock-name">' + st.name + ' <span class="muted">(' + st.ticker + ")</span></div>" +
+        '<div class="stock-price" data-price></div><div class="stock-trend muted" data-trend></div></div>' +
+        '<div class="stock-portfolio" data-portfolio></div>' +
+        '<div class="stock-actions"><button data-buy class="settings-btn">Buy 1</button><button data-sell class="settings-btn">Sell 1</button></div>';
+      row.querySelector("[data-buy]").addEventListener("click", () => {
+        if (Game.Stocks.buy(st.id, 1)) UI.update();
+      });
+      row.querySelector("[data-sell]").addEventListener("click", () => {
+        if (Game.Stocks.sell(st.id, 1)) UI.update();
+      });
+      list.appendChild(row);
+      UI._stockRows[st.id] = row;
+    });
+    built.stocks = true;
+  };
+
+  UI.updateStocks = function () {
+    if (!built.stocks || !UI._stockRows) return;
+    const s = Game.state;
+    const mults = s._mult || { stockInsight: 0, stockFeeReduction: 1 };
+    const summary = el("stock-summary");
+    summary.innerHTML =
+      '<div class="stat-row"><span class="stat-key">Portfolio Value</span><span class="stat-val">' + fmt(Game.Stocks.portfolioValue()) + " coins</span></div>" +
+      '<div class="stat-row"><span class="stat-key">Trade Fee</span><span class="stat-val">' + (Game.Stocks.feeRate() * 100).toFixed(2) + "%</span></div>";
+    cfg.stocks.forEach((st) => {
+      const row = UI._stockRows[st.id];
+      const price = s.stocks[st.id];
+      const p = s.portfolio[st.id];
+      row.querySelector("[data-price]").textContent = "Price: " + fmt(price) + " coins";
+      const trend = Game.Stocks.trend(st.id);
+      row.querySelector("[data-trend]").textContent = mults.stockInsight > 0 ? "Trend: " + trend : "Trend: locked (unlock via Engineering/Education)";
+      const pnl = p.shares > 0 ? (price - p.avgCost) * p.shares : 0;
+      row.querySelector("[data-portfolio]").textContent = "Shares: " + fmt(p.shares) + " • Avg: " + fmt(p.avgCost) + " • P/L: " + fmt(pnl);
+      row.querySelector("[data-buy]").disabled = s.coins < price * (1 + Game.Stocks.feeRate());
+      row.querySelector("[data-sell]").disabled = p.shares < 1;
+    });
+  };
+
+  /* ---------------------------------------------------------------------
      Achievements
      --------------------------------------------------------------------- */
   UI.buildAchievements = function () {
@@ -616,7 +850,12 @@
       ["Upgrades Purchased", fmt(Object.keys(s.upgrades).filter((k) => s.upgrades[k]).length) + " / 108"],
       ["Research Completed", fmt(stats.researchCompleted) + " / 80"],
       ["Talents Purchased", fmt(stats.talentsPurchased || 0) + " / " + cfg.talents.length],
+      ["Skill Nodes Purchased", fmt(stats.skillNodesPurchased || 0) + " / " + cfg.skillTreeNodes.length],
       ["Talent Powers Used", fmt(stats.powersActivated || 0)],
+      ["Bitcoin Holdings", fmt(s.btc)],
+      ["BTC Price", fmt(s.btcPrice)],
+      ["Energy", fmt(s.energy) + " / " + fmt(s.energyCap)],
+      ["Portfolio Value", fmt(Game.Stocks ? Game.Stocks.portfolioValue() : 0)],
       ["Prestige Points", fmt(s.prestigePoints)],
       ["Lifetime Prestige Points", fmt(s.lifetimePrestigePoints)],
       ["Prestige Count", fmt(stats.prestigeCount)],
@@ -706,9 +945,13 @@
     toggleWrap(refs.ppWrap, s.prestigePoints > 0 || s.lifetimePrestigePoints > 0 || Game.Prestige.canPrestige());
     toggleWrap(refs.rpWrap, s.researchPoints > 0 || s.stats.researchCompleted > 0 || (s.buildings.laboratory || 0) > 0);
     toggleWrap(refs.asWrap, s.ascensionShards > 0 || s.stats.ascensionCount > 0);
+    toggleWrap(refs.btcWrap, s.btc > 0 || Object.values(s.btcMiners || {}).some((v) => v > 0));
+    toggleWrap(refs.energyWrap, Object.values(s.energyProducers || {}).some((v) => v > 0) || Object.values(s.btcMiners || {}).some((v) => v > 0));
     refs.pp.textContent = fmt(s.prestigePoints);
     refs.rp.textContent = fmt(s.researchPoints);
     refs.as.textContent = fmt(s.ascensionShards);
+    refs.btc.textContent = fmt(s.btc);
+    refs.energy.textContent = fmt(s.energy) + " / " + fmt(s.energyCap);
 
     UI.updateActiveEvents();
 
@@ -721,6 +964,15 @@
         break;
       case "automation":
         UI.updateAutomation();
+        break;
+      case "skilltrees":
+        UI.updateSkillTrees();
+        break;
+      case "bitcoin":
+        UI.updateBitcoin();
+        break;
+      case "stocks":
+        UI.updateStocks();
         break;
       case "achievements":
         UI.updateAchievements();

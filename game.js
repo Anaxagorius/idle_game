@@ -12,6 +12,20 @@
   Game.defaultState = function () {
     const buildings = {};
     cfg.buildings.forEach((b) => (buildings[b.id] = 0));
+    const energyProducers = {};
+    const btcMiners = {};
+    const batteries = {};
+    (cfg.energyProducers || []).forEach((p) => (energyProducers[p.id] = 0));
+    (cfg.btcMiners || []).forEach((m) => (btcMiners[m.id] = 0));
+    (cfg.batteries || []).forEach((b) => (batteries[b.id] = 0));
+    const stocks = {};
+    const stockHistory = {};
+    const portfolio = {};
+    (cfg.stocks || []).forEach((st) => {
+      stocks[st.id] = st.basePrice;
+      stockHistory[st.id] = [st.basePrice];
+      portfolio[st.id] = { shares: 0, avgCost: 0 };
+    });
     const subBuildings = {};
     const subBuildingUpgrades = {};
     (cfg.subBuildings || []).forEach((sb) => {
@@ -44,10 +58,26 @@
       unlocked: {}, // automation features unlocked via research
       activeEvents: [],
       talents: {},
+      skillTrees: {},
       godsTitans: {},
       talentCooldowns: {},
       activeTalentPowers: [],
+      skillCooldowns: {},
+      activeSkillPowers: [],
       nextEventTime: 0,
+      btc: 0,
+      btcPrice: cfg.BTC_BASE_PRICE,
+      btcMarketTime: 0,
+      energy: 0,
+      energyCap: cfg.BTC_BASE_ENERGY_CAP,
+      energyProducers,
+      btcMiners,
+      batteries,
+      stocks,
+      stockHistory,
+      portfolio,
+      stockTickTimer: 0,
+      stockDividendTimer: 0,
       stats: {
         totalClicks: 0,
         totalCoinsSpent: 0,
@@ -60,6 +90,7 @@
         playTime: 0,
         offlineEarnings: 0,
         totalCoinsEarned: 0,
+        skillNodesPurchased: 0,
       },
       settings: {
         notifications: true,
@@ -113,6 +144,15 @@
       buildingMult: {},
       prestigeGain: 1,
       costReduction: 1,
+      milestoneMult: 1,
+      eventDelayMult: 1,
+      automationMult: 1,
+      clickCpsFractionMult: 1,
+      minerEfficiency: 1,
+      btcPriceMult: 1,
+      stockFeeReduction: 1,
+      stockInsight: 0,
+      autoClickBoost: 0,
     };
 
     function applyEffect(effect) {
@@ -133,6 +173,24 @@
         const value = scaleBonus(effect.value || 0);
         const reduction = effect.mult !== undefined ? effect.mult : 1 - value;
         m.costReduction *= reduction;
+      } else if (type === "milestoneMult") {
+        m.milestoneMult *= effectMultiplier;
+      } else if (type === "eventDelayMult") {
+        m.eventDelayMult *= effect.mult !== undefined ? effect.mult : effectMultiplier;
+      } else if (type === "automationMult") {
+        m.automationMult *= effect.mult !== undefined ? effect.mult : effectMultiplier;
+      } else if (type === "clickCpsFractionMult") {
+        m.clickCpsFractionMult *= effectMultiplier;
+      } else if (type === "minerEfficiency") {
+        m.minerEfficiency *= effectMultiplier;
+      } else if (type === "btcPriceMult") {
+        m.btcPriceMult *= effectMultiplier;
+      } else if (type === "stockFeeReduction") {
+        m.stockFeeReduction *= effectMultiplier;
+      } else if (type === "stockInsight") {
+        m.stockInsight += effect.value || 0;
+      } else if (type === "autoClickBoost") {
+        m.autoClickBoost += effect.value || 0;
       } else if (type === "buildingMult") {
         const buildingId = effect.building;
         if (!buildingId) return;
@@ -171,6 +229,20 @@
       applyEffect(t);
     });
 
+    // Skill tree nodes (passive + penalties)
+    (cfg.skillTreeNodes || []).forEach((n) => {
+      if (!s.skillTrees[n.id] || n.type === "skillPower") return;
+      applyEffect(n);
+      if (n.penaltyType) {
+        applyEffect({
+          type: n.penaltyType,
+          value: n.penaltyValue,
+          mult: n.penaltyMult,
+          building: n.penaltyBuilding,
+        });
+      }
+    });
+
     // Ascension shard tradeoff upgrades (permanent)
     cfg.godsTitans.forEach((gt) => {
       if (!s.godsTitans[gt.id] || !gt.effects) return;
@@ -189,7 +261,7 @@
     cfg.milestones.forEach((ml) => {
       if (s.milestones[ml.id]) msBonus += scaleBonus(ml.bonus);
     });
-    m.milestone = 1 + msBonus;
+    m.milestone = 1 + msBonus * m.milestoneMult;
 
     // Active events
     s.activeEvents.forEach((ev) => {
@@ -207,6 +279,13 @@
     // Active talent powers
     s.activeTalentPowers.forEach((p) => {
       const def = cfg.talentPowerMap[p.id];
+      if (!def || !def.effects) return;
+      def.effects.forEach((effect) => applyEffect(effect));
+    });
+
+    // Active skill powers
+    s.activeSkillPowers.forEach((p) => {
+      const def = cfg.skillPowers[p.id];
       if (!def || !def.effects) return;
       def.effects.forEach((effect) => applyEffect(effect));
     });
@@ -292,7 +371,7 @@
     s._rps = rpBase * m.researchGlobal * m.prestige * (1 + s.ascensionShards * cfg.ASCENSION_PER_SHARD_MULT * (cfg.BONUS_EFFECTIVENESS_MULT || 1)) * m.rpGain * gainScale;
 
     // Click value: flat scaled by global mult + fraction of CPS
-    s._clickValue = ((1 * m.global + cps * cfg.CLICK_CPS_FRACTION) * m.clickMult) * gainScale;
+    s._clickValue = ((1 * m.global + cps * cfg.CLICK_CPS_FRACTION * m.clickCpsFractionMult) * m.clickMult) * gainScale;
 
     return { cps: s._cps, rps: s._rps, clickValue: s._clickValue, m };
   };
@@ -343,6 +422,9 @@
     // Events, automation, achievements, milestones
     Game.Events.update(dtSeconds);
     if (Game.Talents && Game.Talents.update) Game.Talents.update();
+    if (Game.SkillTrees && Game.SkillTrees.update) Game.SkillTrees.update();
+    if (Game.Bitcoin && Game.Bitcoin.update) Game.Bitcoin.update(dtSeconds);
+    if (Game.Stocks && Game.Stocks.update) Game.Stocks.update(dtSeconds);
     Game.Automation.update(dtSeconds);
     Game.Achievements.check();
     Game.Milestones.check();
