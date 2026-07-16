@@ -238,6 +238,7 @@
       }
     });
     UI.updateUpgrades();
+    UI.updateClickerUpgrades();
   };
 
   UI.updateUpgrades = function () {
@@ -262,6 +263,38 @@
       });
       list.appendChild(card);
     });
+  };
+
+  UI.updateClickerUpgrades = function () {
+    const container = el("clicker-upgrades");
+    if (!container) return;
+    const s = Game.state;
+    const level = s.clickerUpgrades || 0;
+    const maxed = level >= cfg.CLICKER_UPGRADE_MAX;
+    const cost = Game.Buildings.clickerUpgradeCost();
+    const affordable = !maxed && s.coins >= cost;
+    const def = cfg.clickerUpgradeDefs[level] || null;
+
+    let html = '<div class="cu-header">Click Upgrades <span class="cu-level">' + level + " / " + cfg.CLICKER_UPGRADE_MAX + "</span></div>";
+    if (maxed) {
+      html += '<div class="cu-maxed">Maximum suffering achieved. The coins are yours.</div>';
+    } else {
+      const boostPct = Math.round((def.clickBoost - 1) * 100);
+      const penaltyPct = Math.round((1 - def.globalPenalty) * 100);
+      html +=
+        '<div class="cu-next">' +
+        '<div class="cu-name">' + def.name + "</div>" +
+        '<div class="cu-flavor">' + def.flavor + "</div>" +
+        '<div class="cu-effect">+' + boostPct + '% click value &nbsp;|&nbsp; <span class="cu-penalty">-' + penaltyPct + '% global production</span></div>' +
+        '<div class="cu-cost">' + fmt(cost) + " coins</div>" +
+        '<button class="cu-btn' + (affordable ? "" : " disabled") + '" data-cu-buy>Upgrade</button>' +
+        "</div>";
+    }
+    container.innerHTML = html;
+    if (!maxed) {
+      const btn = container.querySelector("[data-cu-buy]");
+      if (btn) btn.addEventListener("click", () => { if (Game.Buildings.buyClickerUpgrade()) UI.update(); });
+    }
   };
 
   /* ---------------------------------------------------------------------

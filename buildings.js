@@ -243,5 +243,30 @@
     return cfg.buildings.reduce((sum, b) => sum + (Game.state.buildings[b.id] || 0), 0);
   };
 
+  /* ---------------------------------------------------------------------
+     Clicker upgrades
+     --------------------------------------------------------------------- */
+  Buildings.clickerUpgradeCost = function () {
+    const level = Game.state.clickerUpgrades || 0;
+    if (level >= cfg.CLICKER_UPGRADE_MAX) return Infinity;
+    return cfg.CLICKER_UPGRADE_BASE_COST * Math.pow(cfg.CLICKER_UPGRADE_COST_MULT, level);
+  };
+
+  Buildings.canBuyClickerUpgrade = function () {
+    const level = Game.state.clickerUpgrades || 0;
+    if (level >= cfg.CLICKER_UPGRADE_MAX) return false;
+    return Game.state.coins >= Buildings.clickerUpgradeCost();
+  };
+
+  Buildings.buyClickerUpgrade = function () {
+    if (!Buildings.canBuyClickerUpgrade()) return false;
+    const cost = Buildings.clickerUpgradeCost();
+    Game.state.coins -= cost;
+    Game.state.stats.totalCoinsSpent += cost;
+    Game.state.clickerUpgrades = (Game.state.clickerUpgrades || 0) + 1;
+    Game.recalculate();
+    return true;
+  };
+
   Game.Buildings = Buildings;
 })();
