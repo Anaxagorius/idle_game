@@ -1123,8 +1123,13 @@ const SKILL_POWER_DESCRIPTIONS = {
 };
 const SKILL_TREE_NODES = [];
 Object.keys(SKILL_TREE_NAMES).forEach((branch) => {
-  SKILL_TREE_NAMES[branch].forEach((name, index) => {
-    const effect = SKILL_TREE_EFFECTS[branch][index];
+  const names = SKILL_TREE_NAMES[branch];
+  const effects = SKILL_TREE_EFFECTS[branch] || [];
+  if (effects.length !== names.length) {
+    throw new Error("Skill tree branch mismatch: " + branch);
+  }
+  names.forEach((name, index) => {
+    const effect = effects[index];
     const id = "skill_" + branch + "_" + index;
     const cost = Math.floor((SKILL_BASE_COST + index * SKILL_COST_INCREMENT) * (branch === "hashforge" ? HASHFORGE_COST_MULTIPLIER : 1));
     let desc = "";

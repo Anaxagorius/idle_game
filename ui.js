@@ -619,7 +619,7 @@
 
     setBtn(collectBtn, s.energy < s.energyCap);
     setBtn(farmBtn, s.energy >= Game.Bitcoin.manualMineEnergyCost());
-    setBtn(sellBtn, s.btc > 0);
+    setBtn(sellBtn, Game.Bitcoin.canSell());
 
     Object.keys(UI._btcRows.producers).forEach((id) => {
       const r = UI._btcRows.producers[id];
