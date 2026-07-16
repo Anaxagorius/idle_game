@@ -277,6 +277,56 @@ header {
 }
 .sub-btn-cost { color: var(--muted); font-size: 10px; }
 
+/* ---------- Clicker Upgrades ---------- */
+#clicker-upgrades {
+  margin-top: 14px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+.cu-header {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.cu-level { color: var(--red); font-weight: 700; }
+.cu-next {
+  background: var(--panel-2);
+  border: 1px solid var(--red);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.cu-name { font-weight: 700; color: var(--red); margin-bottom: 3px; }
+.cu-flavor { font-size: 11px; color: var(--muted); font-style: italic; margin-bottom: 6px; }
+.cu-effect { font-size: 12px; color: var(--text); margin-bottom: 6px; }
+.cu-penalty { color: var(--red); }
+.cu-cost { font-size: 12px; color: var(--gold-2); margin-bottom: 8px; }
+.cu-btn {
+  background: var(--panel);
+  border: 1px solid var(--red);
+  color: var(--red);
+  border-radius: 7px;
+  padding: 5px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  width: 100%;
+  transition: background 0.12s;
+}
+.cu-btn:hover:not(.disabled) { background: rgba(230, 57, 70, 0.18); }
+.cu-btn.disabled { opacity: 0.45; cursor: not-allowed; }
+.cu-maxed {
+  font-size: 12px;
+  color: var(--red);
+  font-style: italic;
+  padding: 6px 0;
+}
+
 /* ---------- Upgrades ---------- */
 .upgrade-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
 .upgrade-card {

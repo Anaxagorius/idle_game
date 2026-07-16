@@ -104,6 +104,7 @@
         counties: {},
         focusCounty: null,
       },
+      clickerUpgrades: 0,
       lastSave: Date.now(),
       lastTick: Date.now(),
       startTime: Date.now(),
@@ -158,6 +159,7 @@
       stockFeeReduction: 1,
       stockInsight: 0,
       autoClickBoost: 0,
+      clickerPenalty: 1,
     };
 
     function applyEffect(effect) {
@@ -311,6 +313,14 @@
     // 0.1 multiplier = maximum 90% total cost reduction.
     m.costReduction = Math.max(cfg.MAX_COST_REDUCTION_MULT, m.costReduction);
 
+    // Clicker upgrades: direct multipliers, not scaled by BONUS_EFFECTIVENESS_MULT.
+    const clickerLevels = Math.min(cfg.CLICKER_UPGRADE_MAX, s.clickerUpgrades || 0);
+    for (let i = 0; i < clickerLevels; i++) {
+      const def = cfg.clickerUpgradeDefs[i];
+      m.clickMult *= def.clickBoost;
+      m.clickerPenalty *= def.globalPenalty;
+    }
+
     // Global production multiplier applied to CPS
     m.global =
       m.prestige *
@@ -322,7 +332,8 @@
       m.achievement *
       m.milestone *
       m.event *
-      m.talentGlobal;
+      m.talentGlobal *
+      m.clickerPenalty;
 
     return m;
   };

@@ -59,7 +59,29 @@ Game.config = {
   GAIN_EFFECTIVENESS_MULT: 0.1,
   // How many of the previous building are consumed to buy one current building, by target tier.
   BUILDING_PREREQ_BY_TIER: { 1: 10, 2: 50, 3: 200 },
+  CLICKER_UPGRADE_BASE_COST: 50,
+  CLICKER_UPGRADE_MAX: 10,
+  CLICKER_UPGRADE_COST_MULT: 3,
 };
+
+/* --------------------------------------------------------------------------
+   Clicker upgrade definitions (10 levels, punishing theme)
+   Each level multiplies click value by clickBoost (applied directly, not
+   scaled by BONUS_EFFECTIVENESS_MULT) and multiplies global production by
+   globalPenalty (also direct — the price of obsession).
+   -------------------------------------------------------------------------- */
+Game.config.clickerUpgradeDefs = [
+  { name: "Calloused Fingers",   flavor: "Flesh yields. Coins do not.",                       clickBoost: 1.15, globalPenalty: 0.99 },
+  { name: "Knuckle Grease",      flavor: "Blood is currency. Joints are for the weak.",        clickBoost: 1.18, globalPenalty: 0.98 },
+  { name: "Torn Ligaments",      flavor: "The ache sharpens focus.",                           clickBoost: 1.22, globalPenalty: 0.97 },
+  { name: "Fractured Bones",     flavor: "Hairline cracks whisper of ambition.",               clickBoost: 1.26, globalPenalty: 0.96 },
+  { name: "Severed Tendons",     flavor: "Pain is a reminder you are still useful.",           clickBoost: 1.32, globalPenalty: 0.95 },
+  { name: "Crushed Nerves",      flavor: "Numbness is a gift. Work never stops.",              clickBoost: 1.38, globalPenalty: 0.94 },
+  { name: "Withered Grip",       flavor: "The hand forgets rest. So must you.",                clickBoost: 1.45, globalPenalty: 0.93 },
+  { name: "Ruined Flesh",        flavor: "Bone and determination are all that remain.",        clickBoost: 1.55, globalPenalty: 0.92 },
+  { name: "Cursed Touch",        flavor: "Every coin carries a cost of flesh.",                clickBoost: 1.65, globalPenalty: 0.91 },
+  { name: "Fist of Desperation", flavor: "Shattered. Relentless. Irreplaceable.",              clickBoost: 1.80, globalPenalty: 0.90 },
+];
 
 Game.config.DIPLOMACY_RELATION_MIN = -100;
 Game.config.DIPLOMACY_RELATION_MAX = 100;
