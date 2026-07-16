@@ -9,15 +9,6 @@
 
   var SVG_W = 780;
   var SVG_H = 400;
-  var PDF_VIEW_PARAMS = '#toolbar=0&navpanes=0&scrollbar=0&view=FitH';
-  var ALLOWED_UPLOADED_MAP_FILES = { 'Nova_Scotia.pdf': true };
-  var UPLOADED_MAP_FILE = 'Nova_Scotia.pdf';
-  var UPLOADED_MAP_PDF = buildUploadedMapPdfPath(UPLOADED_MAP_FILE);
-
-  function buildUploadedMapPdfPath(fileName) {
-    if (!fileName || !ALLOWED_UPLOADED_MAP_FILES[fileName]) return null;
-    return encodeURIComponent(fileName) + PDF_VIEW_PARAMS;
-  }
 
   /* ── helpers ───────────────────────────────────────────────────────────── */
   function svgEl(tag, attrs) {
@@ -59,7 +50,6 @@
     var isMini = mode === 'mini';
     var isSelector = mode === 'selector';
     var isFull = mode === 'full';
-    var useUploadedBackdrop = isFull;
 
     var svgId = isMini ? 'mini-map-svg' : isSelector ? 'selector-map-svg' : 'full-map-svg';
 
@@ -78,7 +68,6 @@
     svg.appendChild(svgEl('rect', {
       x: 0, y: 0, width: SVG_W, height: SVG_H,
       fill: '#1a4a6e', rx: 8,
-      opacity: useUploadedBackdrop ? 0.35 : 1,
     }));
 
     // Canso Causeway (thin dashed bridge between mainland and Cape Breton)
@@ -111,16 +100,16 @@
 
       var strokeColor = '#fff';
       var strokeWidth = isMini ? 0.8 : 1.5;
-      var countyOpacity = useUploadedBackdrop ? 0.45 : 0.9;
+      var countyOpacity = 0.9;
       var extraFilter = '';
 
       if (isEmpire) {
         strokeColor = '#ffd700';
         strokeWidth = isMini ? 2 : 3;
-        countyOpacity = useUploadedBackdrop ? 0.82 : 1;
+        countyOpacity = 1;
         if (!isMini) extraFilter = 'url(#county-glow)';
       } else if (selectedCounty && !isSelector) {
-        countyOpacity = useUploadedBackdrop ? 0.25 : 0.55;
+        countyOpacity = 0.55;
       }
 
       var polyAttrs = {
@@ -224,42 +213,7 @@
     }
 
     container.innerHTML = '';
-    if (useUploadedBackdrop) {
-      var frame = document.createElement('div');
-      frame.className = 'map-svg-frame';
-
-      var backdrop = document.createElement('div');
-      backdrop.className = 'uploaded-map-backdrop';
-
-      if (UPLOADED_MAP_PDF) {
-        var pdf = document.createElement('object');
-        pdf.className = 'uploaded-map-pdf';
-        pdf.type = 'application/pdf';
-        pdf.setAttribute('aria-hidden', 'true');
-        pdf.addEventListener('error', function () {
-          backdrop.classList.add('uploaded-map-backdrop--unavailable');
-        });
-        pdf.data = UPLOADED_MAP_PDF;
-        backdrop.appendChild(pdf);
-      } else {
-        backdrop.classList.add('uploaded-map-backdrop--unavailable');
-      }
-
-      var fallback = document.createElement('div');
-      fallback.className = 'uploaded-map-fallback';
-      fallback.textContent = 'Uploaded Nova Scotia map preview unavailable.';
-      backdrop.appendChild(fallback);
-
-      var legendMask = document.createElement('div');
-      legendMask.className = 'uploaded-map-legend-mask';
-      backdrop.appendChild(legendMask);
-
-      frame.appendChild(backdrop);
-      frame.appendChild(svg);
-      container.appendChild(frame);
-    } else {
-      container.appendChild(svg);
-    }
+    container.appendChild(svg);
 
     // Interaction for selector mode
     if (isSelector) {
