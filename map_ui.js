@@ -230,9 +230,21 @@
       pdf.setAttribute('aria-hidden', 'true');
       backdrop.appendChild(pdf);
 
+      var fallback = document.createElement('div');
+      fallback.className = 'uploaded-map-fallback';
+      fallback.textContent = 'Uploaded Nova Scotia map preview unavailable.';
+      backdrop.appendChild(fallback);
+
       var legendMask = document.createElement('div');
       legendMask.className = 'uploaded-map-legend-mask';
       backdrop.appendChild(legendMask);
+
+      pdf.addEventListener('error', function () {
+        backdrop.classList.add('uploaded-map-backdrop--unavailable');
+      });
+      pdf.addEventListener('load', function () {
+        backdrop.classList.remove('uploaded-map-backdrop--unavailable');
+      });
 
       frame.appendChild(backdrop);
       frame.appendChild(svg);

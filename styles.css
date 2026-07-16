@@ -644,6 +644,11 @@ textarea#save-string {
   z-index: 2;
 }
 .uploaded-map-backdrop {
+  --uploaded-map-scale: 124%;
+  --uploaded-map-offset-x: -11%;
+  --uploaded-map-offset-y: -9%;
+  --uploaded-map-mask-width: 31%;
+  --uploaded-map-mask-height: 29%;
   position: absolute;
   inset: 0;
   overflow: hidden;
@@ -653,20 +658,40 @@ textarea#save-string {
   background: #173f5c;
 }
 .uploaded-map-pdf {
-  width: 124%;
-  height: 124%;
+  width: var(--uploaded-map-scale);
+  height: var(--uploaded-map-scale);
   border: 0;
   opacity: 0.95;
-  transform: translate(-11%, -9%);
+  transform: translate(var(--uploaded-map-offset-x), var(--uploaded-map-offset-y));
 }
 .uploaded-map-legend-mask {
   position: absolute;
   top: 0;
   left: 0;
-  width: 31%;
-  height: 29%;
+  width: var(--uploaded-map-mask-width);
+  height: var(--uploaded-map-mask-height);
   background: #f3f0e8;
   opacity: 0.95;
+}
+.uploaded-map-fallback {
+  display: none;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #dbeafe;
+  font-size: 12px;
+  background: linear-gradient(135deg, #173f5c, #1a4a6e);
+  padding: 12px;
+  box-sizing: border-box;
+}
+.uploaded-map-backdrop--unavailable .uploaded-map-pdf,
+.uploaded-map-backdrop--unavailable .uploaded-map-legend-mask {
+  display: none;
+}
+.uploaded-map-backdrop--unavailable .uploaded-map-fallback {
+  display: flex;
 }
 
 .county-poly { transition: opacity 0.2s, stroke-width 0.15s; }
