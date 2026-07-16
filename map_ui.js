@@ -9,12 +9,13 @@
 
   var SVG_W = 780;
   var SVG_H = 400;
+  var ALLOWED_UPLOADED_MAP_FILES = { 'Nova_Scotia.pdf': true };
   var UPLOADED_MAP_FILE = 'Nova_Scotia.pdf';
   var UPLOADED_MAP_PDF = buildUploadedMapPdfPath(UPLOADED_MAP_FILE);
 
   function buildUploadedMapPdfPath(fileName) {
-    if (!fileName || !/^[A-Za-z0-9_.-]+\.pdf$/i.test(fileName)) return null;
-    return fileName + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH';
+    if (!fileName || !ALLOWED_UPLOADED_MAP_FILES[fileName]) return null;
+    return encodeURIComponent(fileName) + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH';
   }
 
   /* ── helpers ───────────────────────────────────────────────────────────── */

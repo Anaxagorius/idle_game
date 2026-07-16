@@ -644,6 +644,7 @@ textarea#save-string {
   z-index: 2;
 }
 .uploaded-map-backdrop {
+  /* Tuned so the uploaded PDF lines up with county overlays and hides its top-left legend block. */
   --uploaded-map-scale: 124%;
   --uploaded-map-offset-x: -11%;
   --uploaded-map-offset-y: -9%;
