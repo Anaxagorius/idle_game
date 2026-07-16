@@ -13,7 +13,7 @@
   var UPLOADED_MAP_PDF = buildUploadedMapPdfPath(UPLOADED_MAP_FILE);
 
   function buildUploadedMapPdfPath(fileName) {
-    if (!fileName || fileName.indexOf('/') !== -1 || fileName.indexOf('..') !== -1) return null;
+    if (!fileName || !/^[A-Za-z0-9_.-]+\.pdf$/i.test(fileName)) return null;
     return fileName + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH';
   }
 
@@ -233,6 +233,9 @@
       pdf.className = 'uploaded-map-pdf';
       pdf.type = 'application/pdf';
       pdf.setAttribute('aria-hidden', 'true');
+      pdf.addEventListener('error', function () {
+        backdrop.classList.add('uploaded-map-backdrop--unavailable');
+      });
       if (UPLOADED_MAP_PDF) {
         pdf.data = UPLOADED_MAP_PDF;
         backdrop.appendChild(pdf);
@@ -248,10 +251,6 @@
       var legendMask = document.createElement('div');
       legendMask.className = 'uploaded-map-legend-mask';
       backdrop.appendChild(legendMask);
-
-      pdf.addEventListener('error', function () {
-        backdrop.classList.add('uploaded-map-backdrop--unavailable');
-      });
 
       frame.appendChild(backdrop);
       frame.appendChild(svg);
