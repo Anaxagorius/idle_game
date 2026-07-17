@@ -773,11 +773,19 @@
      --------------------------------------------------------------------- */
   UI.updatePrestige = function () {
     const s = Game.state;
+    const DEFAULT_PRESTIGE_GAIN = 1;
+    const DEFAULT_EFFECTIVENESS_MULTIPLIER = 1;
+    // Prevent division-by-zero/Infinity when modifiers temporarily reduce gain multipliers to 0.
     const MIN_PRESTIGE_GAIN_MULT = 0.000001;
+    const fmtCeiledInt = (value) => Math.max(0, Math.ceil(value)).toLocaleString("en-US");
     const mult = s._mult || Game.computeMultipliers();
-    const gainMult = Math.max(MIN_PRESTIGE_GAIN_MULT, (mult.prestigeGain || 1) * (cfg.GAIN_EFFECTIVENESS_MULT || 1));
-    // potential = floor(sqrt(lifetime / required) * gainMult), so solving for potential >= 1 squares gainMult.
-    const prestigeTarget = cfg.PRESTIGE_REQUIRED_COINS / (gainMult * gainMult);
+    const prestigeGain = mult.prestigeGain || DEFAULT_PRESTIGE_GAIN;
+    // GAIN_EFFECTIVENESS scales gains (resources/progression), while BONUS_EFFECTIVENESS scales bonus potency.
+    const gainEffectiveness = cfg.GAIN_EFFECTIVENESS_MULT || DEFAULT_EFFECTIVENESS_MULTIPLIER;
+    const gainMult = Math.max(MIN_PRESTIGE_GAIN_MULT, prestigeGain * gainEffectiveness);
+    // Derived from Game.potentialPrestige(): potential = floor(sqrt(lifetime / required) * gainMult).
+    // Solving for the first prestige (potential >= 1) gives required = PRESTIGE_REQUIRED_COINS / (gainMult^2).
+    const prestigeTarget = cfg.PRESTIGE_REQUIRED_COINS / Math.pow(gainMult, 2);
     const prestigeProgress = prestigeTarget > 0 ? Math.min(1, s.lifetimeCoins / prestigeTarget) : 1;
     const remainingToPrestige = Math.max(0, prestigeTarget - s.lifetimeCoins);
     el("prestige-current-pp").textContent = fmt(s.prestigePoints);
@@ -785,7 +793,7 @@
     el("prestige-potential").textContent = fmt(Game.Prestige.potential());
     el("prestige-mult").textContent = "+" + fmt(s.prestigePoints * cfg.PRESTIGE_PER_POINT_MULT * (cfg.BONUS_EFFECTIVENESS_MULT || 1) * 100) + "%";
     el("prestige-progress-text").textContent =
-      "Progress to Prestige: " + fmt(s.lifetimeCoins) + " / " + fmt(prestigeTarget) + " lifetime coins (" + fmt(remainingToPrestige) + " left)";
+      `Progress to Prestige: ${fmtCeiledInt(s.lifetimeCoins)} / ${fmtCeiledInt(prestigeTarget)} lifetime coins (${fmtCeiledInt(remainingToPrestige)} left)`;
     el("prestige-progress-fill").style.width = (prestigeProgress * 100).toFixed(1) + "%";
 
     el("prestige-count").textContent = fmt(s.stats.prestigeCount);
