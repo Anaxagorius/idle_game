@@ -773,10 +773,18 @@
      --------------------------------------------------------------------- */
   UI.updatePrestige = function () {
     const s = Game.state;
+    const mult = s._mult || Game.computeMultipliers();
+    const gainMult = Math.max(0.000001, (mult.prestigeGain || 1) * (cfg.GAIN_EFFECTIVENESS_MULT || 1));
+    const prestigeTarget = cfg.PRESTIGE_REQUIRED_COINS / (gainMult * gainMult);
+    const prestigeProgress = prestigeTarget > 0 ? Math.min(1, s.lifetimeCoins / prestigeTarget) : 1;
+    const remainingToPrestige = Math.max(0, prestigeTarget - s.lifetimeCoins);
     el("prestige-current-pp").textContent = fmt(s.prestigePoints);
     el("prestige-lifetime-pp").textContent = fmt(s.lifetimePrestigePoints);
     el("prestige-potential").textContent = fmt(Game.Prestige.potential());
     el("prestige-mult").textContent = "+" + fmt(s.prestigePoints * cfg.PRESTIGE_PER_POINT_MULT * (cfg.BONUS_EFFECTIVENESS_MULT || 1) * 100) + "%";
+    el("prestige-progress-text").textContent =
+      "Progress to Prestige: " + fmt(s.lifetimeCoins) + " / " + fmt(prestigeTarget) + " lifetime coins (" + fmt(remainingToPrestige) + " left)";
+    el("prestige-progress-fill").style.width = (prestigeProgress * 100).toFixed(1) + "%";
 
     el("prestige-count").textContent = fmt(s.stats.prestigeCount);
     el("ascension-count").textContent = fmt(s.stats.ascensionCount);
