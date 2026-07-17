@@ -773,8 +773,10 @@
      --------------------------------------------------------------------- */
   UI.updatePrestige = function () {
     const s = Game.state;
+    const MIN_PRESTIGE_GAIN_MULT = 0.000001;
     const mult = s._mult || Game.computeMultipliers();
-    const gainMult = Math.max(0.000001, (mult.prestigeGain || 1) * (cfg.GAIN_EFFECTIVENESS_MULT || 1));
+    const gainMult = Math.max(MIN_PRESTIGE_GAIN_MULT, (mult.prestigeGain || 1) * (cfg.GAIN_EFFECTIVENESS_MULT || 1));
+    // potential = floor(sqrt(lifetime / required) * gainMult), so solving for potential >= 1 squares gainMult.
     const prestigeTarget = cfg.PRESTIGE_REQUIRED_COINS / (gainMult * gainMult);
     const prestigeProgress = prestigeTarget > 0 ? Math.min(1, s.lifetimeCoins / prestigeTarget) : 1;
     const remainingToPrestige = Math.max(0, prestigeTarget - s.lifetimeCoins);
