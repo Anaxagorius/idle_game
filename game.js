@@ -89,6 +89,49 @@
       stocks,
       stockHistory,
       portfolio,
+      gambling: {
+        chips: 0,
+        totalChipsWon: 0,
+        totalChipsLost: 0,
+        chipsFromCoins: 0,
+        gamesPlayed: 0,
+        gamesWon: 0,
+        slotStats: { played: 0, won: 0, bigWins: 0 },
+        blackjackStats: { played: 0, won: 0 },
+        pokerStats: { played: 0, won: 0 },
+        rouletteStats: { played: 0, won: 0 },
+        diceStats: { played: 0, won: 0 },
+        plinkoStats: { played: 0, won: 0 },
+        blackjackState: { phase: "idle", deck: [], playerHand: [], dealerHand: [], bet: 0, doubled: false, result: "" },
+        pokerState: { phase: "idle", deck: [], hand: [], held: [false, false, false, false, false], bet: 0, result: "", payout: 0 },
+      },
+      horses: {
+        owned: [],
+        market: [],
+        marketRefreshIn: 300,
+        raceHistory: [],
+        nextRaceIn: 60,
+        currentRace: null,
+        pendingBets: [],
+        lastRaceResult: null,
+        totalRaces: 0,
+        totalWinnings: 0,
+        totalLosses: 0,
+      },
+      cars: {
+        owned: [],
+        market: [],
+        marketRefreshIn: 600,
+        raceHistory: [],
+        nextRaceIn: 90,
+        currentRace: null,
+        pendingBets: [],
+        lastRaceResult: null,
+        totalRaces: 0,
+        totalWinnings: 0,
+        totalLosses: 0,
+        currentTrackIndex: 0,
+      },
       stockTickTimer: 0,
       stockDividendTimer: 0,
       stats: {
@@ -539,6 +582,7 @@
     if (Game.Bitcoin && Game.Bitcoin.update) Game.Bitcoin.update(dtSeconds);
     if (Game.Stocks && Game.Stocks.update) Game.Stocks.update(dtSeconds);
     if (Game.Diplomacy && Game.Diplomacy.update) Game.Diplomacy.update(dtSeconds);
+    if (Game.Gambling && Game.Gambling.update) Game.Gambling.update(dtSeconds);
     Game.Automation.update(dtSeconds);
     Game.Achievements.check();
     Game.Milestones.check();

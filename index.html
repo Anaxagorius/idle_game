@@ -72,6 +72,9 @@
     <button class="tab-button" data-tab="achievements">Achievements</button>
     <button class="tab-button" data-tab="milestones">Milestones</button>
     <button class="tab-button" data-tab="prestige">Prestige</button>
+    <button class="tab-button" data-tab="casino">🎰 Casino</button>
+    <button class="tab-button" data-tab="horsetrack">🏇 Horse Track</button>
+    <button class="tab-button" data-tab="racetrack">🏎️ Race Track</button>
     <button class="tab-button" data-tab="statistics">Statistics</button>
     <button class="tab-button" data-tab="settings">Settings</button>
   </nav>
@@ -347,6 +350,72 @@
       </div>
     </section>
 
+
+    <section id="tab-casino" class="tab-content">
+      <div class="panel">
+        <h2>🎰 Mega Casino</h2>
+        <div class="casino-chips-bar" id="casino-chips-bar"></div>
+        <div class="casino-game-tabs" id="casino-game-tabs"></div>
+        <div id="casino-game-area" class="casino-game-area"></div>
+      </div>
+      <div class="panel">
+        <h2>Casino Statistics</h2>
+        <div id="casino-stats"></div>
+      </div>
+    </section>
+
+    <section id="tab-horsetrack" class="tab-content">
+      <div class="racing-grid">
+        <div>
+          <div class="panel" id="horse-race-panel">
+            <h2>🏇 Horse Racing</h2>
+            <div id="horse-race-info"></div>
+            <div id="horse-betting-panel"></div>
+          </div>
+          <div class="panel">
+            <h2>Race History</h2>
+            <div id="horse-race-history"></div>
+          </div>
+        </div>
+        <div>
+          <div class="panel">
+            <h2>Your Stable</h2>
+            <div id="horse-stable"></div>
+          </div>
+          <div class="panel">
+            <h2>Horse Market</h2>
+            <div id="horse-market"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-racetrack" class="tab-content">
+      <div class="racing-grid">
+        <div>
+          <div class="panel" id="car-race-panel">
+            <h2>🏎️ Car Racing</h2>
+            <div id="car-race-info"></div>
+            <div id="car-betting-panel"></div>
+          </div>
+          <div class="panel">
+            <h2>Race History</h2>
+            <div id="car-race-history"></div>
+          </div>
+        </div>
+        <div>
+          <div class="panel">
+            <h2>Your Garage</h2>
+            <div id="car-garage"></div>
+          </div>
+          <div class="panel">
+            <h2>Car Market</h2>
+            <div id="car-market"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ================= Statistics ================= -->
     <section id="tab-statistics" class="tab-content">
       <div class="panel">
@@ -421,6 +490,7 @@
   <script src="automation.js"></script>
   <script src="bitcoin.js"></script>
   <script src="stocks.js"></script>
+  <script src="gambling.js"></script>
   <script src="events.js"></script>
   <script src="cycles.js"></script>
   <script src="megaprojects.js"></script>

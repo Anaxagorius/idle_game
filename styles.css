@@ -1206,3 +1206,74 @@ textarea#save-string {
 .toast-cycle  { border-left: 3px solid var(--gold-2); }
 .toast-empire { border-left: 3px solid var(--empire); }
 .toast-reality{ border-left: 3px solid var(--reality); }
+
+
+/* Casino */
+.casino-chips-bar { display:flex; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
+.casino-game-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+.casino-game-tab { padding:6px 14px; border-radius:6px; background:var(--panel-2); border:1px solid var(--border); cursor:pointer; font-size:13px; color:var(--text); }
+.casino-game-tab.active { background:var(--gold); color:#000; font-weight:700; }
+.casino-game-area { min-height:260px; }
+.slots-reels { display:flex; gap:10px; margin:12px 0; }
+.slot-reel { width:60px; height:60px; display:flex; align-items:center; justify-content:center; font-size:32px; background:var(--panel-2); border:2px solid var(--border); border-radius:8px; }
+.slot-reel.win { border-color:var(--gold); background:rgba(246,196,83,0.12); }
+.bj-hand { display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
+.bj-card { padding:8px 12px; background:var(--panel-2); border:1px solid var(--border); border-radius:6px; font-size:18px; font-weight:700; }
+.bj-card.red { color:#e63946; }
+.poker-hand { display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
+.poker-card { padding:8px 12px; background:var(--panel-2); border:2px solid var(--border); border-radius:6px; font-size:16px; font-weight:700; cursor:pointer; color:var(--text); }
+.poker-card.held { border-color:var(--gold); background:rgba(246,196,83,0.15); }
+.poker-card.red { color:#e63946; }
+.plinko-board { font-family:monospace; background:var(--panel-2); padding:10px; border-radius:8px; margin:10px 0; font-size:13px; white-space:pre-wrap; }
+
+/* Racing */
+.racing-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+@media(max-width:900px) { .racing-grid { grid-template-columns:1fr; } }
+.race-countdown { font-size:28px; font-weight:700; color:var(--gold); text-align:center; padding:8px; }
+.race-field { display:flex; flex-direction:column; gap:4px; margin:8px 0; }
+.race-entry { display:flex; align-items:center; gap:8px; padding:6px 10px; background:var(--panel-2); border-radius:6px; border:1px solid var(--border); }
+.race-entry.owned { border-color:var(--gold); }
+.race-entry.winner { border-color:var(--green); background:rgba(67,170,139,0.12); }
+.race-entry-pos { width:24px; font-weight:700; color:var(--gold); }
+.race-entry-name { flex:1; font-weight:600; }
+.race-entry-odds { color:var(--muted); font-size:12px; }
+.bet-panel { display:flex; flex-direction:column; gap:6px; margin:8px 0; }
+.bet-row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.stable-grid { display:flex; flex-direction:column; gap:10px; }
+.horse-card { background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:12px; }
+.horse-card.resting { border-color:var(--cyan); }
+.horse-card.retired { opacity:0.5; }
+.horse-stats { display:flex; gap:8px; flex-wrap:wrap; margin:6px 0; }
+.horse-stat { font-size:12px; color:var(--muted); }
+.horse-stat span { color:var(--text); font-weight:600; }
+.horse-actions { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+.market-horse-card, .market-car-card { background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:8px; }
+.car-card { background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:12px; }
+.car-upgrades { display:flex; gap:6px; flex-wrap:wrap; margin:6px 0; }
+.car-upgrade-slot { font-size:12px; color:var(--muted); }
+.car-upgrade-slot span { color:var(--cyan); }
+.race-history-list { display:flex; flex-direction:column; gap:4px; max-height:200px; overflow-y:auto; }
+.race-history-row { display:flex; gap:6px; align-items:center; font-size:12px; padding:4px 8px; background:var(--panel-2); border-radius:4px; }
+.roulette-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:4px; margin:8px 0; }
+.roulette-bet-btn { padding:6px; text-align:center; background:var(--panel-2); border:1px solid var(--border); border-radius:4px; cursor:pointer; font-size:12px; color:var(--text); }
+.roulette-bet-btn.active { border-color:var(--gold); background:rgba(246,196,83,0.15); }
+.roulette-result { font-size:36px; text-align:center; padding:10px; }
+.dice-result { font-size:40px; text-align:center; margin:10px; }
+.condition-bar { height:8px; background:var(--border); border-radius:4px; overflow:hidden; margin:4px 0; }
+.condition-fill { height:100%; border-radius:4px; background:var(--green); transition:width 0.3s; }
+.condition-fill.low { background:var(--red); }
+.condition-fill.mid { background:var(--gold); }
+.casino-input, .bet-panel input, .bet-panel select, .casino-action-row input, .casino-action-row select {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+.casino-action-row, .race-meta-grid { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:8px 0; }
+.race-meta-grid { justify-content:space-between; }
+.race-accent-horse { color:var(--empire); font-weight:700; }
+.race-accent-car { color:var(--cyan); font-weight:700; }
+.casino-result-win { color:var(--green); font-weight:700; }
+.casino-result-loss { color:var(--red); font-weight:700; }
+.casino-chip-balance { color:var(--gold); font-weight:700; font-size:18px; }

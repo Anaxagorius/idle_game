@@ -1561,3 +1561,93 @@ Game.config.megaProjects = [
 ];
 Game.config.megaProjectMap = {};
 Game.config.megaProjects.forEach(function (p) { Game.config.megaProjectMap[p.id] = p; });
+
+
+/* --------------------------------------------------------------------------
+   Mega Casino, Horse Track and Race Track
+   -------------------------------------------------------------------------- */
+Game.config.CASINO_MIN_BET = 10;
+Game.config.CASINO_MAX_BET = 1000000;
+Game.config.slotSymbols = [
+  { id: "cherry", icon: "🍒", weight: 8, payout3: 2 },
+  { id: "lemon", icon: "🍋", weight: 8, payout3: 3 },
+  { id: "orange", icon: "🍊", weight: 8, payout3: 4 },
+  { id: "grape", icon: "🍇", weight: 6, payout3: 5 },
+  { id: "bell", icon: "🔔", weight: 6, payout3: 6 },
+  { id: "star", icon: "⭐", weight: 4, payout3: 10 },
+  { id: "diamond", icon: "💎", weight: 3, payout3: 20 },
+  { id: "seven", icon: "7️⃣", weight: 2, payout3: 50 },
+  { id: "jackpot", icon: "🎰", weight: 1, payout3: 100 },
+];
+Game.config.rouletteRedNumbers = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
+Game.config.plinkoMultipliers = [100, 25, 10, 5, 3, 5, 10, 25, 100];
+Game.config.casinoGames = [
+  { id: "slots", label: "Slots" },
+  { id: "blackjack", label: "Blackjack" },
+  { id: "poker", label: "Video Poker" },
+  { id: "roulette", label: "Roulette" },
+  { id: "dice", label: "Dice" },
+  { id: "plinko", label: "Plinko" },
+];
+
+Game.config.HORSE_RACE_INTERVAL = 60;
+Game.config.HORSE_BET_WINDOW = 30;
+Game.config.HORSE_MARKET_REFRESH_SECONDS = 300;
+Game.config.HORSE_MARKET_SIZE = 5;
+Game.config.HORSE_OWNERSHIP_LIMIT = 10;
+Game.config.HORSE_PREMIUM_JOCKEY_COST = 10000;
+Game.config.horseBreeds = [
+  { name: "Thoroughbred", speed: [70, 85], stamina: [55, 70], agility: [60, 75] },
+  { name: "Quarter Horse", speed: [75, 90], stamina: [45, 60], agility: [65, 80] },
+  { name: "Arabian", speed: [60, 75], stamina: [70, 85], agility: [55, 70] },
+  { name: "Standardbred", speed: [55, 70], stamina: [75, 90], agility: [50, 65] },
+  { name: "Appaloosa", speed: [50, 65], stamina: [80, 95], agility: [45, 60] },
+];
+Game.config.horseJockeyNames = ["Lena Cruz", "Miles Hart", "Sofia Vance", "Noah Quinn", "Iris Vale", "Jasper Cole"];
+Game.config.horseNamePrefixes = ["Thunder", "Moon", "Royal", "Iron", "Solar", "Velvet", "Wild", "Nova", "Storm", "Silent"];
+Game.config.horseNameSuffixes = ["Strike", "Blaze", "Comet", "Whisper", "Spirit", "Runner", "Fury", "Echo", "Arrow", "Tempest"];
+Game.config.horseNpcRoster = [
+  { id: "npc_horse_silver_bolt", name: "Silver Bolt", breed: "Thoroughbred", age: 4, speed: 84, stamina: 69, agility: 73, jockey: "Lena Cruz" },
+  { id: "npc_horse_midnight_fury", name: "Midnight Fury", breed: "Quarter Horse", age: 3, speed: 88, stamina: 58, agility: 77, jockey: "Miles Hart" },
+  { id: "npc_horse_golden_arrow", name: "Golden Arrow", breed: "Arabian", age: 4, speed: 72, stamina: 82, agility: 68, jockey: "Sofia Vance" },
+  { id: "npc_horse_storm_chaser", name: "Storm Chaser", breed: "Standardbred", age: 5, speed: 68, stamina: 87, agility: 62, jockey: "Noah Quinn" },
+  { id: "npc_horse_iron_will", name: "Iron Will", breed: "Appaloosa", age: 5, speed: 63, stamina: 92, agility: 55, jockey: "Iris Vale" },
+  { id: "npc_horse_blazing_star", name: "Blazing Star", breed: "Thoroughbred", age: 3, speed: 82, stamina: 66, agility: 71, jockey: "Jasper Cole" },
+  { id: "npc_horse_dark_thunder", name: "Dark Thunder", breed: "Quarter Horse", age: 4, speed: 86, stamina: 57, agility: 74, jockey: "Lena Cruz" },
+  { id: "npc_horse_crimson_rose", name: "Crimson Rose", breed: "Arabian", age: 4, speed: 70, stamina: 84, agility: 66, jockey: "Sofia Vance" },
+];
+
+Game.config.CAR_RACE_INTERVAL = 90;
+Game.config.CAR_BET_WINDOW = 45;
+Game.config.CAR_MARKET_REFRESH_SECONDS = 600;
+Game.config.CAR_MARKET_SIZE = 5;
+Game.config.CAR_OWNERSHIP_LIMIT = 5;
+Game.config.CAR_REFUEL_COST_PER_UNIT = 100;
+Game.config.CAR_REPAIR_COST_PER_POINT = 500;
+Game.config.carMakes = [
+  { name: "Apex Racing", enginePower: [75, 90], handling: [65, 80], reliability: [60, 75], aerodynamics: [70, 85], modelPrefix: "AR", models: ["Falcon", "Vector", "Nova R"] },
+  { name: "Velocity Motors", enginePower: [70, 85], handling: [75, 90], reliability: [65, 80], aerodynamics: [60, 75], modelPrefix: "VM", models: ["Circuit S", "Striker", "Pulse"] },
+  { name: "TurboForce", enginePower: [85, 95], handling: [55, 70], reliability: [50, 65], aerodynamics: [65, 80], modelPrefix: "TF", models: ["Overdrive", "Blitz", "Vortex"] },
+  { name: "Precision GT", enginePower: [60, 75], handling: [80, 95], reliability: [75, 90], aerodynamics: [55, 70], modelPrefix: "PG", models: ["Apexia", "Razor", "Spline"] },
+  { name: "EnduraSpec", enginePower: [55, 70], handling: [60, 75], reliability: [85, 100], aerodynamics: [60, 75], modelPrefix: "ES", models: ["Atlas", "LongRun", "Sentinel"] },
+];
+Game.config.carDriverNames = ["Kai Mercer", "Ava Holt", "Milo Cross", "Zara Wynn", "Theo Price", "Rin Kade"];
+Game.config.carNamePrefixes = ["Project", "Crimson", "Neon", "Phantom", "Velocity", "Atlas", "Carbon", "Aero"];
+Game.config.carNameSuffixes = ["R", "GT", "X", "Prime", "Sprint", "Mk-II", "Hyper", "RS"];
+Game.config.carTracks = [
+  { id: "oval_speedway", name: "Oval Speedway", weights: { enginePower: 0.5, handling: 0.15, reliability: 0.12, aerodynamics: 0.23, fuel: 0.05 } },
+  { id: "street_circuit", name: "Street Circuit", weights: { enginePower: 0.22, handling: 0.36, reliability: 0.1, aerodynamics: 0.32, fuel: 0.06 } },
+  { id: "endurance_track", name: "Endurance Track", weights: { enginePower: 0.18, handling: 0.18, reliability: 0.34, aerodynamics: 0.1, fuel: 0.25 } },
+  { id: "technical_park", name: "Technical Park", weights: { enginePower: 0.16, handling: 0.46, reliability: 0.15, aerodynamics: 0.18, fuel: 0.08 } },
+  { id: "high_speed_ring", name: "High-Speed Ring", weights: { enginePower: 0.42, handling: 0.12, reliability: 0.12, aerodynamics: 0.34, fuel: 0.06 } },
+];
+Game.config.carNpcRoster = [
+  { id: "npc_car_phantom_gt3", name: "Phantom GT3", make: "Apex Racing", model: "Falcon", year: 2023, enginePower: 88, handling: 74, reliability: 70, aerodynamics: 82, fuelCapacity: 100, driver: "Kai Mercer" },
+  { id: "npc_car_red_viper_7", name: "Red Viper #7", make: "TurboForce", model: "Overdrive", year: 2024, enginePower: 94, handling: 63, reliability: 58, aerodynamics: 76, fuelCapacity: 100, driver: "Ava Holt" },
+  { id: "npc_car_blue_storm_44", name: "Blue Storm #44", make: "Velocity Motors", model: "Pulse", year: 2022, enginePower: 81, handling: 86, reliability: 74, aerodynamics: 70, fuelCapacity: 100, driver: "Milo Cross" },
+  { id: "npc_car_iron_eagle_3", name: "Iron Eagle #3", make: "EnduraSpec", model: "Atlas", year: 2021, enginePower: 67, handling: 71, reliability: 96, aerodynamics: 69, fuelCapacity: 100, driver: "Zara Wynn" },
+  { id: "npc_car_shadow_runner_99", name: "Shadow Runner #99", make: "Precision GT", model: "Razor", year: 2025, enginePower: 74, handling: 92, reliability: 84, aerodynamics: 68, fuelCapacity: 100, driver: "Theo Price" },
+  { id: "npc_car_golden_arrow_11", name: "Golden Arrow #11", make: "Apex Racing", model: "Vector", year: 2023, enginePower: 86, handling: 77, reliability: 72, aerodynamics: 79, fuelCapacity: 100, driver: "Rin Kade" },
+  { id: "npc_car_lightning_strike_18", name: "Lightning Strike #18", make: "TurboForce", model: "Vortex", year: 2026, enginePower: 92, handling: 60, reliability: 61, aerodynamics: 77, fuelCapacity: 100, driver: "Kai Mercer" },
+  { id: "npc_car_steel_hawk_55", name: "Steel Hawk #55", make: "EnduraSpec", model: "Sentinel", year: 2022, enginePower: 68, handling: 72, reliability: 93, aerodynamics: 71, fuelCapacity: 100, driver: "Ava Holt" },
+];
