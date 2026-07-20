@@ -112,8 +112,23 @@
     const finalRequiredPrev = Buildings.requiredPrevious(buildingId, amount);
     if (prevId && finalRequiredPrev > 0) {
       // Safety guard for state mutations between amount resolution and final purchase application.
-      if ((s.buildings[prevId] || 0) < finalRequiredPrev) return 0;
+      const prevTotal = s.buildings[prevId] || 0;
+      if (prevTotal < finalRequiredPrev) return 0;
       s.buildings[prevId] -= finalRequiredPrev;
+      // Remove only the sub-buildings that now exceed the reduced parent capacity
+      // so that allocatedParentUnits never exceeds the new (lower) owned count.
+      const subs = Buildings.subBuildingsForParent(prevId);
+      if (subs.length > 0) {
+        const newOwned = s.buildings[prevId];
+        let overflow = subs.reduce((sum, sb) => sum + (s.subBuildings[sb.id] || 0), 0) - newOwned;
+        for (const sb of subs) {
+          if (overflow <= 0) break;
+          const current = s.subBuildings[sb.id] || 0;
+          const remove = Math.min(current, overflow);
+          s.subBuildings[sb.id] = current - remove;
+          overflow -= remove;
+        }
+      }
     }
     s.coins -= finalCost;
     s.stats.totalCoinsSpent += finalCost;
