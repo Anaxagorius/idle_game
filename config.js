@@ -1305,3 +1305,259 @@ Game.config.STOCK_EVENT_CORRELATION_RANGE = 0.8;
 
 Game.config.MIN_EVENT_DELAY_MULT = 0.5;
 Game.config.MAX_EVENT_DELAY_MULT = 1.5;
+
+/* --------------------------------------------------------------------------
+   Layer 4 — Empire Legacy (ascend from Ascension Shards)
+   Layer 5 — Time Fragments (ascend from Empire Legacies)
+   Layer 6 — Reality Cores (ascend from Time Fragments)
+   -------------------------------------------------------------------------- */
+Game.config.EMPIRE_REQUIRED_SHARDS   = 10;   // Shards consumed per Empire Legacy
+Game.config.EMPIRE_PER_LEGACY_MULT   = 0.05; // Global multiplier per Empire Legacy
+Game.config.TIME_REQUIRED_LEGACIES   = 5;    // Legacies consumed per Time Fragment
+Game.config.TIME_PER_FRAGMENT_MULT   = 0.15; // Global multiplier per Time Fragment
+Game.config.REALITY_REQUIRED_FRAGMENTS = 3;  // Fragments consumed per Reality Core
+Game.config.REALITY_PER_CORE_MULT    = 0.50; // Global multiplier per Reality Core
+
+/* --------------------------------------------------------------------------
+   Prestige Paths — chosen each prestige, force strategic specialisation
+   -------------------------------------------------------------------------- */
+Game.config.prestigePaths = [
+  {
+    id: "industrialist",
+    name: "Industrialist",
+    icon: "🏭",
+    desc: "Factories, Mines and Refineries produce 5× more. Global production halved outside those buildings.",
+    shortDesc: "Industrial buildings ×5",
+    effects: [
+      { type: "buildingMult", building: "factory",  mult: 5 },
+      { type: "buildingMult", building: "mine",     mult: 5 },
+      { type: "buildingMult", building: "refinery", mult: 5 },
+      { type: "globalMult",   mult: 0.5 },
+    ],
+  },
+  {
+    id: "tycoon",
+    name: "Tycoon",
+    icon: "📈",
+    desc: "Stock dividends pay out 3× faster. Banks and Corporations produce 4× more.",
+    shortDesc: "Stocks ×3 dividend speed, Finance ×4",
+    effects: [
+      { type: "buildingMult",      building: "bank",        mult: 4 },
+      { type: "buildingMult",      building: "corporation", mult: 4 },
+      { type: "stockDividendMult", mult: 3 },
+    ],
+  },
+  {
+    id: "technocrat",
+    name: "Technocrat",
+    icon: "🔬",
+    desc: "Research generation ×8. Labs, Universities and Data Centers produce 6× more.",
+    shortDesc: "Research ×8, Science buildings ×6",
+    effects: [
+      { type: "rpMult",       mult: 8 },
+      { type: "buildingMult", building: "laboratory", mult: 6 },
+      { type: "buildingMult", building: "university",  mult: 6 },
+      { type: "buildingMult", building: "datacenter",  mult: 6 },
+    ],
+  },
+  {
+    id: "cryptolord",
+    name: "Crypto Lord",
+    icon: "₿",
+    desc: "Miner efficiency and Coin Farmer yield ×4. Your BTC holdings multiply all income.",
+    shortDesc: "BTC × all income, mining ×4",
+    effects: [
+      { type: "minerEfficiency",  mult: 4 },
+      { type: "coinFarmerYield",  mult: 4 },
+      { type: "btcIncomeBoost",   value: 0.0002 }, // global mult += btc * value
+    ],
+  },
+];
+Game.config.prestigePathMap = {};
+Game.config.prestigePaths.forEach(function (p) { Game.config.prestigePathMap[p.id] = p; });
+
+/* --------------------------------------------------------------------------
+   Economic Cycles — world-state phases that rotate every few minutes
+   -------------------------------------------------------------------------- */
+Game.config.economicCycles = [
+  {
+    id: "stable",
+    name: "Stable Economy",
+    icon: "📊",
+    color: "#8a97be",
+    desc: "Normal production. No modifiers.",
+    durationMin: 90,
+    durationMax: 150,
+    globalMult:     1,
+    rpMult:         1,
+    stockDriftMult: 1,
+    costMult:       1,
+    btcPriceMult:   1,
+  },
+  {
+    id: "boom",
+    name: "Economic Boom 📈",
+    icon: "📈",
+    color: "#43aa8b",
+    desc: "Stocks drift upward fast. Production +20%.",
+    durationMin: 45,
+    durationMax: 90,
+    globalMult:     1.2,
+    rpMult:         1,
+    stockDriftMult: 3,
+    costMult:       1.1,
+    btcPriceMult:   1.3,
+  },
+  {
+    id: "recession",
+    name: "Recession 📉",
+    icon: "📉",
+    color: "#e63946",
+    desc: "Building costs −40%. Research +20%. Production reduced.",
+    durationMin: 60,
+    durationMax: 120,
+    globalMult:     0.7,
+    rpMult:         1.2,
+    stockDriftMult: 0.3,
+    costMult:       0.6,
+    btcPriceMult:   0.7,
+  },
+  {
+    id: "hypergrowth",
+    name: "Hypergrowth 🚀",
+    icon: "🚀",
+    color: "#f6c453",
+    desc: "Coin production ×5. Brief but extraordinary.",
+    durationMin: 20,
+    durationMax: 40,
+    globalMult:     5,
+    rpMult:         0.5,
+    stockDriftMult: 2,
+    costMult:       1.3,
+    btcPriceMult:   2,
+  },
+];
+Game.config.economicCycleMap = {};
+Game.config.economicCycles.forEach(function (c) { Game.config.economicCycleMap[c.id] = c; });
+// Weight for picking next cycle (stable more frequent)
+Game.config.economicCycleWeights = { stable: 40, boom: 25, recession: 25, hypergrowth: 10 };
+
+/* --------------------------------------------------------------------------
+   Active Abilities — player-activated bursts with cooldowns
+   -------------------------------------------------------------------------- */
+Game.config.activeAbilities = [
+  {
+    id: "market_frenzy",
+    name: "Market Frenzy",
+    icon: "💸",
+    desc: "Doubles all coin production for 30 seconds.",
+    flavor: "The markets go wild. Ride the wave.",
+    duration: 30,
+    cooldown: 300,
+    unlockKey: "prestigeCount",
+    unlockValue: 1,
+    effects: [{ type: "globalMult", mult: 2 }],
+  },
+  {
+    id: "production_surge",
+    name: "Production Surge",
+    icon: "⚡",
+    desc: "All production ×10 for 10 seconds.",
+    flavor: "Factories roar. The empire never sleeps.",
+    duration: 10,
+    cooldown: 180,
+    unlockKey: "ascensionShards",
+    unlockValue: 1,
+    effects: [{ type: "globalMult", mult: 10 }],
+  },
+  {
+    id: "research_blitz",
+    name: "Research Blitz",
+    icon: "🧪",
+    desc: "Research generation ×20 for 15 seconds.",
+    flavor: "Every mind in the empire thinks as one.",
+    duration: 15,
+    cooldown: 240,
+    unlockKey: "researchCompleted",
+    unlockValue: 10,
+    effects: [{ type: "rpMult", mult: 20 }],
+  },
+  {
+    id: "reality_pulse",
+    name: "Reality Pulse",
+    icon: "🌀",
+    desc: "Click value ×100 for 15 seconds.",
+    flavor: "The fabric of reality bends to your will.",
+    duration: 15,
+    cooldown: 600,
+    unlockKey: "empireLegacies",
+    unlockValue: 1,
+    effects: [{ type: "clickMult", mult: 100 }],
+  },
+];
+Game.config.activeAbilityMap = {};
+Game.config.activeAbilities.forEach(function (a) { Game.config.activeAbilityMap[a.id] = a; });
+
+/* --------------------------------------------------------------------------
+   Mega Projects — expensive, permanent, transformative goals
+   -------------------------------------------------------------------------- */
+Game.config.megaProjects = [
+  {
+    id: "continental_railway",
+    name: "Continental Railway",
+    icon: "🚂",
+    desc: "An empire-spanning rail network connecting every corner of your territory.",
+    flavor: "Steel veins running through the heart of civilisation.",
+    costs: { coins: 1e15, researchPoints: 500 },
+    reward: "All building production permanently +20%.",
+    effects: [{ type: "globalMult", mult: 1.2 }],
+  },
+  {
+    id: "global_stock_exchange",
+    name: "Global Stock Exchange",
+    icon: "🏛️",
+    desc: "The ultimate financial institution. Stock trading fees vanish and dividends double.",
+    flavor: "Where nations come to bargain.",
+    costs: { coins: 1e18, researchPoints: 1000 },
+    reward: "Stock trading fees −100%. Dividend rate ×2.",
+    effects: [
+      { type: "stockFeeReduction", value: 1 },
+      { type: "stockDividendMult", mult: 2 },
+    ],
+  },
+  {
+    id: "dyson_construction",
+    name: "Dyson Sphere Framework",
+    icon: "☀️",
+    desc: "Begin construction of an energy-harvesting sphere around your star.",
+    flavor: "Stars are just power plants waiting to be tapped.",
+    costs: { coins: 1e25, researchPoints: 2000, ascensionShards: 5 },
+    reward: "Energy capacity ×1000. Energy production ×100.",
+    effects: [
+      { type: "energyCapacity",  mult: 1000 },
+      { type: "energyProduction", mult: 100 },
+    ],
+  },
+  {
+    id: "ai_singularity",
+    name: "AI Singularity",
+    icon: "🤖",
+    desc: "Create an AGI that handles all empire research autonomously.",
+    flavor: "The last invention humanity will ever need to make.",
+    costs: { coins: 1e35, researchPoints: 5000, empireLegacies: 1 },
+    reward: "Research points generation ×5. Permanent auto-research.",
+    effects: [{ type: "rpMult", mult: 5 }],
+  },
+  {
+    id: "galactic_trade_network",
+    name: "Galactic Trade Network",
+    icon: "🌌",
+    desc: "Establish trade routes spanning the known galaxy.",
+    flavor: "Every star a market. Every void a shipping lane.",
+    costs: { coins: 1e45, researchPoints: 10000, empireLegacies: 3 },
+    reward: "All production ×2. County bonuses ×5.",
+    effects: [{ type: "globalMult", mult: 2 }],
+  },
+];
+Game.config.megaProjectMap = {};
+Game.config.megaProjects.forEach(function (p) { Game.config.megaProjectMap[p.id] = p; });

@@ -159,6 +159,235 @@
     return true;
   };
 
+  /* ---------------------------------------------------------------------
+     Layer 4: Ascension Shards → Empire Legacies
+     --------------------------------------------------------------------- */
+  Prestige.potentialLegacies = function () {
+    const s = Game.state;
+    const shards = s.ascensionShards || 0;
+    return Math.floor((shards / cfg.EMPIRE_REQUIRED_SHARDS) * (cfg.GAIN_EFFECTIVENESS_MULT || 1));
+  };
+
+  Prestige.canEmpire = function () {
+    return Prestige.potentialLegacies() >= 1;
+  };
+
+  Prestige.empire = function () {
+    const s = Game.state;
+    if (!Prestige.canEmpire()) return false;
+    const legacies = Prestige.potentialLegacies();
+
+    s.empireLegacies = (s.empireLegacies || 0) + legacies;
+    s.lifetimeEmpireLegacies = (s.lifetimeEmpireLegacies || 0) + legacies;
+    s.stats.empireCount = (s.stats.empireCount || 0) + 1;
+
+    // Reset everything except Empire Legacies+, stats, achievements, milestones, settings
+    s.ascensionShards = 0;
+    s.coins = 0;
+    s.lifetimeCoins = 0;
+    s.prestigePoints = 0;
+    s.researchPoints = 0;
+    cfg.buildings.forEach((b) => (s.buildings[b.id] = 0));
+    (cfg.subBuildings || []).forEach((sb) => {
+      s.subBuildings[sb.id] = 0;
+      s.subBuildingUpgrades[sb.id] = 0;
+    });
+    s.upgrades = {};
+    s.research = {};
+    s.unlocked = {};
+    s.activeEvents = [];
+    s.activeTalentPowers = [];
+    s.activeSkillPowers = [];
+    s.energy = 0;
+    s.btc = 0;
+    s.btcMarketTime = 0;
+    s.btcPrice = cfg.BTC_BASE_PRICE;
+    (cfg.energyProducers || []).forEach((p) => (s.energyProducers[p.id] = 0));
+    (cfg.btcMiners || []).forEach((m) => (s.btcMiners[m.id] = 0));
+    (cfg.batteries || []).forEach((b) => (s.batteries[b.id] = 0));
+    (cfg.coinFarmers || []).forEach((f) => (s.coinFarmers[f.id] = 0));
+    s.energyCap = cfg.BTC_BASE_ENERGY_CAP;
+    (cfg.stocks || []).forEach((st) => {
+      s.stocks[st.id] = st.basePrice;
+      s.stockHistory[st.id] = [st.basePrice];
+      s.portfolio[st.id] = { shares: 0, avgCost: 0 };
+    });
+    s.stockTickTimer = 0;
+    s.stockDividendTimer = 0;
+    s.automation.autoClick = false;
+    s.automation.autoBuy = false;
+    s.automation.autoUpgrade = false;
+    s.automation.autoResearch = false;
+    s.automation.autoPrestige = false;
+    s.automation.autoAscend = false;
+    s.godsTitans = {};
+    s.talents = {};
+    s.skillTrees = {};
+    s.prestigePath = null;
+
+    Game.recalculate();
+    if (Game.UI && Game.UI.toast) Game.UI.toast("Empire Legacy forged! +" + Game.formatNumber(legacies) + " Empire Legacies", "empire");
+    return true;
+  };
+
+  /* ---------------------------------------------------------------------
+     Layer 5: Empire Legacies → Time Fragments
+     --------------------------------------------------------------------- */
+  Prestige.potentialFragments = function () {
+    const s = Game.state;
+    const legacies = s.empireLegacies || 0;
+    return Math.floor((legacies / cfg.TIME_REQUIRED_LEGACIES) * (cfg.GAIN_EFFECTIVENESS_MULT || 1));
+  };
+
+  Prestige.canTimeRift = function () {
+    return Prestige.potentialFragments() >= 1;
+  };
+
+  Prestige.timeRift = function () {
+    const s = Game.state;
+    if (!Prestige.canTimeRift()) return false;
+    const fragments = Prestige.potentialFragments();
+
+    s.timeFragments = (s.timeFragments || 0) + fragments;
+    s.lifetimeTimeFragments = (s.lifetimeTimeFragments || 0) + fragments;
+    s.stats.timeCount = (s.stats.timeCount || 0) + 1;
+
+    // Reset everything except Time Fragments+, stats, achievements, milestones, settings
+    s.empireLegacies = 0;
+    s.ascensionShards = 0;
+    s.coins = 0;
+    s.lifetimeCoins = 0;
+    s.prestigePoints = 0;
+    s.researchPoints = 0;
+    cfg.buildings.forEach((b) => (s.buildings[b.id] = 0));
+    (cfg.subBuildings || []).forEach((sb) => {
+      s.subBuildings[sb.id] = 0;
+      s.subBuildingUpgrades[sb.id] = 0;
+    });
+    s.upgrades = {};
+    s.research = {};
+    s.unlocked = {};
+    s.activeEvents = [];
+    s.activeTalentPowers = [];
+    s.activeSkillPowers = [];
+    s.energy = 0;
+    s.btc = 0;
+    s.btcMarketTime = 0;
+    s.btcPrice = cfg.BTC_BASE_PRICE;
+    (cfg.energyProducers || []).forEach((p) => (s.energyProducers[p.id] = 0));
+    (cfg.btcMiners || []).forEach((m) => (s.btcMiners[m.id] = 0));
+    (cfg.batteries || []).forEach((b) => (s.batteries[b.id] = 0));
+    (cfg.coinFarmers || []).forEach((f) => (s.coinFarmers[f.id] = 0));
+    s.energyCap = cfg.BTC_BASE_ENERGY_CAP;
+    (cfg.stocks || []).forEach((st) => {
+      s.stocks[st.id] = st.basePrice;
+      s.stockHistory[st.id] = [st.basePrice];
+      s.portfolio[st.id] = { shares: 0, avgCost: 0 };
+    });
+    s.stockTickTimer = 0;
+    s.stockDividendTimer = 0;
+    s.automation.autoClick = false;
+    s.automation.autoBuy = false;
+    s.automation.autoUpgrade = false;
+    s.automation.autoResearch = false;
+    s.automation.autoPrestige = false;
+    s.automation.autoAscend = false;
+    s.godsTitans = {};
+    s.talents = {};
+    s.skillTrees = {};
+    s.megaProjects = {};
+    s.prestigePath = null;
+
+    Game.recalculate();
+    if (Game.UI && Game.UI.toast) Game.UI.toast("Time Rift opened! +" + Game.formatNumber(fragments) + " Time Fragments", "empire");
+    return true;
+  };
+
+  /* ---------------------------------------------------------------------
+     Layer 6: Time Fragments → Reality Cores
+     --------------------------------------------------------------------- */
+  Prestige.potentialCores = function () {
+    const s = Game.state;
+    const fragments = s.timeFragments || 0;
+    return Math.floor((fragments / cfg.REALITY_REQUIRED_FRAGMENTS) * (cfg.GAIN_EFFECTIVENESS_MULT || 1));
+  };
+
+  Prestige.canRealityCollapse = function () {
+    return Prestige.potentialCores() >= 1;
+  };
+
+  Prestige.realityCollapse = function () {
+    const s = Game.state;
+    if (!Prestige.canRealityCollapse()) return false;
+    const cores = Prestige.potentialCores();
+
+    s.realityCores = (s.realityCores || 0) + cores;
+    s.lifetimeRealityCores = (s.lifetimeRealityCores || 0) + cores;
+    s.stats.realityCount = (s.stats.realityCount || 0) + 1;
+
+    // Total reset — only Reality Cores, stats, achievements, milestones survive
+    s.timeFragments = 0;
+    s.empireLegacies = 0;
+    s.ascensionShards = 0;
+    s.coins = 0;
+    s.lifetimeCoins = 0;
+    s.prestigePoints = 0;
+    s.researchPoints = 0;
+    cfg.buildings.forEach((b) => (s.buildings[b.id] = 0));
+    (cfg.subBuildings || []).forEach((sb) => {
+      s.subBuildings[sb.id] = 0;
+      s.subBuildingUpgrades[sb.id] = 0;
+    });
+    s.upgrades = {};
+    s.research = {};
+    s.unlocked = {};
+    s.activeEvents = [];
+    s.activeTalentPowers = [];
+    s.activeSkillPowers = [];
+    s.energy = 0;
+    s.btc = 0;
+    s.btcMarketTime = 0;
+    s.btcPrice = cfg.BTC_BASE_PRICE;
+    (cfg.energyProducers || []).forEach((p) => (s.energyProducers[p.id] = 0));
+    (cfg.btcMiners || []).forEach((m) => (s.btcMiners[m.id] = 0));
+    (cfg.batteries || []).forEach((b) => (s.batteries[b.id] = 0));
+    (cfg.coinFarmers || []).forEach((f) => (s.coinFarmers[f.id] = 0));
+    s.energyCap = cfg.BTC_BASE_ENERGY_CAP;
+    (cfg.stocks || []).forEach((st) => {
+      s.stocks[st.id] = st.basePrice;
+      s.stockHistory[st.id] = [st.basePrice];
+      s.portfolio[st.id] = { shares: 0, avgCost: 0 };
+    });
+    s.stockTickTimer = 0;
+    s.stockDividendTimer = 0;
+    s.automation.autoClick = false;
+    s.automation.autoBuy = false;
+    s.automation.autoUpgrade = false;
+    s.automation.autoResearch = false;
+    s.automation.autoPrestige = false;
+    s.automation.autoAscend = false;
+    s.godsTitans = {};
+    s.talents = {};
+    s.skillTrees = {};
+    s.megaProjects = {};
+    s.prestigePath = null;
+
+    Game.recalculate();
+    if (Game.UI && Game.UI.toast) Game.UI.toast("Reality collapsed! +" + Game.formatNumber(cores) + " Reality Cores", "reality");
+    return true;
+  };
+
+  /* ---------------------------------------------------------------------
+     Prestige Path selection
+     --------------------------------------------------------------------- */
+  Prestige.setPrestigePath = function (pathId) {
+    if (!cfg.prestigePathMap[pathId]) return false;
+    Game.state.prestigePath = pathId;
+    Game.recalculate();
+    if (Game.UI && Game.UI.toast) Game.UI.toast("Prestige Path: " + cfg.prestigePathMap[pathId].name, "info");
+    return true;
+  };
+
   Prestige.godTitanPurchased = function (id) {
     return !!Game.state.godsTitans[id];
   };

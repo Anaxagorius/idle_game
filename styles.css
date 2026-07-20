@@ -18,6 +18,9 @@
   --purple: #b388eb;
   --blue: #4ea8de;
   --cyan: #48cae4;
+  --empire: #e07a5f;
+  --time: #a8dadc;
+  --reality: #e040fb;
   --shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
   --diplo-action-desc-min-height: 34px;
 }
@@ -77,6 +80,16 @@ header {
 .resource.cps .value { color: var(--green); }
 .resource.btc .value { color: #ffb703; }
 .resource.energy .value { color: #90e0ef; }
+.resource.el .value { color: var(--empire); }
+.resource.tf .value { color: var(--time); }
+.resource.rc .value { color: var(--reality); }
+.resource.cycle-display .value { color: var(--gold-2); font-size: 13px; }
+
+/* New highlight classes */
+.highlight-gold   { color: var(--gold); }
+.highlight-empire { color: var(--empire); }
+.highlight-time   { color: var(--time); }
+.highlight-reality{ color: var(--reality); }
 
 /* ---------- Tabs ---------- */
 .tabs {
@@ -1094,3 +1107,102 @@ textarea#save-string {
   font-size: 13px;
 }
 .selector-confirm-btn:hover { opacity: 0.9; }
+
+/* ======================================================================
+   NEW FEATURE STYLES
+   ====================================================================== */
+
+/* Empire/Time/Reality prestige buttons */
+.btn-empire  { background: linear-gradient(135deg, #b84a2e, var(--empire)); color: #fff; }
+.btn-time    { background: linear-gradient(135deg, #5a9fb0, var(--time));   color: #0a1a1e; }
+.btn-reality { background: linear-gradient(135deg, #8a00c8, var(--reality)); color: #fff; }
+.btn-empire:hover,.btn-time:hover,.btn-reality:hover { filter: brightness(1.15); }
+
+/* Prestige path grid */
+.prestige-path-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+.prestige-path-card {
+  background: var(--panel-2);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.prestige-path-card:hover { border-color: var(--gold); }
+.prestige-path-card.selected { border-color: var(--gold-2); box-shadow: 0 0 12px rgba(246,196,83,0.35); }
+.prestige-path-card .path-icon { font-size: 28px; margin-bottom: 6px; }
+.prestige-path-card .path-name { font-size: 15px; font-weight: 700; color: var(--gold-2); margin-bottom: 4px; }
+.prestige-path-card .path-short { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.prestige-path-card .path-desc  { font-size: 12px; color: var(--text); }
+
+/* Active abilities */
+#active-ability-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.ability-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+}
+.ability-row.locked { opacity: 0.45; }
+.ability-icon { font-size: 26px; flex-shrink: 0; }
+.ability-info { flex: 1; }
+.ability-name { font-size: 14px; font-weight: 700; color: var(--text); }
+.ability-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.ability-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.ability-btn  { min-width: 100px; text-align: center; }
+.ability-status-active   { color: var(--green); font-weight: 600; }
+.ability-status-cooldown { color: var(--gold); }
+.ability-unlock-hint     { font-size: 11px; color: var(--muted); font-style: italic; }
+
+/* Mega projects */
+#megaproject-list { display: flex; flex-direction: column; gap: 14px; }
+.megaproject-card {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  transition: border-color 0.2s;
+}
+.megaproject-card.completed { border-color: var(--green); }
+.megaproject-card.affordable { border-color: var(--gold); }
+.megaproject-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.megaproject-icon   { font-size: 28px; }
+.megaproject-name   { font-size: 16px; font-weight: 700; color: var(--text); }
+.megaproject-desc   { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.megaproject-reward { font-size: 12px; color: var(--green); margin-bottom: 8px; font-weight: 600; }
+.megaproject-costs  { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+.megaproject-costs span { color: var(--text); font-weight: 600; }
+.megaproject-progress { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 10px; overflow: hidden; }
+.megaproject-progress-fill { height: 100%; background: var(--gold); border-radius: 2px; transition: width 0.4s; }
+.megaproject-btn { font-size: 12px; padding: 8px 18px; }
+.megaproject-complete-badge { color: var(--green); font-weight: 700; font-size: 13px; }
+
+/* Cycle chip in resource bar */
+.cycle-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+/* Offline events list */
+.offline-events { margin: 10px 0; text-align: left; font-size: 13px; color: var(--muted); }
+.offline-events .offline-event-row { padding: 3px 0; }
+.offline-events .offline-event-row span { color: var(--text); font-weight: 600; }
+
+/* Toast types */
+.toast-cycle  { border-left: 3px solid var(--gold-2); }
+.toast-empire { border-left: 3px solid var(--empire); }
+.toast-reality{ border-left: 3px solid var(--reality); }

@@ -41,6 +41,16 @@
       lifetimePrestigePoints: 0,
       researchPoints: 0,
       ascensionShards: 0,
+      empireLegacies: 0,
+      lifetimeEmpireLegacies: 0,
+      timeFragments: 0,
+      lifetimeTimeFragments: 0,
+      realityCores: 0,
+      lifetimeRealityCores: 0,
+      prestigePath: null,
+      cycle: { phase: "stable", endTime: 0 },
+      abilities: {},
+      megaProjects: {},
       buildings,
       subBuildings,
       subBuildingUpgrades,
@@ -103,6 +113,10 @@
         totalBtcMined: 0,
         totalManualBtcMined: 0,
         totalBtcSold: 0,
+        empireCount: 0,
+        timeCount: 0,
+        realityCount: 0,
+        megaProjectsCompleted: 0,
       },
       settings: {
         notifications: true,
@@ -145,6 +159,10 @@
     const m = {
       prestige: 1 + s.prestigePoints * cfg.PRESTIGE_PER_POINT_MULT * bonusScale,
       ascension: 1 + s.ascensionShards * cfg.ASCENSION_PER_SHARD_MULT * bonusScale,
+      empireLegacy: 1 + (s.empireLegacies || 0) * cfg.EMPIRE_PER_LEGACY_MULT * bonusScale,
+      timeFragment: 1 + (s.timeFragments || 0) * cfg.TIME_PER_FRAGMENT_MULT * bonusScale,
+      realityCore: 1 + (s.realityCores || 0) * cfg.REALITY_PER_CORE_MULT * bonusScale,
+      cycle: 1,
       researchCoin: 1,
       researchBuilding: 1,
       researchGlobal: 1,
@@ -174,6 +192,8 @@
       stockInsight: 0,
       autoClickBoost: 0,
       clickerPenalty: 1,
+      stockDividendMult: 1,
+      btcIncomeBoost: 0,
     };
 
     function applyEffect(effect) {
@@ -222,6 +242,11 @@
         m.stockInsight += effect.value || 0;
       } else if (type === "autoClickBoost") {
         m.autoClickBoost += effect.value || 0;
+      } else if (type === "stockDividendMult") {
+        const mv = effect.mult !== undefined ? effect.mult : effectMultiplier;
+        m.stockDividendMult *= mv;
+      } else if (type === "btcIncomeBoost") {
+        m.btcIncomeBoost += effect.value || 0;
       } else if (type === "buildingMult") {
         const buildingId = effect.building;
         if (!buildingId) return;
@@ -337,6 +362,45 @@
     // 0.1 multiplier = maximum 90% total cost reduction.
     m.costReduction = Math.max(cfg.MAX_COST_REDUCTION_MULT, m.costReduction);
 
+    // Prestige path effects (active path for current run)
+    if (s.prestigePath && cfg.prestigePathMap[s.prestigePath]) {
+      cfg.prestigePathMap[s.prestigePath].effects.forEach(function (effect) {
+        applyEffect(effect);
+      });
+    }
+
+    // Economic cycle multiplier
+    const cycleId = (s.cycle && s.cycle.phase) || "stable";
+    const cycleDef = cfg.economicCycleMap[cycleId] || cfg.economicCycleMap.stable;
+    m.cycle = cycleDef ? cycleDef.globalMult : 1;
+    if (cycleDef && cycleDef.rpMult !== undefined) m.rpGain *= cycleDef.rpMult;
+    if (cycleDef && cycleDef.costMult !== undefined) {
+      m.costReduction *= cycleDef.costMult > 0 ? cycleDef.costMult : 1;
+    }
+
+    // Mega project permanent effects
+    if (s.megaProjects) {
+      (cfg.megaProjects || []).forEach(function (proj) {
+        if (!s.megaProjects[proj.id]) return;
+        (proj.effects || []).forEach(function (effect) { applyEffect(effect); });
+      });
+    }
+
+    // Active abilities (timed)
+    const now = Date.now() / 1000;
+    if (s.abilities) {
+      (cfg.activeAbilities || []).forEach(function (ab) {
+        const state = s.abilities[ab.id];
+        if (!state || !state.activeEnd || now > state.activeEnd) return;
+        (ab.effects || []).forEach(function (effect) { applyEffect(effect); });
+      });
+    }
+
+    // BTC income boost (Crypto Lord path: btc * value boosts global)
+    if (m.btcIncomeBoost > 0) {
+      m.talentGlobal *= 1 + (s.btc || 0) * m.btcIncomeBoost;
+    }
+
     // Clicker upgrades: direct multipliers, not scaled by BONUS_EFFECTIVENESS_MULT.
     const clickerLevels = Math.min(cfg.CLICKER_UPGRADE_MAX, s.clickerUpgrades || 0);
     for (let i = 0; i < clickerLevels; i++) {
@@ -349,6 +413,10 @@
     m.global =
       m.prestige *
       m.ascension *
+      m.empireLegacy *
+      m.timeFragment *
+      m.realityCore *
+      m.cycle *
       m.researchCoin *
       m.researchBuilding *
       m.researchGlobal *
@@ -465,6 +533,7 @@
 
     // Events, automation, achievements, milestones
     Game.Events.update(dtSeconds);
+    if (Game.Cycles && Game.Cycles.update) Game.Cycles.update(dtSeconds);
     if (Game.Talents && Game.Talents.update) Game.Talents.update();
     if (Game.SkillTrees && Game.SkillTrees.update) Game.SkillTrees.update();
     if (Game.Bitcoin && Game.Bitcoin.update) Game.Bitcoin.update(dtSeconds);
@@ -531,6 +600,19 @@
     s.stats.offlineEarnings += coins;
     s.stats.playTime += seconds;
 
-    return { seconds, coins, rp };
+    // Estimate offline BTC from auto-miners
+    let btc = 0;
+    if (cfg.btcMiners && s.btcMiners) {
+      const m = s._mult || Game.computeMultipliers();
+      cfg.btcMiners.forEach(function (miner) {
+        btc += (s.btcMiners[miner.id] || 0) * miner.btcPerSec * (m.minerEfficiency || 1) * seconds;
+      });
+    }
+    if (btc > 0) {
+      s.btc += btc;
+      s.stats.totalBtcMined = (s.stats.totalBtcMined || 0) + btc;
+    }
+
+    return { seconds, coins, rp, btc };
   };
 })();

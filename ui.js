@@ -39,6 +39,14 @@
       asWrap: el("res-as-wrap"),
       btcWrap: el("res-btc-wrap"),
       energyWrap: el("res-energy-wrap"),
+      elWrap: el("res-el-wrap"),
+      tfWrap: el("res-tf-wrap"),
+      rcWrap: el("res-rc-wrap"),
+      cycleWrap: el("res-cycle-wrap"),
+      el: el("res-el"),
+      tf: el("res-tf"),
+      rc: el("res-rc"),
+      cycleDisplay: el("res-cycle"),
       clickValue: el("click-value"),
       coinButton: el("coin-button"),
       buildingList: el("building-list"),
@@ -72,6 +80,8 @@
     UI.wireSettings();
     UI.wirePrestigeButtons();
     UI.wireClickerUpgrades();
+    UI.buildPrestigePaths();
+    UI.buildMegaProjects();
 
     UI.showTab("economy");
     UI.update();
@@ -814,8 +824,242 @@
     setBtn(el("btn-research-reset"), Game.Prestige.canResearchReset());
     setBtn(el("btn-ascend"), Game.Prestige.canAscend());
 
+    // Layer 4 — Empire Legacy
+    const legacyPotential = Game.Prestige.potentialLegacies ? Game.Prestige.potentialLegacies() : 0;
+    el("empire-current-el").textContent  = fmt(s.empireLegacies || 0);
+    el("empire-lifetime-el").textContent = fmt(s.lifetimeEmpireLegacies || 0);
+    el("empire-mult").textContent = "+" + fmt((s.empireLegacies || 0) * cfg.EMPIRE_PER_LEGACY_MULT * (cfg.BONUS_EFFECTIVENESS_MULT || 1) * 100) + "%";
+    el("empire-count").textContent = fmt(s.stats.empireCount || 0);
+    el("empire-potential").textContent = fmt(legacyPotential);
+    el("empire-req").textContent = "Requires " + fmt(cfg.EMPIRE_REQUIRED_SHARDS) + " Ascension Shards per Legacy. You have " + fmt(s.ascensionShards) + " Shards.";
+    setBtn(el("btn-empire"), Game.Prestige.canEmpire && Game.Prestige.canEmpire());
+
+    // Layer 5 — Time Fragments
+    const fragPotential = Game.Prestige.potentialFragments ? Game.Prestige.potentialFragments() : 0;
+    el("time-current-tf").textContent  = fmt(s.timeFragments || 0);
+    el("time-lifetime-tf").textContent = fmt(s.lifetimeTimeFragments || 0);
+    el("time-mult").textContent = "+" + fmt((s.timeFragments || 0) * cfg.TIME_PER_FRAGMENT_MULT * (cfg.BONUS_EFFECTIVENESS_MULT || 1) * 100) + "%";
+    el("time-count").textContent = fmt(s.stats.timeCount || 0);
+    el("time-potential").textContent = fmt(fragPotential);
+    el("time-req").textContent = "Requires " + fmt(cfg.TIME_REQUIRED_LEGACIES) + " Empire Legacies per Fragment. You have " + fmt(s.empireLegacies || 0) + " Legacies.";
+    setBtn(el("btn-timerift"), Game.Prestige.canTimeRift && Game.Prestige.canTimeRift());
+
+    // Layer 6 — Reality Cores
+    const corePotential = Game.Prestige.potentialCores ? Game.Prestige.potentialCores() : 0;
+    el("reality-current-rc").textContent  = fmt(s.realityCores || 0);
+    el("reality-lifetime-rc").textContent = fmt(s.lifetimeRealityCores || 0);
+    el("reality-mult").textContent = "+" + fmt((s.realityCores || 0) * cfg.REALITY_PER_CORE_MULT * (cfg.BONUS_EFFECTIVENESS_MULT || 1) * 100) + "%";
+    el("reality-count").textContent = fmt(s.stats.realityCount || 0);
+    el("reality-potential").textContent = fmt(corePotential);
+    el("reality-req").textContent = "Requires " + fmt(cfg.REALITY_REQUIRED_FRAGMENTS) + " Time Fragments per Core. You have " + fmt(s.timeFragments || 0) + " Fragments.";
+    setBtn(el("btn-realitycollapse"), Game.Prestige.canRealityCollapse && Game.Prestige.canRealityCollapse());
+
+    UI.updatePrestigePaths();
+    UI.updateActiveAbilities();
     UI.updateTalents();
     UI.updateGodsTitans();
+  };
+
+  /* -----------------------------------------------------------------
+     Prestige Path cards
+     ----------------------------------------------------------------- */
+  UI.buildPrestigePaths = function () {
+    const container = el("prestige-path-list");
+    if (!container) return;
+    container.innerHTML = "";
+    cfg.prestigePaths.forEach(function (p) {
+      const card = make("div", "prestige-path-card" + (Game.state.prestigePath === p.id ? " selected" : ""));
+      card.dataset.pathId = p.id;
+      card.innerHTML =
+        '<div class="path-icon">' + p.icon + "</div>" +
+        '<div class="path-name">' + p.name + "</div>" +
+        '<div class="path-short">' + p.shortDesc + "</div>" +
+        '<div class="path-desc">' + p.desc + "</div>";
+      card.addEventListener("click", function () {
+        Game.Prestige.setPrestigePath(p.id);
+        UI.buildPrestigePaths();
+        UI.updatePrestigePaths();
+      });
+      container.appendChild(card);
+    });
+  };
+
+  UI.updatePrestigePaths = function () {
+    const s = Game.state;
+    const nameEl = el("prestige-path-name");
+    if (nameEl) {
+      if (s.prestigePath && cfg.prestigePathMap[s.prestigePath]) {
+        const p = cfg.prestigePathMap[s.prestigePath];
+        nameEl.textContent = p.icon + " " + p.name;
+      } else {
+        nameEl.textContent = "None";
+      }
+    }
+    const container = el("prestige-path-list");
+    if (!container) return;
+    container.querySelectorAll(".prestige-path-card").forEach(function (card) {
+      card.classList.toggle("selected", card.dataset.pathId === s.prestigePath);
+    });
+  };
+
+  /* -----------------------------------------------------------------
+     Active Abilities
+     ----------------------------------------------------------------- */
+  UI.buildActiveAbilities = function () {
+    const container = el("active-ability-list");
+    if (!container) return;
+    container.innerHTML = "";
+    cfg.activeAbilities.forEach(function (ab) {
+      const row = make("div", "ability-row");
+      row.dataset.abilityId = ab.id;
+      row.innerHTML =
+        '<div class="ability-icon">' + ab.icon + "</div>" +
+        '<div class="ability-info">' +
+          '<div class="ability-name">' + ab.name + "</div>" +
+          '<div class="ability-desc">' + ab.desc + "</div>" +
+          '<div class="ability-meta" data-meta>' + ab.duration + "s • " + ab.cooldown + "s cooldown</div>" +
+        "</div>" +
+        '<div><button class="settings-btn ability-btn" data-btn>' + "Activate" + "</button></div>";
+      const btn = row.querySelector("[data-btn]");
+      btn.addEventListener("click", function () {
+        UI.activateAbility(ab.id);
+      });
+      container.appendChild(row);
+    });
+  };
+
+  UI.updateActiveAbilities = function () {
+    const container = el("active-ability-list");
+    if (!container) return;
+    if (!container.children.length) UI.buildActiveAbilities();
+    const s = Game.state;
+    const nowSec = Date.now() / 1000;
+    cfg.activeAbilities.forEach(function (ab) {
+      const row = container.querySelector('[data-ability-id="' + ab.id + '"]');
+      if (!row) return;
+      // Unlock check
+      const unlocked = UI._abilityUnlocked(ab, s);
+      row.classList.toggle("locked", !unlocked);
+
+      const abState = s.abilities && s.abilities[ab.id] ? s.abilities[ab.id] : {};
+      const isActive = abState.activeEnd && nowSec < abState.activeEnd;
+      const onCooldown = !isActive && abState.cooldownEnd && nowSec < abState.cooldownEnd;
+      const ready = unlocked && !isActive && !onCooldown;
+
+      const btn = row.querySelector("[data-btn]");
+      btn.disabled = !ready;
+      btn.classList.toggle("disabled", !ready);
+
+      const meta = row.querySelector("[data-meta]");
+      if (!unlocked) {
+        btn.textContent = "Locked";
+        if (meta) meta.innerHTML = '<span class="ability-unlock-hint">Unlock: ' + ab.unlockKey + " ≥ " + ab.unlockValue + "</span>";
+      } else if (isActive) {
+        btn.textContent = "Active";
+        if (meta) meta.innerHTML = '<span class="ability-status-active">Active ' + Math.ceil(abState.activeEnd - nowSec) + "s</span>";
+      } else if (onCooldown) {
+        btn.textContent = "Cooldown";
+        if (meta) meta.innerHTML = '<span class="ability-status-cooldown">Cooldown ' + Math.ceil(abState.cooldownEnd - nowSec) + "s</span>";
+      } else {
+        btn.textContent = "Activate";
+        if (meta) meta.textContent = ab.duration + "s • " + ab.cooldown + "s cooldown";
+      }
+    });
+  };
+
+  UI._abilityUnlocked = function (ab, s) {
+    const key = ab.unlockKey;
+    const val = ab.unlockValue;
+    if (!key) return true;
+    let cur = 0;
+    if (key === "prestigeCount")      cur = s.stats.prestigeCount || 0;
+    else if (key === "ascensionShards") cur = s.ascensionShards || 0;
+    else if (key === "researchCompleted") cur = s.stats.researchCompleted || 0;
+    else if (key === "empireLegacies") cur = s.empireLegacies || 0;
+    else cur = s[key] || (s.stats && s.stats[key]) || 0;
+    return cur >= val;
+  };
+
+  UI.activateAbility = function (id) {
+    const ab = cfg.activeAbilityMap[id];
+    if (!ab) return;
+    const s = Game.state;
+    if (!UI._abilityUnlocked(ab, s)) return;
+    if (!s.abilities) s.abilities = {};
+    const nowSec = Date.now() / 1000;
+    const abState = s.abilities[id] || {};
+    if (abState.activeEnd && nowSec < abState.activeEnd) return;
+    if (abState.cooldownEnd && nowSec < abState.cooldownEnd) return;
+    s.abilities[id] = {
+      activeEnd: nowSec + ab.duration,
+      cooldownEnd: nowSec + ab.duration + ab.cooldown,
+    };
+    s.stats.powersActivated = (s.stats.powersActivated || 0) + 1;
+    Game.recalculate();
+    UI.toast(ab.icon + " " + ab.name + " activated! " + ab.flavor, "success");
+    UI.update();
+  };
+
+  /* -----------------------------------------------------------------
+     Mega Projects
+     ----------------------------------------------------------------- */
+  UI.buildMegaProjects = function () {
+    const container = el("megaproject-list");
+    if (!container) return;
+    container.innerHTML = "";
+    cfg.megaProjects.forEach(function (proj) {
+      const card = make("div", "megaproject-card");
+      card.dataset.projId = proj.id;
+      const costsHtml = Object.entries(proj.costs || {}).map(function ([k, v]) {
+        const label = k === "coins" ? "Coins" :
+                      k === "researchPoints" ? "Research Points" :
+                      k === "ascensionShards" ? "Ascension Shards" :
+                      k === "empireLegacies" ? "Empire Legacies" :
+                      k === "timeFragments" ? "Time Fragments" :
+                      k === "realityCores" ? "Reality Cores" : k;
+        return label + ": <span>" + fmt(v) + "</span>";
+      }).join(" • ");
+      card.innerHTML =
+        '<div class="megaproject-header">' +
+          '<div class="megaproject-icon">' + proj.icon + "</div>" +
+          '<div class="megaproject-name">' + proj.name + "</div>" +
+        "</div>" +
+        '<div class="megaproject-desc">' + proj.desc + "</div>" +
+        '<div class="megaproject-reward">✅ ' + proj.reward + "</div>" +
+        '<div class="megaproject-costs">Cost: ' + costsHtml + "</div>" +
+        '<div class="megaproject-progress"><div class="megaproject-progress-fill" data-fill style="width:0%"></div></div>' +
+        '<div data-action></div>';
+      container.appendChild(card);
+    });
+  };
+
+  UI.updateMegaProjects = function () {
+    const container = el("megaproject-list");
+    if (!container) return;
+    if (!container.children.length) UI.buildMegaProjects();
+    cfg.megaProjects.forEach(function (proj) {
+      const card = container.querySelector('[data-proj-id="' + proj.id + '"]');
+      if (!card) return;
+      const done = Game.MegaProjects && Game.MegaProjects.completed(proj.id);
+      const canAfford = Game.MegaProjects && Game.MegaProjects.canAfford(proj.id);
+      card.classList.toggle("completed", !!done);
+      card.classList.toggle("affordable", !done && !!canAfford);
+      const fill = card.querySelector("[data-fill]");
+      if (fill) fill.style.width = (Game.MegaProjects ? Game.MegaProjects.progress(proj.id) * 100 : 0).toFixed(1) + "%";
+      const action = card.querySelector("[data-action]");
+      if (!action) return;
+      action.innerHTML = "";
+      if (done) {
+        action.innerHTML = '<span class="megaproject-complete-badge">🏆 Completed!</span>';
+      } else {
+        const btn = make("button", "settings-btn megaproject-btn" + (canAfford ? "" : " disabled"), "Fund Project");
+        btn.disabled = !canAfford;
+        btn.addEventListener("click", function () {
+          if (Game.MegaProjects && Game.MegaProjects.purchase(proj.id)) UI.update();
+        });
+        action.appendChild(btn);
+      }
+    });
   };
 
   UI.updateGodsTitans = function () {
@@ -1061,6 +1305,27 @@
     toggleWrap(refs.asWrap, s.ascensionShards > 0 || s.stats.ascensionCount > 0);
     toggleWrap(refs.btcWrap, s.btc > 0 || (s.stats.totalBtcMined || 0) > 0 || Object.values(s.btcMiners || {}).some((v) => v > 0));
     toggleWrap(refs.energyWrap, s.energy > 0 || Object.values(s.energyProducers || {}).some((v) => v > 0) || Object.values(s.btcMiners || {}).some((v) => v > 0) || Object.values(s.coinFarmers || {}).some((v) => v > 0) || Object.values(s.batteries || {}).some((v) => v > 0));
+
+    // New meta layers
+    const hasEL = (s.empireLegacies || 0) > 0 || (s.lifetimeEmpireLegacies || 0) > 0;
+    const hasTF = (s.timeFragments  || 0) > 0 || (s.lifetimeTimeFragments  || 0) > 0;
+    const hasRC = (s.realityCores   || 0) > 0 || (s.lifetimeRealityCores   || 0) > 0;
+    toggleWrap(refs.elWrap, hasEL);
+    toggleWrap(refs.tfWrap, hasTF);
+    toggleWrap(refs.rcWrap, hasRC);
+    if (refs.el) refs.el.textContent = fmt(s.empireLegacies || 0);
+    if (refs.tf) refs.tf.textContent = fmt(s.timeFragments  || 0);
+    if (refs.rc) refs.rc.textContent = fmt(s.realityCores   || 0);
+
+    // Cycle display (show after first prestige)
+    const showCycle = s.stats.prestigeCount > 0;
+    toggleWrap(refs.cycleWrap, showCycle);
+    if (showCycle && Game.Cycles) {
+      const cyc = Game.Cycles.current();
+      const rem = Math.ceil(Game.Cycles.timeRemaining());
+      if (refs.cycleDisplay) refs.cycleDisplay.textContent = (cyc ? cyc.icon + " " + cyc.name : "Stable") + " — " + rem + "s";
+    }
+
     refs.pp.textContent = fmt(s.prestigePoints);
     refs.rp.textContent = fmt(s.researchPoints);
     refs.as.textContent = fmt(s.ascensionShards);
@@ -1096,6 +1361,9 @@
         break;
       case "prestige":
         UI.updatePrestige();
+        break;
+      case "megaprojects":
+        UI.updateMegaProjects();
         break;
       case "statistics":
         UI.updateStatistics();
@@ -1195,6 +1463,24 @@
         UI.update();
       }
     });
+    el("btn-empire").addEventListener("click", () => {
+      if (Game.Prestige.empire()) {
+        UI.rebuildAll();
+        UI.update();
+      }
+    });
+    el("btn-timerift").addEventListener("click", () => {
+      if (Game.Prestige.timeRift()) {
+        UI.rebuildAll();
+        UI.update();
+      }
+    });
+    el("btn-realitycollapse").addEventListener("click", () => {
+      if (Game.Prestige.realityCollapse()) {
+        UI.rebuildAll();
+        UI.update();
+      }
+    });
   };
 
   /* ---------------------------------------------------------------------
@@ -1205,6 +1491,47 @@
     el("offline-time").textContent = Game.formatTime(data.seconds);
     el("offline-coins").textContent = fmt(data.coins);
     el("offline-rp").textContent = fmt(data.rp);
+
+    // Build offline events summary
+    const eventsEl = el("offline-events");
+    if (eventsEl) {
+      const s = Game.state;
+      const lines = [];
+
+      // Estimate stock dividends paid
+      const divInterval = cfg.STOCK_DIVIDEND_SECONDS || 30;
+      const dividendRounds = Math.floor(data.seconds / divInterval);
+      if (dividendRounds > 0) {
+        lines.push({ icon: "📈", text: "Stock dividends paid", count: dividendRounds + "×" });
+      }
+
+      // Estimate events triggered
+      const avgEventDelay = ((cfg.eventMinDelay || 60) + (cfg.eventMaxDelay || 180)) / 2;
+      const eventEst = Math.floor(data.seconds / avgEventDelay);
+      if (eventEst > 0) {
+        lines.push({ icon: "⚡", text: "Random events occurred", count: "~" + eventEst });
+      }
+
+      // BTC mining (rough estimate based on current miners)
+      if (data.btc && data.btc > 0) {
+        lines.push({ icon: "⛏️", text: "BTC mined", count: fmt(data.btc) });
+      }
+
+      // RP gained
+      if (data.rp > 0) {
+        lines.push({ icon: "🔬", text: "Research accumulated", count: "+" + fmt(data.rp) + " RP" });
+      }
+
+      if (lines.length > 0) {
+        eventsEl.innerHTML = "<div style='margin-bottom:6px;font-weight:600;color:#e6ecff'>While you were away:</div>" +
+          lines.map(function (l) {
+            return '<div class="offline-event-row">' + l.icon + " " + l.text + ": <span>" + l.count + "</span></div>";
+          }).join("");
+      } else {
+        eventsEl.innerHTML = "";
+      }
+    }
+
     popup.classList.add("show");
     el("offline-close").onclick = () => popup.classList.remove("show");
   };
