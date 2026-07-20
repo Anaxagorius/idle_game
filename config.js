@@ -141,6 +141,10 @@ Game.config.DIPLOMACY_RELATION_INFLUENCE_FACTOR = 0.2;
 Game.config.DIPLOMACY_RELATION_SUSPICION_FACTOR = 0.5;
 Game.config.DIPLOMACY_RELATION_TARGET_MIN = -55;
 Game.config.DIPLOMACY_RELATION_TARGET_MAX = 35;
+// Happiness: derived from average county relation (-100..+100 → 0..100 scale)
+// At happiness 50 (neutral) the multiplier is 1.0; fully happy → +25%; fully unhappy → -25%.
+Game.config.HAPPINESS_MIN_MULT = 0.75;
+Game.config.HAPPINESS_MAX_MULT = 1.25;
 Game.config.diplomacyStances = [
   { key: "allied", min: 60, label: "Allied Rival", emoji: "🤝", className: "status-allied", stroke: "#63e6be" },
   { key: "friendly", min: 25, label: "Friendly Rival", emoji: "🙂", className: "status-friendly", stroke: "#8ce99a" },

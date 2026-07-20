@@ -166,6 +166,9 @@
     if (typeof fresh.realityCores    !== "number") fresh.realityCores    = 0;
     if (typeof fresh.lifetimeRealityCores !== "number") fresh.lifetimeRealityCores = 0;
 
+    // Population tracker
+    if (typeof fresh.population !== "number") fresh.population = 0;
+
     // Prestige path
     if (fresh.prestigePath !== null && fresh.prestigePath !== undefined &&
         !Game.config.prestigePathMap[fresh.prestigePath]) fresh.prestigePath = null;

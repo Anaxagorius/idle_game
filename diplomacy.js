@@ -197,13 +197,19 @@
     var totalInfluence = 0;
     var totalIntel = 0;
     var hostility = 0;
+    var totalRelation = 0;
     for (var i = 0; i < ids.length; i++) {
       var county = counties[ids[i]];
       totalCps += Diplomacy.countyYield(ids[i], county);
       totalIntel += county.intel;
       hostility += hostilityFromRelation(county.relation) + county.suspicion * cfg.DIPLOMACY_SUSPICION_HOSTILITY_WEIGHT;
       totalInfluence += county.influence * Math.max(0, county.relation + 25) / 125;
+      totalRelation += county.relation;
     }
+    // happiness: average county relation mapped from [-100,+100] to [0,100]
+    var avgRelation = ids.length > 0 ? totalRelation / ids.length : 0;
+    var happiness = Math.round((avgRelation + 100) / 2);
+    var happinessMult = cfg.HAPPINESS_MIN_MULT + (cfg.HAPPINESS_MAX_MULT - cfg.HAPPINESS_MIN_MULT) * happiness / 100;
     return {
       coinsPerSecond: round2(totalCps),
       clickMult: 1 + totalInfluence * cfg.DIPLOMACY_PROPAGANDA_CLICK_SCALE,
@@ -212,6 +218,8 @@
       totalInfluence: round2(totalInfluence),
       totalIntel: round2(totalIntel),
       hostility: round2(hostility),
+      happiness: happiness,
+      happinessMult: round2(happinessMult),
     };
   };
 
@@ -225,6 +233,8 @@
       totalInfluence: bonuses.totalInfluence,
       totalIntel: bonuses.totalIntel,
       hostility: bonuses.hostility,
+      happiness: bonuses.happiness,
+      happinessPct: (bonuses.happinessMult - 1) * 100,
     };
   };
 

@@ -520,6 +520,13 @@
           '<div class="county-summary-stat"><span>Propaganda</span><b>' + (diplomacySummary.clickBonusPct >= 0 ? '+' : '') + diplomacySummary.clickBonusPct.toFixed(1) + '% click</b></div>' +
           '<div class="county-summary-stat"><span>Intel</span><b>' + (diplomacySummary.rpBonusPct >= 0 ? '+' : '') + diplomacySummary.rpBonusPct.toFixed(1) + '% RP</b></div>' +
           '<div class="county-summary-stat"><span>Rival Pressure</span><b>' + diplomacySummary.productionPenaltyPct.toFixed(1) + '% CPS</b></div>' +
+          (function () {
+            var h = diplomacySummary.happiness !== undefined ? diplomacySummary.happiness : 50;
+            var hp = diplomacySummary.happinessPct !== undefined ? diplomacySummary.happinessPct : 0;
+            var emoji = h >= 75 ? '😄' : h >= 50 ? '😊' : h >= 25 ? '😐' : '😞';
+            return '<div class="county-summary-stat"><span>Happiness</span><b>' + emoji + ' ' + h + ' / 100 (' + (hp >= 0 ? '+' : '') + hp.toFixed(1) + '% CPS)</b></div>';
+          })() +
+          '<div class="county-summary-stat"><span>Population</span><b>👥 ' + Game.formatNumber(s.population || 0) + '</b></div>' +
         '</div>'
       : '';
 

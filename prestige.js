@@ -39,6 +39,7 @@
     s.stockDividendTimer = 0;
     // Clear building pins (buildings are gone), but keep the selected county
     if (s.map) s.map.pins = [];
+    s.population = 0;
     if (Game.MapUI) {
       Game.MapUI.refresh();
       Game.MapUI._updateEmpirePanel();

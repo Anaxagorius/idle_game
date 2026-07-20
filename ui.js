@@ -44,6 +44,10 @@
       tfWrap: el("res-tf-wrap"),
       rcWrap: el("res-rc-wrap"),
       cycleWrap: el("res-cycle-wrap"),
+      populationWrap: el("res-population-wrap"),
+      population: el("res-population"),
+      happinessWrap: el("res-happiness-wrap"),
+      happiness: el("res-happiness"),
       el: el("res-el"),
       tf: el("res-tf"),
       rc: el("res-rc"),
@@ -1598,6 +1602,11 @@
   UI.updateStatistics = function () {
     const s = Game.state;
     const stats = s.stats;
+    const dipl = s._mult && s._mult.diplomacy;
+    const happiness = dipl !== undefined && dipl.happiness !== undefined ? dipl.happiness : 50;
+    const happinessEffect = dipl !== undefined && dipl.happinessMult !== undefined
+      ? ((dipl.happinessMult - 1) * 100).toFixed(1)
+      : "0.0";
     const rows = [
       ["Total Coins Earned (lifetime)", fmt(stats.totalCoinsEarned)],
       ["Current Coins", fmt(s.coins)],
@@ -1613,6 +1622,8 @@
       ["Diplomatic Actions", fmt(stats.diplomaticActions || 0)],
       ["Diplomacy Coins Earned", fmt(stats.diplomacyCoins || 0)],
       ["Diplomacy RP Gained", fmt(stats.diplomacyResearch || 0)],
+      ["Population (Workers Hired)", fmt(s.population || 0)],
+      ["Population Happiness", happiness + " / 100 (" + (parseFloat(happinessEffect) >= 0 ? "+" : "") + happinessEffect + "% CPS)"],
       ["Talents Purchased", fmt(stats.talentsPurchased || 0) + " / " + cfg.talents.length],
       ["Skill Nodes Purchased", fmt(stats.skillNodesPurchased || 0) + " / " + cfg.skillTreeNodes.length],
       ["Talent Powers Used", fmt(stats.powersActivated || 0)],
@@ -1747,6 +1758,21 @@
       const cyc = Game.Cycles.current();
       const rem = Math.ceil(Game.Cycles.timeRemaining());
       if (refs.cycleDisplay) refs.cycleDisplay.textContent = (cyc ? cyc.icon + " " + cyc.name : "Stable") + " — " + rem + "s";
+    }
+
+    // Population tracker (show once any workers have been hired)
+    const population = s.population || 0;
+    toggleWrap(refs.populationWrap, population > 0);
+    if (refs.population) refs.population.textContent = fmt(population);
+
+    // Happiness (show once an empire county has been chosen)
+    const hasEmpire = !!(s.map && s.map.selectedCounty);
+    toggleWrap(refs.happinessWrap, hasEmpire);
+    if (refs.happiness && hasEmpire) {
+      const dipl = s._mult && s._mult.diplomacy;
+      const hval = dipl !== undefined && dipl.happiness !== undefined ? dipl.happiness : 50;
+      const hEmoji = hval >= 75 ? "😄" : hval >= 50 ? "😊" : hval >= 25 ? "😐" : "😞";
+      refs.happiness.textContent = hEmoji + " " + hval + " / 100";
     }
 
     refs.pp.textContent = fmt(s.prestigePoints);
