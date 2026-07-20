@@ -1771,7 +1771,7 @@
     if (refs.happiness && hasEmpire) {
       const dipl = s._mult && s._mult.diplomacy;
       const hval = dipl !== undefined && dipl.happiness !== undefined ? dipl.happiness : 50;
-      const hEmoji = hval >= 75 ? "😄" : hval >= 50 ? "😊" : hval >= 25 ? "😐" : "😞";
+      const hEmoji = Game.happinessEmoji(hval);
       refs.happiness.textContent = hEmoji + " " + hval + " / 100";
     }
 

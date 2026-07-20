@@ -512,7 +512,7 @@
       baseCps += Game.buildingCps(b.id, m);
     });
 
-    const happinessMult = diplomacy.happinessMult !== undefined ? diplomacy.happinessMult : 1;
+    const happinessMult = diplomacy.happinessMult || 1;
     const cps = baseCps * m.global * diplomacy.globalMult * happinessMult;
     const gainScale = cfg.GAIN_EFFECTIVENESS_MULT || 1;
     s._cps = (cps + diplomacy.coinsPerSecond) * gainScale;

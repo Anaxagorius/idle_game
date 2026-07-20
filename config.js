@@ -37,6 +37,11 @@ function formatTime(seconds) {
 Game.formatNumber = formatNumber;
 Game.formatTime = formatTime;
 
+/** Returns an emoji representing the given happiness value (0–100). */
+Game.happinessEmoji = function (h) {
+  return h >= 75 ? "😄" : h >= 50 ? "😊" : h >= 25 ? "😐" : "😞";
+};
+
 /* --------------------------------------------------------------------------
    Global constants
    -------------------------------------------------------------------------- */

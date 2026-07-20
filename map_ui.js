@@ -523,7 +523,7 @@
           (function () {
             var h = diplomacySummary.happiness !== undefined ? diplomacySummary.happiness : 50;
             var hp = diplomacySummary.happinessPct !== undefined ? diplomacySummary.happinessPct : 0;
-            var emoji = h >= 75 ? '😄' : h >= 50 ? '😊' : h >= 25 ? '😐' : '😞';
+            var emoji = Game.happinessEmoji(h);
             return '<div class="county-summary-stat"><span>Happiness</span><b>' + emoji + ' ' + h + ' / 100 (' + (hp >= 0 ? '+' : '') + hp.toFixed(1) + '% CPS)</b></div>';
           })() +
           '<div class="county-summary-stat"><span>Population</span><b>👥 ' + Game.formatNumber(s.population || 0) + '</b></div>' +
