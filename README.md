@@ -163,11 +163,11 @@ No build step is required.
 
 Open this file in your browser:
 
-- `/home/runner/work/idle_game/idle_game/index.html`
+- `index.html`
 
 ### Option 2: Use a local static server (recommended)
 
-From repository root (`/home/runner/work/idle_game/idle_game`), serve files with any static server and open `index.html`.
+From the repository root, serve files with any static server and open `index.html`.
 
 Example (Python 3):
 
@@ -195,7 +195,7 @@ Save key is configured in `Game.config.SAVE_KEY`.
 
 ## Project Structure
 
-Main files in `/home/runner/work/idle_game/idle_game`:
+Main files in the repository root:
 
 - `index.html` – layout, tabs, script bootstrapping
 - `styles.css` – game styling
