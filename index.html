@@ -39,6 +39,22 @@
         <span class="label">Energy</span>
         <span class="value" id="res-energy">0 / 0</span>
       </div>
+      <div class="resource el" id="res-el-wrap" style="display:none">
+        <span class="label">Empire Legacies</span>
+        <span class="value" id="res-el">0</span>
+      </div>
+      <div class="resource tf" id="res-tf-wrap" style="display:none">
+        <span class="label">Time Fragments</span>
+        <span class="value" id="res-tf">0</span>
+      </div>
+      <div class="resource rc" id="res-rc-wrap" style="display:none">
+        <span class="label">Reality Cores</span>
+        <span class="value" id="res-rc">0</span>
+      </div>
+      <div class="resource cycle-display" id="res-cycle-wrap" style="display:none">
+        <span class="label">Economic Cycle</span>
+        <span class="value" id="res-cycle">—</span>
+      </div>
       <div class="active-events" id="active-events"></div>
     </div>
   </header>
@@ -52,6 +68,7 @@
     <button class="tab-button" data-tab="skilltrees">Skill Trees</button>
     <button class="tab-button" data-tab="bitcoin">⛏️ Bitcoin</button>
     <button class="tab-button" data-tab="stocks">📈 Stocks</button>
+    <button class="tab-button" data-tab="megaprojects">🏆 Mega Projects</button>
     <button class="tab-button" data-tab="achievements">Achievements</button>
     <button class="tab-button" data-tab="milestones">Milestones</button>
     <button class="tab-button" data-tab="prestige">Prestige</button>
@@ -194,6 +211,15 @@
       </div>
     </section>
 
+    <!-- ================= Mega Projects ================= -->
+    <section id="tab-megaprojects" class="tab-content">
+      <div class="panel">
+        <h2>🏆 Mega Projects</h2>
+        <p class="muted">Long-term empire goals. Each project costs massive resources but grants permanent, transformative rewards.</p>
+        <div id="megaproject-list"></div>
+      </div>
+    </section>
+
     <!-- ================= Achievements ================= -->
     <section id="tab-achievements" class="tab-content">
       <div class="panel">
@@ -264,6 +290,60 @@
           </p>
           <div class="talent-grid" id="god-titan-list"></div>
         </div>
+
+        <!-- ===== Prestige Path ===== -->
+        <div class="panel prestige-panel prestige-panel-wide">
+          <h2>Prestige Path — Specialisation</h2>
+          <p class="muted">Choose a path that shapes every run. Your path activates immediately and persists until changed. Every path unlocks a unique playstyle.</p>
+          <div class="info-line">Active path: <b class="highlight-gold" id="prestige-path-name">None</b></div>
+          <div class="prestige-path-grid" id="prestige-path-list"></div>
+        </div>
+
+        <!-- ===== Active Abilities ===== -->
+        <div class="panel prestige-panel prestige-panel-wide">
+          <h2>Active Abilities</h2>
+          <p class="muted">Activatable burst abilities that temporarily transform the empire. Each has a cooldown. Unlock them by meeting the listed condition.</p>
+          <div id="active-ability-list"></div>
+        </div>
+
+        <!-- ===== Layer 4 ===== -->
+        <div class="panel prestige-panel">
+          <h2>Layer 4 — Empire Legacy</h2>
+          <div class="info-line">Empire Legacies: <b class="highlight-empire" id="empire-current-el">0</b></div>
+          <div class="info-line">Lifetime: <b id="empire-lifetime-el">0</b></div>
+          <div class="info-line">Global Multiplier: <b class="highlight-empire" id="empire-mult">+0%</b></div>
+          <div class="info-line">Empire Count: <b id="empire-count">0</b></div>
+          <div class="info-line">You would earn: <b class="highlight-empire" id="empire-potential">0</b> Legacies</div>
+          <div class="info-line" id="empire-req"></div>
+          <p class="muted">Consumes all Ascension Shards. Resets gods/titans, talents and skill trees. Grants Empire Legacies — a powerful permanent multiplier that compounds over time.</p>
+          <button class="big-btn btn-empire disabled" id="btn-empire">Forge Empire Legacy</button>
+        </div>
+
+        <!-- ===== Layer 5 ===== -->
+        <div class="panel prestige-panel">
+          <h2>Layer 5 — Time Fragments</h2>
+          <div class="info-line">Time Fragments: <b class="highlight-time" id="time-current-tf">0</b></div>
+          <div class="info-line">Lifetime: <b id="time-lifetime-tf">0</b></div>
+          <div class="info-line">Global Multiplier: <b class="highlight-time" id="time-mult">+0%</b></div>
+          <div class="info-line">Time Rifts opened: <b id="time-count">0</b></div>
+          <div class="info-line">You would earn: <b class="highlight-time" id="time-potential">0</b> Fragments</div>
+          <div class="info-line" id="time-req"></div>
+          <p class="muted">Consumes all Empire Legacies. Resets everything below. Each Time Fragment grants a massive permanent global bonus.</p>
+          <button class="big-btn btn-time disabled" id="btn-timerift">Open Time Rift</button>
+        </div>
+
+        <!-- ===== Layer 6 ===== -->
+        <div class="panel prestige-panel">
+          <h2>Layer 6 — Reality Cores</h2>
+          <div class="info-line">Reality Cores: <b class="highlight-reality" id="reality-current-rc">0</b></div>
+          <div class="info-line">Lifetime: <b id="reality-lifetime-rc">0</b></div>
+          <div class="info-line">Global Multiplier: <b class="highlight-reality" id="reality-mult">+0%</b></div>
+          <div class="info-line">Reality Collapses: <b id="reality-count">0</b></div>
+          <div class="info-line">You would earn: <b class="highlight-reality" id="reality-potential">0</b> Cores</div>
+          <div class="info-line" id="reality-req"></div>
+          <p class="muted">The ultimate sacrifice. Consume all Time Fragments. Each Reality Core grants an extraordinary multiplier — the endgame prestige currency.</p>
+          <button class="big-btn btn-reality disabled" id="btn-realitycollapse">Collapse Reality</button>
+        </div>
       </div>
     </section>
 
@@ -322,6 +402,7 @@
       <p class="muted">You were away for <span id="offline-time">0s</span>.</p>
       <div class="big">+<span id="offline-coins">0</span> coins</div>
       <div class="muted">+<span id="offline-rp">0</span> research points</div>
+      <div class="offline-events" id="offline-events"></div>
       <button id="offline-close">Collect</button>
     </div>
   </div>
@@ -341,6 +422,8 @@
   <script src="bitcoin.js"></script>
   <script src="stocks.js"></script>
   <script src="events.js"></script>
+  <script src="cycles.js"></script>
+  <script src="megaprojects.js"></script>
   <script src="diplomacy.js"></script>
   <script src="save.js"></script>
   <script src="map_ui.js"></script>

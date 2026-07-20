@@ -86,13 +86,14 @@
 
     if (s.stockTickTimer >= cfg.STOCK_TICK_SECONDS) {
       s.stockTickTimer -= cfg.STOCK_TICK_SECONDS;
+      const cycleDriftMult = (Game.Cycles && Game.Cycles.stockDriftMult) ? Game.Cycles.stockDriftMult() : 1;
       const marketEventRoll = Math.random();
       let eventShift = 0;
       if (marketEventRoll < cfg.STOCK_EVENT_BEAR_CHANCE) eventShift = cfg.STOCK_EVENT_BEAR_SHIFT;
       else if (marketEventRoll > cfg.STOCK_EVENT_BULL_CHANCE) eventShift = cfg.STOCK_EVENT_BULL_SHIFT;
       cfg.stocks.forEach((st) => {
         const price = s.stocks[st.id];
-        const sectorDrift = st.drift + (Math.random() - 0.5) * st.volatility;
+        const sectorDrift = (st.drift + (Math.random() - 0.5) * st.volatility) * cycleDriftMult;
         const correlated = eventShift * (cfg.STOCK_EVENT_CORRELATION_MIN + Math.random() * cfg.STOCK_EVENT_CORRELATION_RANGE);
         const next = price * (1 + sectorDrift + correlated);
         s.stocks[st.id] = Math.max(1, next);
@@ -104,12 +105,13 @@
 
     if (s.stockDividendTimer >= cfg.STOCK_DIVIDEND_SECONDS) {
       s.stockDividendTimer -= cfg.STOCK_DIVIDEND_SECONDS;
+      const divMult = (s._mult && s._mult.stockDividendMult) ? s._mult.stockDividendMult : 1;
       let payout = 0;
       cfg.stocks.forEach((st) => {
         const p = s.portfolio[st.id];
         if (!p || p.shares <= 0) return;
         if (s.stocks[st.id] < st.basePrice * cfg.STOCK_DIVIDEND_PRICE_THRESHOLD_MULT) return;
-        payout += p.shares * s.stocks[st.id] * cfg.STOCK_DIVIDEND_RATE;
+        payout += p.shares * s.stocks[st.id] * cfg.STOCK_DIVIDEND_RATE * divMult;
       });
       if (payout > 0) {
         s.coins += payout;

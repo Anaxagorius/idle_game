@@ -100,8 +100,40 @@
     if (!Array.isArray(fresh.map.pins)) fresh.map.pins = [];
     if (!fresh.map.counties || typeof fresh.map.counties !== "object") fresh.map.counties = {};
     if (typeof fresh.map.focusCounty !== "string") fresh.map.focusCounty = null;
+
+    // New meta-layer currencies
+    if (typeof fresh.empireLegacies  !== "number") fresh.empireLegacies  = 0;
+    if (typeof fresh.lifetimeEmpireLegacies !== "number") fresh.lifetimeEmpireLegacies = 0;
+    if (typeof fresh.timeFragments   !== "number") fresh.timeFragments   = 0;
+    if (typeof fresh.lifetimeTimeFragments !== "number") fresh.lifetimeTimeFragments = 0;
+    if (typeof fresh.realityCores    !== "number") fresh.realityCores    = 0;
+    if (typeof fresh.lifetimeRealityCores !== "number") fresh.lifetimeRealityCores = 0;
+
+    // Prestige path
+    if (fresh.prestigePath !== null && fresh.prestigePath !== undefined &&
+        !Game.config.prestigePathMap[fresh.prestigePath]) fresh.prestigePath = null;
+
+    // Economic cycle
+    if (!fresh.cycle || typeof fresh.cycle !== "object") fresh.cycle = { phase: "stable", endTime: 0 };
+    if (!fresh.cycle.phase) fresh.cycle.phase = "stable";
+    if (typeof fresh.cycle.endTime !== "number") fresh.cycle.endTime = 0;
+
+    // Active abilities
+    if (!fresh.abilities || typeof fresh.abilities !== "object") fresh.abilities = {};
+
+    // Mega projects
+    if (!fresh.megaProjects || typeof fresh.megaProjects !== "object") fresh.megaProjects = {};
+
+    // New stats fields
+    if (!fresh.stats) fresh.stats = {};
+    if (typeof fresh.stats.empireCount  !== "number") fresh.stats.empireCount  = 0;
+    if (typeof fresh.stats.timeCount    !== "number") fresh.stats.timeCount    = 0;
+    if (typeof fresh.stats.realityCount !== "number") fresh.stats.realityCount = 0;
+    if (typeof fresh.stats.megaProjectsCompleted !== "number") fresh.stats.megaProjectsCompleted = 0;
+
     Game.state = fresh;
     if (Game.Diplomacy && Game.Diplomacy.ensureState) Game.Diplomacy.ensureState();
+    if (Game.Cycles && Game.Cycles.ensureState) Game.Cycles.ensureState();
     Game.recalculate();
   };
 

@@ -200,9 +200,10 @@
     s.stats.totalCoinsEarned += farmedCoins;
 
     s.btcMarketTime = (s.btcMarketTime || 0) + dtSeconds;
+    const cycleBtcMult = (Game.Cycles && Game.Cycles.btcPriceMult) ? Game.Cycles.btcPriceMult() : 1;
     const osc = Math.sin(s.btcMarketTime / cfg.BTC_PRICE_OSCILLATION_PERIOD) * cfg.BTC_PRICE_OSCILLATION;
     const noise = (Math.random() - 0.5) * cfg.BTC_PRICE_VOLATILITY;
-    s.btcPrice = cfg.BTC_BASE_PRICE * (1 + osc + noise);
+    s.btcPrice = cfg.BTC_BASE_PRICE * (1 + osc + noise) * cycleBtcMult;
     s.btcPrice = Math.max(cfg.BTC_MIN_PRICE, Math.min(cfg.BTC_MAX_PRICE, s.btcPrice));
   };
 
