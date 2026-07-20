@@ -485,9 +485,6 @@
     // Click value: flat scaled by global mult + fraction of CPS
     s._clickValue = ((1 * m.global * diplomacy.globalMult + cps * cfg.CLICK_CPS_FRACTION * m.clickCpsFractionMult) * m.clickMult * diplomacy.clickMult) * gainScale;
 
-    // Click value: flat scaled by global mult + fraction of CPS
-    s._clickValue = ((1 * m.global * diplomacy.globalMult + cps * cfg.CLICK_CPS_FRACTION * m.clickCpsFractionMult) * m.clickMult * diplomacy.clickMult) * gainScale;
-
     return { cps: s._cps, rps: s._rps, clickValue: s._clickValue, m };
   };
 

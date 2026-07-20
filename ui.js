@@ -1062,7 +1062,8 @@
     });
   };
 
-  UI.updateGodsTitans = function () {    const list = el("god-titan-list");
+  UI.updateGodsTitans = function () {
+    const list = el("god-titan-list");
     const count = el("god-titan-count");
     if (!list || !count) return;
     const purchased = cfg.godsTitans.filter((gt) => Game.Prestige.godTitanPurchased(gt.id)).length;

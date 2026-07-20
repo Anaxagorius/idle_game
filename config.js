@@ -1510,7 +1510,7 @@ Game.config.megaProjects = [
     flavor: "Steel veins running through the heart of civilisation.",
     costs: { coins: 1e15, researchPoints: 500 },
     reward: "All building production permanently +20%.",
-    effects: [{ type: "globalMult", value: 0.2 }],
+    effects: [{ type: "globalMult", mult: 1.2 }],
   },
   {
     id: "global_stock_exchange",
@@ -1556,7 +1556,7 @@ Game.config.megaProjects = [
     flavor: "Every star a market. Every void a shipping lane.",
     costs: { coins: 1e45, researchPoints: 10000, empireLegacies: 3 },
     reward: "All production ×2. County bonuses ×5.",
-    effects: [{ type: "globalMult", value: 1.0 }],
+    effects: [{ type: "globalMult", mult: 2 }],
   },
 ];
 Game.config.megaProjectMap = {};
