@@ -23,6 +23,15 @@
     return e;
   }
 
+  /** Returns { happiness, happinessMult } from the cached diplomacy snapshot with safe defaults. */
+  function getDiplomacyStats(state) {
+    const dipl = state._mult && state._mult.diplomacy;
+    return {
+      happiness: (dipl && dipl.happiness !== undefined) ? dipl.happiness : 50,
+      happinessMult: (dipl && dipl.happinessMult !== undefined) ? dipl.happinessMult : 1,
+    };
+  }
+
   /* ---------------------------------------------------------------------
      Initialization
      --------------------------------------------------------------------- */
@@ -1602,11 +1611,8 @@
   UI.updateStatistics = function () {
     const s = Game.state;
     const stats = s.stats;
-    const dipl = s._mult && s._mult.diplomacy;
-    const happiness = dipl !== undefined && dipl.happiness !== undefined ? dipl.happiness : 50;
-    const happinessEffect = dipl !== undefined && dipl.happinessMult !== undefined
-      ? ((dipl.happinessMult - 1) * 100).toFixed(1)
-      : "0.0";
+    const { happiness, happinessMult } = getDiplomacyStats(s);
+    const happinessEffect = ((happinessMult - 1) * 100).toFixed(1);
     const rows = [
       ["Total Coins Earned (lifetime)", fmt(stats.totalCoinsEarned)],
       ["Current Coins", fmt(s.coins)],
@@ -1769,8 +1775,7 @@
     const hasEmpire = !!(s.map && s.map.selectedCounty);
     toggleWrap(refs.happinessWrap, hasEmpire);
     if (refs.happiness && hasEmpire) {
-      const dipl = s._mult && s._mult.diplomacy;
-      const hval = dipl !== undefined && dipl.happiness !== undefined ? dipl.happiness : 50;
+      const { happiness: hval } = getDiplomacyStats(s);
       const hEmoji = Game.happinessEmoji(hval);
       refs.happiness.textContent = hEmoji + " " + hval + " / 100";
     }
