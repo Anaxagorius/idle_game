@@ -101,6 +101,63 @@
     if (!fresh.map.counties || typeof fresh.map.counties !== "object") fresh.map.counties = {};
     if (typeof fresh.map.focusCounty !== "string") fresh.map.focusCounty = null;
 
+    if (!fresh.gambling || typeof fresh.gambling !== "object") fresh.gambling = {};
+    if (typeof fresh.gambling.chips !== "number") fresh.gambling.chips = 0;
+    if (typeof fresh.gambling.totalChipsWon !== "number") fresh.gambling.totalChipsWon = 0;
+    if (typeof fresh.gambling.totalChipsLost !== "number") fresh.gambling.totalChipsLost = 0;
+    if (typeof fresh.gambling.chipsFromCoins !== "number") fresh.gambling.chipsFromCoins = 0;
+    if (typeof fresh.gambling.gamesPlayed !== "number") fresh.gambling.gamesPlayed = 0;
+    if (typeof fresh.gambling.gamesWon !== "number") fresh.gambling.gamesWon = 0;
+    ["slotStats", "blackjackStats", "pokerStats", "rouletteStats", "diceStats", "plinkoStats"].forEach((key) => {
+      if (!fresh.gambling[key] || typeof fresh.gambling[key] !== "object") fresh.gambling[key] = {};
+      if (typeof fresh.gambling[key].played !== "number") fresh.gambling[key].played = 0;
+      if (typeof fresh.gambling[key].won !== "number") fresh.gambling[key].won = 0;
+      if (key === "slotStats" && typeof fresh.gambling[key].bigWins !== "number") fresh.gambling[key].bigWins = 0;
+    });
+    if (!fresh.gambling.blackjackState || typeof fresh.gambling.blackjackState !== "object") fresh.gambling.blackjackState = {};
+    if (!Array.isArray(fresh.gambling.blackjackState.deck)) fresh.gambling.blackjackState.deck = [];
+    if (!Array.isArray(fresh.gambling.blackjackState.playerHand)) fresh.gambling.blackjackState.playerHand = [];
+    if (!Array.isArray(fresh.gambling.blackjackState.dealerHand)) fresh.gambling.blackjackState.dealerHand = [];
+    if (typeof fresh.gambling.blackjackState.bet !== "number") fresh.gambling.blackjackState.bet = 0;
+    if (typeof fresh.gambling.blackjackState.phase !== "string") fresh.gambling.blackjackState.phase = "idle";
+    if (typeof fresh.gambling.blackjackState.doubled !== "boolean") fresh.gambling.blackjackState.doubled = false;
+    if (typeof fresh.gambling.blackjackState.result !== "string") fresh.gambling.blackjackState.result = "";
+    if (!fresh.gambling.pokerState || typeof fresh.gambling.pokerState !== "object") fresh.gambling.pokerState = {};
+    if (!Array.isArray(fresh.gambling.pokerState.deck)) fresh.gambling.pokerState.deck = [];
+    if (!Array.isArray(fresh.gambling.pokerState.hand)) fresh.gambling.pokerState.hand = [];
+    if (!Array.isArray(fresh.gambling.pokerState.held)) fresh.gambling.pokerState.held = [false, false, false, false, false];
+    if (typeof fresh.gambling.pokerState.bet !== "number") fresh.gambling.pokerState.bet = 0;
+    if (typeof fresh.gambling.pokerState.phase !== "string") fresh.gambling.pokerState.phase = "idle";
+    if (typeof fresh.gambling.pokerState.result !== "string") fresh.gambling.pokerState.result = "";
+    if (typeof fresh.gambling.pokerState.payout !== "number") fresh.gambling.pokerState.payout = 0;
+
+    if (!fresh.horses || typeof fresh.horses !== "object") fresh.horses = {};
+    if (!Array.isArray(fresh.horses.owned)) fresh.horses.owned = [];
+    if (!Array.isArray(fresh.horses.market)) fresh.horses.market = [];
+    if (typeof fresh.horses.marketRefreshIn !== "number") fresh.horses.marketRefreshIn = 300;
+    if (!Array.isArray(fresh.horses.raceHistory)) fresh.horses.raceHistory = [];
+    if (typeof fresh.horses.nextRaceIn !== "number") fresh.horses.nextRaceIn = 60;
+    if (!Array.isArray(fresh.horses.pendingBets)) fresh.horses.pendingBets = [];
+    if (typeof fresh.horses.totalRaces !== "number") fresh.horses.totalRaces = 0;
+    if (typeof fresh.horses.totalWinnings !== "number") fresh.horses.totalWinnings = 0;
+    if (typeof fresh.horses.totalLosses !== "number") fresh.horses.totalLosses = 0;
+    if (fresh.horses.currentRace === undefined) fresh.horses.currentRace = null;
+    if (fresh.horses.lastRaceResult === undefined) fresh.horses.lastRaceResult = null;
+
+    if (!fresh.cars || typeof fresh.cars !== "object") fresh.cars = {};
+    if (!Array.isArray(fresh.cars.owned)) fresh.cars.owned = [];
+    if (!Array.isArray(fresh.cars.market)) fresh.cars.market = [];
+    if (typeof fresh.cars.marketRefreshIn !== "number") fresh.cars.marketRefreshIn = 600;
+    if (!Array.isArray(fresh.cars.raceHistory)) fresh.cars.raceHistory = [];
+    if (typeof fresh.cars.nextRaceIn !== "number") fresh.cars.nextRaceIn = 90;
+    if (!Array.isArray(fresh.cars.pendingBets)) fresh.cars.pendingBets = [];
+    if (typeof fresh.cars.totalRaces !== "number") fresh.cars.totalRaces = 0;
+    if (typeof fresh.cars.totalWinnings !== "number") fresh.cars.totalWinnings = 0;
+    if (typeof fresh.cars.totalLosses !== "number") fresh.cars.totalLosses = 0;
+    if (typeof fresh.cars.currentTrackIndex !== "number") fresh.cars.currentTrackIndex = 0;
+    if (fresh.cars.currentRace === undefined) fresh.cars.currentRace = null;
+    if (fresh.cars.lastRaceResult === undefined) fresh.cars.lastRaceResult = null;
+
     // New meta-layer currencies
     if (typeof fresh.empireLegacies  !== "number") fresh.empireLegacies  = 0;
     if (typeof fresh.lifetimeEmpireLegacies !== "number") fresh.lifetimeEmpireLegacies = 0;
@@ -134,6 +191,9 @@
     Game.state = fresh;
     if (Game.Diplomacy && Game.Diplomacy.ensureState) Game.Diplomacy.ensureState();
     if (Game.Cycles && Game.Cycles.ensureState) Game.Cycles.ensureState();
+    if (Game.Gambling && Game.Gambling.ensureState) Game.Gambling.ensureState();
+    if (Game.Gambling && Game.Gambling.ensureHorseState) Game.Gambling.ensureHorseState();
+    if (Game.Gambling && Game.Gambling.ensureCarState) Game.Gambling.ensureCarState();
     Game.recalculate();
   };
 

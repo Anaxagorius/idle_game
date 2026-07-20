@@ -9,8 +9,9 @@
   const UI = {};
 
   let refs = {};
-  let built = { research: false, achievements: false, milestones: false, automation: false, bitcoin: false, stocks: false };
+  let built = { research: false, achievements: false, milestones: false, automation: false, bitcoin: false, stocks: false, gambling: false, horseTrack: false, raceTrack: false };
   let currentTab = "economy";
+  let activeCasinoGame = "slots";
 
   function el(id) {
     return document.getElementById(id);
@@ -76,6 +77,9 @@
     UI.buildSkillTrees();
     UI.buildBitcoin();
     UI.buildStocks();
+    UI.buildCasino();
+    UI.buildHorseTrack();
+    UI.buildRaceTrack();
     UI.buildResearchTabs();
     UI.wireSettings();
     UI.wirePrestigeButtons();
@@ -714,6 +718,416 @@
     });
   };
 
+
+
+  /* ---------------------------------------------------------------------
+     Casino / Horse Track / Race Track
+     --------------------------------------------------------------------- */
+  function conditionBar(value) {
+    const pct = Math.max(0, Math.min(100, value || 0));
+    const cls = pct < 35 ? "low" : pct < 65 ? "mid" : "";
+    return '<div class="condition-bar"><div class="condition-fill ' + cls + '" style="width:' + pct.toFixed(1) + '%"></div></div>';
+  }
+
+  function bindActionButtons(rootNode, selector, handler) {
+    rootNode.querySelectorAll(selector).forEach((btn) => {
+      btn.addEventListener("click", () => handler(btn));
+    });
+  }
+
+  function renderCards(cards, held) {
+    return cards.map((card, index) => {
+      const cls = [held && held[index] ? "held" : "", Game.Gambling.cardIsRed(card) ? "red" : ""].filter(Boolean).join(" ");
+      return '<button class="poker-card ' + cls + '" data-poker-hold="' + index + '">' + Game.Gambling.cardText(card) + '</button>';
+    }).join("");
+  }
+
+  function renderBlackjackHand(cards, hideLast) {
+    return cards.map((card, index) => {
+      const shown = hideLast && index === 1 ? "🂠" : Game.Gambling.cardText(card);
+      const cls = hideLast && index === 1 ? "" : Game.Gambling.cardIsRed(card) ? " red" : "";
+      return '<div class="bj-card' + cls + '">' + shown + '</div>';
+    }).join("");
+  }
+
+  function setSelectOptions(select, entries, valueKey, labelKey, fallback) {
+    if (!select) return;
+    const current = select.value;
+    select.innerHTML = "";
+    entries.forEach((entry) => {
+      const option = document.createElement("option");
+      option.value = entry[valueKey];
+      option.textContent = entry[labelKey];
+      select.appendChild(option);
+    });
+    select.value = entries.some((entry) => String(entry[valueKey]) === String(current)) ? current : (fallback !== undefined ? fallback : (entries[0] ? entries[0][valueKey] : ""));
+  }
+
+  function renderRaceField(entries, lastRace, className) {
+    return '<div class="race-field">' + entries.map((entry) => {
+      const lastWinner = lastRace && lastRace.winner === entry.name;
+      return '<div class="race-entry' + (entry.owned ? ' owned' : '') + (lastWinner ? ' winner' : '') + '">' +
+        '<div class="race-entry-pos">•</div>' +
+        '<div class="race-entry-name">' + entry.label + '</div>' +
+        '<div class="race-entry-odds">W ' + entry.odds.win.toFixed(2) + 'x / P ' + entry.odds.place.toFixed(2) + 'x / S ' + entry.odds.show.toFixed(2) + 'x</div>' +
+        '</div>';
+    }).join("") + '</div>';
+  }
+
+  UI.buildCasino = function () {
+    const bar = el("casino-chips-bar");
+    const tabs = el("casino-game-tabs");
+    const area = el("casino-game-area");
+    const stats = el("casino-stats");
+    if (!bar || !tabs || !area || !stats) return;
+    bar.innerHTML =
+      '<div class="casino-chip-balance" id="casino-chip-balance"></div>' +
+      '<div class="casino-action-row">' +
+      '<input id="casino-buy-input" class="casino-input" type="number" min="1" step="1" value="1000" />' +
+      '<button class="settings-btn" id="casino-buy-btn">Buy Chips</button>' +
+      '</div>' +
+      '<div class="casino-action-row">' +
+      '<input id="casino-redeem-input" class="casino-input" type="number" min="1" step="1" value="1000" />' +
+      '<button class="settings-btn" id="casino-redeem-btn">Redeem Chips</button>' +
+      '</div>';
+    tabs.innerHTML = "";
+    cfg.casinoGames.forEach((game) => {
+      const btn = make("button", "casino-game-tab" + (game.id === activeCasinoGame ? " active" : ""), game.label);
+      btn.dataset.game = game.id;
+      btn.addEventListener("click", () => {
+        activeCasinoGame = game.id;
+        UI.renderCasinoGame();
+        UI.updateCasino();
+      });
+      tabs.appendChild(btn);
+    });
+    el("casino-buy-btn").onclick = () => {
+      if (Game.Gambling.buyChips(parseInt(el("casino-buy-input").value, 10) || 0)) UI.update();
+    };
+    el("casino-redeem-btn").onclick = () => {
+      if (Game.Gambling.redeemChips(parseInt(el("casino-redeem-input").value, 10) || 0)) UI.update();
+    };
+    UI.renderCasinoGame();
+    built.gambling = true;
+  };
+
+  UI.renderCasinoGame = function () {
+    const area = el("casino-game-area");
+    if (!area) return;
+    if (activeCasinoGame === "slots") {
+      area.innerHTML =
+        '<div class="casino-action-row"><input id="slots-bet" class="casino-input" type="number" min="10" max="1000000" step="10" value="100" />' +
+        '<button class="settings-btn" id="slots-spin-btn">Spin</button></div>' +
+        '<div class="slots-reels"><div class="slot-reel" id="slot-0">?</div><div class="slot-reel" id="slot-1">?</div><div class="slot-reel" id="slot-2">?</div></div>' +
+        '<div id="slots-result" class="muted">Match symbols to win chips.</div>';
+      el("slots-spin-btn").onclick = () => {
+        const result = Game.Gambling.spinSlots(parseInt(el("slots-bet").value, 10) || 0);
+        if (result) UI.updateCasino();
+      };
+    } else if (activeCasinoGame === "blackjack") {
+      area.innerHTML =
+        '<div class="casino-action-row"><input id="blackjack-bet" class="casino-input" type="number" min="10" max="1000000" step="10" value="100" />' +
+        '<button class="settings-btn" id="blackjack-deal-btn">Deal</button>' +
+        '<button class="settings-btn" id="blackjack-hit-btn">Hit</button>' +
+        '<button class="settings-btn" id="blackjack-stand-btn">Stand</button>' +
+        '<button class="settings-btn" id="blackjack-double-btn">Double Down</button></div>' +
+        '<div><strong>Dealer</strong><div class="bj-hand" id="blackjack-dealer-hand"></div><div id="blackjack-dealer-score" class="muted"></div></div>' +
+        '<div style="margin-top:10px"><strong>You</strong><div class="bj-hand" id="blackjack-player-hand"></div><div id="blackjack-player-score" class="muted"></div></div>' +
+        '<div id="blackjack-result" class="muted" style="margin-top:8px"></div>';
+      el("blackjack-deal-btn").onclick = () => { if (Game.Gambling.blackjackStart(parseInt(el("blackjack-bet").value, 10) || 0)) UI.updateCasino(); };
+      el("blackjack-hit-btn").onclick = () => { if (Game.Gambling.blackjackHit()) UI.updateCasino(); };
+      el("blackjack-stand-btn").onclick = () => { if (Game.Gambling.blackjackStand()) UI.updateCasino(); };
+      el("blackjack-double-btn").onclick = () => { if (Game.Gambling.blackjackDouble()) UI.updateCasino(); };
+    } else if (activeCasinoGame === "poker") {
+      area.innerHTML =
+        '<div class="casino-action-row"><input id="poker-bet" class="casino-input" type="number" min="10" max="1000000" step="10" value="100" />' +
+        '<button class="settings-btn" id="poker-deal-btn">Deal</button>' +
+        '<button class="settings-btn" id="poker-draw-btn">Draw</button></div>' +
+        '<div class="poker-hand" id="poker-hand"></div>' +
+        '<div id="poker-result" class="muted"></div>';
+      el("poker-deal-btn").onclick = () => { if (Game.Gambling.pokerDeal(parseInt(el("poker-bet").value, 10) || 0)) UI.updateCasino(); };
+      el("poker-draw-btn").onclick = () => { if (Game.Gambling.pokerDraw()) UI.updateCasino(); };
+    } else if (activeCasinoGame === "roulette") {
+      area.innerHTML =
+        '<div class="casino-action-row">' +
+        '<select id="roulette-type" class="casino-input"><option value="redblack">Red / Black</option><option value="oddeven">Odd / Even</option><option value="lowhigh">Low / High</option><option value="dozen">Dozens</option><option value="column">Columns</option><option value="straight">Straight</option></select>' +
+        '<input id="roulette-value" class="casino-input" value="red" />' +
+        '<input id="roulette-bet" class="casino-input" type="number" min="10" max="1000000" step="10" value="100" />' +
+        '<button class="settings-btn" id="roulette-spin-btn">Spin</button></div>' +
+        '<div class="roulette-grid">' + Array.from({ length: 12 }, (_, i) => '<button class="roulette-bet-btn" data-roulette-sample="' + (i + 1) + '">' + (i + 1) + '</button>').join("") + '</div>' +
+        '<div class="roulette-result" id="roulette-result">—</div>' +
+        '<div id="roulette-note" class="muted"></div>';
+      el("roulette-spin-btn").onclick = () => {
+        const result = Game.Gambling.rouletteSpin(el("roulette-type").value, el("roulette-value").value, parseInt(el("roulette-bet").value, 10) || 0);
+        if (result) UI.updateCasino();
+      };
+      bindActionButtons(area, "[data-roulette-sample]", (btn) => {
+        el("roulette-type").value = "straight";
+        el("roulette-value").value = btn.dataset.rouletteSample;
+      });
+    } else if (activeCasinoGame === "dice") {
+      area.innerHTML =
+        '<div class="casino-action-row">' +
+        '<select id="dice-type" class="casino-input"><option value="over7">Over 7</option><option value="under7">Under 7</option><option value="exactly7">Exactly 7</option>' +
+        Array.from({ length: 11 }, (_, i) => '<option value="exact-' + (i + 2) + '">Exact ' + (i + 2) + '</option>').join("") +
+        '</select>' +
+        '<input id="dice-bet" class="casino-input" type="number" min="10" max="1000000" step="10" value="100" />' +
+        '<button class="settings-btn" id="dice-roll-btn">Roll</button></div>' +
+        '<div class="dice-result" id="dice-result">🎲</div>' +
+        '<div id="dice-note" class="muted"></div>';
+      el("dice-roll-btn").onclick = () => {
+        const result = Game.Gambling.rollDice(el("dice-type").value, parseInt(el("dice-bet").value, 10) || 0);
+        if (result) UI.updateCasino();
+      };
+    } else if (activeCasinoGame === "plinko") {
+      area.innerHTML =
+        '<div class="casino-action-row"><input id="plinko-bet" class="casino-input" type="number" min="10" max="1000000" step="10" value="100" />' +
+        '<button class="settings-btn" id="plinko-play-btn">Drop Ball</button></div>' +
+        '<div class="plinko-board" id="plinko-board">Path: —\nSlots: ' + cfg.plinkoMultipliers.map((mult) => mult + 'x').join(' | ') + '</div>' +
+        '<div id="plinko-note" class="muted"></div>';
+      el("plinko-play-btn").onclick = () => {
+        const result = Game.Gambling.plinkoPlay(parseInt(el("plinko-bet").value, 10) || 0);
+        if (result) UI.updateCasino();
+      };
+    }
+  };
+
+  UI.updateCasino = function () {
+    if (!built.gambling) return;
+    Game.Gambling.ensureState();
+    const s = Game.state;
+    const g = s.gambling;
+    const balance = el("casino-chip-balance");
+    const stats = el("casino-stats");
+    if (balance) balance.textContent = "Chips: " + fmt(g.chips) + " • Coins: " + fmt(s.coins);
+    document.querySelectorAll(".casino-game-tab").forEach((btn) => btn.classList.toggle("active", btn.dataset.game === activeCasinoGame));
+    if (stats) {
+      stats.innerHTML =
+        '<div class="stat-row"><span class="stat-key">Games Played</span><span class="stat-val">' + fmt(g.gamesPlayed) + '</span></div>' +
+        '<div class="stat-row"><span class="stat-key">Games Won</span><span class="stat-val">' + fmt(g.gamesWon) + '</span></div>' +
+        '<div class="stat-row"><span class="stat-key">Net Chips Won</span><span class="stat-val">' + fmt(g.totalChipsWon - g.totalChipsLost) + '</span></div>' +
+        '<div class="stat-row"><span class="stat-key">Slots Big Wins</span><span class="stat-val">' + fmt(g.slotStats.bigWins || 0) + '</span></div>';
+    }
+    if (activeCasinoGame === "slots") {
+      const last = g.lastSlotsResult || [];
+      for (let i = 0; i < 3; i++) {
+        const reel = el("slot-" + i);
+        if (reel) reel.textContent = last[i] || "?";
+      }
+      const note = el("slots-result");
+      if (note && last.length) note.innerHTML = 'Last spin: ' + last.join(' ') + ' • Chips: ' + fmt(g.chips);
+    } else if (activeCasinoGame === "blackjack") {
+      const bj = g.blackjackState;
+      const player = Game.Gambling.blackjackValue(bj.playerHand || []);
+      const dealer = Game.Gambling.blackjackValue(bj.dealerHand || []);
+      const hideDealer = bj.phase === "player" && bj.dealerHand.length >= 2;
+      if (el("blackjack-player-hand")) el("blackjack-player-hand").innerHTML = renderBlackjackHand(bj.playerHand || []);
+      if (el("blackjack-dealer-hand")) el("blackjack-dealer-hand").innerHTML = renderBlackjackHand(bj.dealerHand || [], hideDealer);
+      if (el("blackjack-player-score")) el("blackjack-player-score").textContent = bj.playerHand.length ? "Score: " + player.best : "";
+      if (el("blackjack-dealer-score")) el("blackjack-dealer-score").textContent = hideDealer ? "Score: ?" : (bj.dealerHand.length ? "Score: " + dealer.best : "");
+      if (el("blackjack-result")) el("blackjack-result").textContent = bj.result || (bj.phase === "player" ? "Your move." : "Place a bet to start.");
+      setBtn(el("blackjack-hit-btn"), bj.phase === "player");
+      setBtn(el("blackjack-stand-btn"), bj.phase === "player");
+      setBtn(el("blackjack-double-btn"), bj.phase === "player" && (bj.playerHand || []).length === 2 && g.chips >= bj.bet && !bj.doubled);
+    } else if (activeCasinoGame === "poker") {
+      const ps = g.pokerState;
+      if (el("poker-hand")) el("poker-hand").innerHTML = renderCards(ps.hand || [], ps.held || []);
+      if (el("poker-result")) el("poker-result").textContent = ps.result || "Deal a hand.";
+      bindActionButtons(el("poker-hand"), "[data-poker-hold]", (btn) => {
+        if (Game.Gambling.pokerToggleHold(parseInt(btn.dataset.pokerHold, 10))) UI.updateCasino();
+      });
+      setBtn(el("poker-draw-btn"), ps.phase === "draw");
+    } else if (activeCasinoGame === "roulette") {
+      const rr = g.lastRouletteResult || {};
+      if (el("roulette-result")) el("roulette-result").textContent = rr.number !== undefined ? rr.number : "—";
+      if (el("roulette-note")) el("roulette-note").textContent = rr.number !== undefined ? (rr.payout > 0 ? "Payout: " + fmt(rr.payout) + " chips" : "No payout.") : "American wheel with 0 and 00.";
+    } else if (activeCasinoGame === "dice") {
+      const dr = g.lastDiceResult || {};
+      if (el("dice-result")) el("dice-result").textContent = dr.sum ? dr.dice[0] + " + " + dr.dice[1] + " = " + dr.sum : "🎲";
+      if (el("dice-note")) el("dice-note").textContent = dr.sum ? (dr.payout > 0 ? "Payout: " + fmt(dr.payout) + " chips" : "House wins this roll.") : "Pick a bet and roll.";
+    } else if (activeCasinoGame === "plinko") {
+      const pr = g.lastPlinkoResult || {};
+      if (el("plinko-board")) el("plinko-board").textContent = pr.path ? "Path: " + pr.path.join(" → ") + "\nSlot: " + pr.slotIndex + " • Multiplier: " + pr.multiplier + "x" : "Path: —\nSlots: " + cfg.plinkoMultipliers.map((mult) => mult + 'x').join(' | ');
+      if (el("plinko-note")) el("plinko-note").textContent = pr.payout ? "Payout: " + fmt(pr.payout) + " chips" : "Center lands are safer. Edges are chaos.";
+    }
+  };
+
+  UI.buildHorseTrack = function () {
+    const betPanel = el("horse-betting-panel");
+    if (!betPanel) return;
+    betPanel.innerHTML =
+      '<div class="bet-panel">' +
+      '<div class="bet-row"><select id="horse-bet-horse" class="casino-input"></select><select id="horse-bet-type" class="casino-input"><option value="win">Win</option><option value="place">Place</option><option value="show">Show</option></select><input id="horse-bet-amount" class="casino-input" type="number" min="10" step="10" value="100" /><button class="settings-btn" id="horse-place-bet-btn">Place Bet</button></div>' +
+      '<div id="horse-pending-bets"></div>' +
+      '</div>';
+    el("horse-place-bet-btn").onclick = () => {
+      if (Game.Gambling.placeBet(el("horse-bet-horse").value, el("horse-bet-type").value, parseInt(el("horse-bet-amount").value, 10) || 0)) UI.updateHorseTrack();
+    };
+    built.horseTrack = true;
+  };
+
+  UI.updateHorseTrack = function () {
+    if (!built.horseTrack) return;
+    Game.Gambling.ensureHorseState();
+    const hs = Game.state.horses;
+    const race = hs.currentRace;
+    if (race) {
+      setSelectOptions(el("horse-bet-horse"), race.entries.map((entry) => ({ id: entry.id, name: entry.label })), "id", "name");
+      const info = el("horse-race-info");
+      if (info) {
+        info.innerHTML =
+          '<div class="race-countdown">' + Math.ceil(hs.nextRaceIn) + 's</div>' +
+          '<div class="race-meta-grid"><div class="race-accent-horse">Betting ' + (Game.Gambling.horseBettingOpen() ? 'OPEN' : 'LOCKED') + '</div><div>Stable: ' + hs.owned.length + ' / ' + cfg.HORSE_OWNERSHIP_LIMIT + '</div></div>' +
+          renderRaceField(race.entries, hs.lastRaceResult, "horse") +
+          (hs.lastRaceResult ? '<div class="muted">Last winner: ' + hs.lastRaceResult.winner + ' • Passive income: ' + fmt(hs.lastRaceResult.passiveIncome || 0) + '</div>' : '<div class="muted">Eight NPC runners plus up to three of your available horses race automatically.</div>');
+      }
+    }
+    const pending = el("horse-pending-bets");
+    if (pending) {
+      pending.innerHTML = hs.pendingBets.map((bet, index) =>
+        '<div class="race-history-row"><span>' + bet.horseName + ' • ' + bet.type + ' • ' + fmt(bet.amount) + ' coins @ ' + bet.odds.toFixed(2) + 'x</span><button class="settings-btn" data-horse-cancel="' + index + '">Cancel</button></div>'
+      ).join("") || '<div class="muted">No horse bets placed.</div>';
+      bindActionButtons(pending, "[data-horse-cancel]", (btn) => {
+        if (Game.Gambling.cancelBet(parseInt(btn.dataset.horseCancel, 10))) UI.updateHorseTrack();
+      });
+    }
+    const history = el("horse-race-history");
+    if (history) {
+      history.innerHTML = '<div class="race-history-list">' + (hs.raceHistory.map((row) =>
+        '<div class="race-history-row"><span>' + new Date(row.time).toLocaleTimeString() + '</span><span>Winner: ' + row.winner + '</span><span>' + (row.owned.join(', ') || 'No owned horses') + '</span></div>'
+      ).join("") || '<div class="muted">No races run yet.</div>') + '</div>';
+    }
+    const stable = el("horse-stable");
+    if (stable) {
+      stable.innerHTML = '<div class="stable-grid">' + (hs.owned.map((horse) =>
+        '<div class="horse-card' + (horse.resting ? ' resting' : '') + (horse.retired ? ' retired' : '') + '">' +
+        '<div><strong>' + horse.name + '</strong> <span class="muted">(' + horse.breed + ')</span></div>' +
+        conditionBar(horse.condition) +
+        '<div class="horse-stats">' +
+        '<div class="horse-stat">SPD <span>' + horse.speed + '</span></div>' +
+        '<div class="horse-stat">STA <span>' + horse.stamina + '</span></div>' +
+        '<div class="horse-stat">AGI <span>' + horse.agility + '</span></div>' +
+        '<div class="horse-stat">Form <span>' + horse.form.toFixed(0) + '</span></div>' +
+        '<div class="horse-stat">Training <span>' + horse.training.toFixed(0) + '</span></div>' +
+        '<div class="horse-stat">Age <span>' + horse.age + '</span></div>' +
+        '</div>' +
+        '<div class="muted">Jockey: ' + horse.jockey + ' • Wins: ' + horse.wins + ' • Places: ' + horse.places + ' • Races: ' + horse.races + '</div>' +
+        '<div class="muted">Upkeep: ' + fmt(horse.upkeepPerMin) + '/min • Last action: ' + horse.lastAction + (horse.actionTimer > 0 ? ' (' + Math.ceil(horse.actionTimer) + 's)' : '') + '</div>' +
+        '<div class="horse-actions">' +
+        '<button class="settings-btn" data-horse-feed="' + horse.id + '">Feed (' + fmt(Game.Gambling.horseActionCost(horse, 'feed')) + ')</button>' +
+        '<button class="settings-btn" data-horse-train="' + horse.id + '">Train (' + fmt(Game.Gambling.horseActionCost(horse, 'train')) + ')</button>' +
+        '<button class="settings-btn" data-horse-rest="' + horse.id + '">Rest</button>' +
+        '<button class="settings-btn" data-horse-jockey="' + horse.id + '">Premium Jockey</button>' +
+        '</div></div>'
+      ).join("") || '<div class="muted">Buy horses from the market to start your stable.</div>') + '</div>';
+      bindActionButtons(stable, "[data-horse-feed]", (btn) => { if (Game.Gambling.feedHorse(btn.dataset.horseFeed)) UI.updateHorseTrack(); });
+      bindActionButtons(stable, "[data-horse-train]", (btn) => { if (Game.Gambling.trainHorse(btn.dataset.horseTrain)) UI.updateHorseTrack(); });
+      bindActionButtons(stable, "[data-horse-rest]", (btn) => { if (Game.Gambling.restHorse(btn.dataset.horseRest)) UI.updateHorseTrack(); });
+      bindActionButtons(stable, "[data-horse-jockey]", (btn) => { if (Game.Gambling.hirePremiumJockey(btn.dataset.horseJockey)) UI.updateHorseTrack(); });
+    }
+    const market = el("horse-market");
+    if (market) {
+      market.innerHTML = hs.market.map((horse, index) =>
+        '<div class="market-horse-card"><div><strong>' + horse.name + '</strong> <span class="muted">(' + horse.breed + ')</span></div>' +
+        '<div class="horse-stats"><div class="horse-stat">SPD <span>' + horse.speed + '</span></div><div class="horse-stat">STA <span>' + horse.stamina + '</span></div><div class="horse-stat">AGI <span>' + horse.agility + '</span></div><div class="horse-stat">Age <span>' + horse.age + '</span></div></div>' +
+        '<div class="muted">Condition ' + horse.condition + ' • Form ' + horse.form + ' • Upkeep ' + fmt(horse.upkeepPerMin) + '/min</div>' +
+        '<button class="settings-btn" data-horse-buy="' + index + '">Buy for ' + fmt(horse.purchaseCost) + '</button></div>'
+      ).join("") + '<div class="muted">Refresh in ' + Math.ceil(hs.marketRefreshIn) + 's</div>';
+      bindActionButtons(market, "[data-horse-buy]", (btn) => { if (Game.Gambling.buyHorse(parseInt(btn.dataset.horseBuy, 10))) UI.updateHorseTrack(); });
+    }
+  };
+
+  UI.buildRaceTrack = function () {
+    const betPanel = el("car-betting-panel");
+    if (!betPanel) return;
+    betPanel.innerHTML =
+      '<div class="bet-panel">' +
+      '<div class="bet-row"><select id="car-bet-car" class="casino-input"></select><select id="car-bet-type" class="casino-input"><option value="win">Win</option><option value="place">Place</option><option value="show">Show</option></select><input id="car-bet-amount" class="casino-input" type="number" min="10" step="10" value="100" /><button class="settings-btn" id="car-place-bet-btn">Place Bet</button></div>' +
+      '<div id="car-pending-bets"></div>' +
+      '</div>';
+    el("car-place-bet-btn").onclick = () => {
+      if (Game.Gambling.placeCarBet(el("car-bet-car").value, el("car-bet-type").value, parseInt(el("car-bet-amount").value, 10) || 0)) UI.updateRaceTrack();
+    };
+    built.raceTrack = true;
+  };
+
+  UI.updateRaceTrack = function () {
+    if (!built.raceTrack) return;
+    Game.Gambling.ensureCarState();
+    const cs = Game.state.cars;
+    const race = cs.currentRace;
+    if (race) {
+      setSelectOptions(el("car-bet-car"), race.entries.map((entry) => ({ id: entry.id, name: entry.label })), "id", "name");
+      const info = el("car-race-info");
+      if (info) {
+        info.innerHTML =
+          '<div class="race-countdown">' + Math.ceil(cs.nextRaceIn) + 's</div>' +
+          '<div class="race-meta-grid"><div class="race-accent-car">Track: ' + race.track.name + '</div><div>Betting ' + (Game.Gambling.carBettingOpen() ? 'OPEN' : 'LOCKED') + '</div></div>' +
+          renderRaceField(race.entries, cs.lastRaceResult, "car") +
+          (cs.lastRaceResult ? '<div class="muted">Last winner: ' + cs.lastRaceResult.winner + ' • Passive income: ' + fmt(cs.lastRaceResult.passiveIncome || 0) + '</div>' : '<div class="muted">Circuits rotate every race and reward different car setups.</div>');
+      }
+    }
+    const pending = el("car-pending-bets");
+    if (pending) {
+      pending.innerHTML = cs.pendingBets.map((bet, index) =>
+        '<div class="race-history-row"><span>' + bet.carName + ' • ' + bet.type + ' • ' + fmt(bet.amount) + ' coins @ ' + bet.odds.toFixed(2) + 'x</span><button class="settings-btn" data-car-cancel="' + index + '">Cancel</button></div>'
+      ).join("") || '<div class="muted">No car bets placed.</div>';
+      bindActionButtons(pending, "[data-car-cancel]", (btn) => {
+        if (Game.Gambling.cancelCarBet(parseInt(btn.dataset.carCancel, 10))) UI.updateRaceTrack();
+      });
+    }
+    const history = el("car-race-history");
+    if (history) {
+      history.innerHTML = '<div class="race-history-list">' + (cs.raceHistory.map((row) =>
+        '<div class="race-history-row"><span>' + new Date(row.time).toLocaleTimeString() + '</span><span>' + row.track + '</span><span>Winner: ' + row.winner + '</span><span>' + (row.owned.join(', ') || 'No owned cars') + '</span></div>'
+      ).join("") || '<div class="muted">No races run yet.</div>') + '</div>';
+    }
+    const garage = el("car-garage");
+    if (garage) {
+      garage.innerHTML = '<div class="stable-grid">' + (cs.owned.map((car) =>
+        '<div class="car-card"><div><strong>' + car.name + '</strong> <span class="muted">' + car.make + ' ' + car.model + ' (' + car.year + ')</span></div>' +
+        conditionBar(car.condition) +
+        '<div class="horse-stats"><div class="horse-stat">ENG <span>' + car.enginePower + '</span></div><div class="horse-stat">HAN <span>' + car.handling + '</span></div><div class="horse-stat">REL <span>' + car.reliability + '</span></div><div class="horse-stat">AERO <span>' + car.aerodynamics + '</span></div><div class="horse-stat">Fuel <span>' + car.fuel.toFixed(0) + '/' + car.fuelCapacity + '</span></div></div>' +
+        '<div class="muted">Driver: ' + car.driver + ' • Wins: ' + car.wins + ' • Podiums: ' + car.podiums + ' • Races: ' + car.races + '</div>' +
+        '<div class="muted">Tuning: Aggression ' + car.tuning.aggression + ' • Fuel Mode ' + car.tuning.fuelMode + ' • Upkeep ' + fmt(car.upkeepPerMin) + '/min</div>' +
+        '<div class="car-upgrades">' + ['engine', 'tires', 'aero', 'chassis', 'fuel'].map((type) => '<div class="car-upgrade-slot">' + type + ': <span>' + car.upgrades[type] + '/5</span></div>').join('') + '</div>' +
+        '<div class="horse-actions">' +
+        '<button class="settings-btn" data-car-refuel="' + car.id + '">Refuel (' + fmt(Game.Gambling.refuelCarCost(car)) + ')</button>' +
+        '<button class="settings-btn" data-car-repair="' + car.id + '">Repair (' + fmt(Game.Gambling.repairCarCost(car)) + ')</button>' +
+        '<button class="settings-btn" data-car-fuelmode="' + car.id + '">Fuel Mode</button>' +
+        '</div>' +
+        '<div class="horse-actions">' + ['engine', 'tires', 'aero', 'chassis', 'fuel'].map((type) => '<button class="settings-btn" data-car-upgrade="' + car.id + '" data-upgrade-type="' + type + '">' + type + ' +' + ' (' + fmt(Game.Gambling.carUpgradeCost(car.upgrades[type])) + ')</button>').join('') + '</div>' +
+        '<div class="horse-actions"><button class="settings-btn" data-car-aggression="' + car.id + '" data-aggr-delta="-10">Agg -10</button><button class="settings-btn" data-car-aggression="' + car.id + '" data-aggr-delta="10">Agg +10</button></div>' +
+        '</div>'
+      ).join("") || '<div class="muted">Buy cars from the market to enter the circuit.</div>') + '</div>';
+      bindActionButtons(garage, "[data-car-refuel]", (btn) => { if (Game.Gambling.refuelCar(btn.dataset.carRefuel)) UI.updateRaceTrack(); });
+      bindActionButtons(garage, "[data-car-repair]", (btn) => { if (Game.Gambling.repairCar(btn.dataset.carRepair)) UI.updateRaceTrack(); });
+      bindActionButtons(garage, "[data-car-upgrade]", (btn) => { if (Game.Gambling.upgradeCar(btn.dataset.carUpgrade, btn.dataset.upgradeType)) UI.updateRaceTrack(); });
+      bindActionButtons(garage, "[data-car-aggression]", (btn) => {
+        const car = Game.state.cars.owned.find((entry) => entry.id === btn.dataset.carAggression);
+        if (!car) return;
+        const next = Math.max(0, Math.min(100, (car.tuning.aggression || 0) + parseInt(btn.dataset.aggrDelta, 10)));
+        if (Game.Gambling.tuneCar(btn.dataset.carAggression, 'aggression', next)) UI.updateRaceTrack();
+      });
+      bindActionButtons(garage, "[data-car-fuelmode]", (btn) => {
+        const car = Game.state.cars.owned.find((entry) => entry.id === btn.dataset.carFuelmode);
+        if (!car) return;
+        const next = car.tuning.fuelMode === 'eco' ? 'normal' : car.tuning.fuelMode === 'normal' ? 'push' : 'eco';
+        if (Game.Gambling.tuneCar(car.id, 'fuelMode', next)) UI.updateRaceTrack();
+      });
+    }
+    const market = el("car-market");
+    if (market) {
+      market.innerHTML = cs.market.map((car, index) =>
+        '<div class="market-car-card"><div><strong>' + car.name + '</strong> <span class="muted">' + car.make + ' ' + car.model + ' (' + car.year + ')</span></div>' +
+        '<div class="horse-stats"><div class="horse-stat">ENG <span>' + car.enginePower + '</span></div><div class="horse-stat">HAN <span>' + car.handling + '</span></div><div class="horse-stat">REL <span>' + car.reliability + '</span></div><div class="horse-stat">AERO <span>' + car.aerodynamics + '</span></div></div>' +
+        '<div class="muted">Fuel ' + car.fuel + '/' + car.fuelCapacity + ' • Condition ' + car.condition + ' • Upkeep ' + fmt(car.upkeepPerMin) + '/min</div>' +
+        '<button class="settings-btn" data-car-buy="' + index + '">Buy for ' + fmt(car.purchaseCost) + '</button></div>'
+      ).join("") + '<div class="muted">Refresh in ' + Math.ceil(cs.marketRefreshIn) + 's</div>';
+      bindActionButtons(market, "[data-car-buy]", (btn) => { if (Game.Gambling.buyCar(parseInt(btn.dataset.carBuy, 10))) UI.updateRaceTrack(); });
+    }
+  };
+
   /* ---------------------------------------------------------------------
      Achievements
      --------------------------------------------------------------------- */
@@ -1213,6 +1627,12 @@
       ["Manual Energy Collected", fmt(stats.totalEnergyCollected || 0)],
       ["Coin Farmer Rate", fmt(Game.Bitcoin ? Game.Bitcoin.coinFarmerRate() : 0)],
       ["Portfolio Value", fmt(Game.Stocks ? Game.Stocks.portfolioValue() : 0)],
+      ["Casino Chips", fmt((s.gambling && s.gambling.chips) || 0)],
+      ["Casino Net Chips", fmt(((s.gambling && s.gambling.totalChipsWon) || 0) - ((s.gambling && s.gambling.totalChipsLost) || 0))],
+      ["Horse Track Winnings", fmt((s.horses && s.horses.totalWinnings) || 0)],
+      ["Horse Track Losses", fmt((s.horses && s.horses.totalLosses) || 0)],
+      ["Race Track Winnings", fmt((s.cars && s.cars.totalWinnings) || 0)],
+      ["Race Track Losses", fmt((s.cars && s.cars.totalLosses) || 0)],
       ["Prestige Points", fmt(s.prestigePoints)],
       ["Lifetime Prestige Points", fmt(s.lifetimePrestigePoints)],
       ["Prestige Count", fmt(stats.prestigeCount)],
@@ -1283,6 +1703,9 @@
 
   UI.rebuildAll = function () {
     UI.buildBuildingList();
+    UI.buildCasino();
+    UI.buildHorseTrack();
+    UI.buildRaceTrack();
     UI.updateResearch();
     UI.updateAutomation();
     const notif = el("toggle-notifications");
@@ -1352,6 +1775,15 @@
         break;
       case "stocks":
         UI.updateStocks();
+        break;
+      case "casino":
+        UI.updateCasino();
+        break;
+      case "horsetrack":
+        UI.updateHorseTrack();
+        break;
+      case "racetrack":
+        UI.updateRaceTrack();
         break;
       case "achievements":
         UI.updateAchievements();
