@@ -208,7 +208,7 @@
     }
     // happiness: average county relation mapped from [-100,+100] to [0,100]
     var avgRelation = ids.length > 0 ? totalRelation / ids.length : 0;
-    var happiness = Math.round((avgRelation + 100) / 2);
+    var happiness = Math.round((avgRelation + cfg.HAPPINESS_RELATION_OFFSET) / cfg.HAPPINESS_RELATION_SCALE);
     var happinessMult = cfg.HAPPINESS_MIN_MULT + (cfg.HAPPINESS_MAX_MULT - cfg.HAPPINESS_MIN_MULT) * happiness / 100;
     return {
       coinsPerSecond: round2(totalCps),
