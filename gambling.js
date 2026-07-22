@@ -773,9 +773,11 @@
 
   Gambling.plinkoPlay = function (bet) {
     Gambling.ensureState();
+    const multipliers = Array.isArray(cfg.plinkoMultipliers) && cfg.plinkoMultipliers.length >= 2 ? cfg.plinkoMultipliers : null;
+    if (!multipliers) return false;
     const wager = sanitizeBet(bet);
     if (!spendChips(wager)) return false;
-    const rows = Math.max(1, (cfg.plinkoMultipliers || []).length - 1);
+    const rows = multipliers.length - 1;
     const path = [];
     let rights = 0;
     for (let i = 0; i < rows; i++) {
@@ -784,7 +786,7 @@
       if (dir === "R") rights += 1;
     }
     const slotIndex = rights;
-    const multiplier = cfg.plinkoMultipliers[slotIndex] || 0;
+    const multiplier = multipliers[slotIndex] || 0;
     const payout = roundCurrency(wager * multiplier);
     if (payout > 0) Game.state.gambling.chips += payout;
     scoreCasinoGame("plinkoStats", wager, payout);
