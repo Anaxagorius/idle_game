@@ -205,6 +205,8 @@
         btn,
       };
     });
+    const amtWrap = el("buy-amount-selector-buildings");
+    if (amtWrap) UI._buildAmountSelectorIn(amtWrap);
   };
 
   UI.updateBuildings = function () {
@@ -391,6 +393,20 @@
   /* ---------------------------------------------------------------------
      Automation
      --------------------------------------------------------------------- */
+  UI._buildAmountSelectorIn = function (wrap) {
+    wrap.innerHTML = "";
+    [{ v: 10, l: "x10" }, { v: 25, l: "x25" }, { v: 50, l: "x50" }, { v: 100, l: "x100" }, { v: 1000, l: "x1000" }, { v: -1, l: "MAX" }].forEach((o) => {
+      const b = make("button", "amount-btn", o.l);
+      b.dataset.amount = o.v;
+      b.addEventListener("click", () => {
+        Game.Automation.setBuyAmount(o.v);
+        UI.updateAutomation();
+        UI.update();
+      });
+      wrap.appendChild(b);
+    });
+  };
+
   UI.buildAutomation = function () {
     const container = el("automation-list");
     container.innerHTML = "";
@@ -423,18 +439,7 @@
     });
 
     // Buy amount selector
-    const amtWrap = el("buy-amount-selector");
-    amtWrap.innerHTML = "";
-    [{ v: 10, l: "x10" }, { v: 25, l: "x25" }, { v: 50, l: "x50" }, { v: 100, l: "x100" }, { v: 1000, l: "x1000" }, { v: -1, l: "MAX" }].forEach((o) => {
-      const b = make("button", "amount-btn", o.l);
-      b.dataset.amount = o.v;
-      b.addEventListener("click", () => {
-        Game.Automation.setBuyAmount(o.v);
-        UI.updateAutomation();
-        UI.update();
-      });
-      amtWrap.appendChild(b);
-    });
+    UI._buildAmountSelectorIn(el("buy-amount-selector"));
     built.automation = true;
   };
 
