@@ -945,7 +945,16 @@
       if (el("blackjack-dealer-hand")) el("blackjack-dealer-hand").innerHTML = renderBlackjackHand(bj.dealerHand || [], hideDealer);
       if (el("blackjack-player-score")) el("blackjack-player-score").textContent = bj.playerHand.length ? "Score: " + player.best : "";
       if (el("blackjack-dealer-score")) el("blackjack-dealer-score").textContent = hideDealer ? "Score: ?" : (bj.dealerHand.length ? "Score: " + dealer.best : "");
-      let bjMsg = bj.result || (bj.phase === "player" ? "Your move." : (g.chips < cfg.CASINO_MIN_BET ? noChipsMsg : "Place a bet and click Deal."));
+      let bjMsg;
+      if (bj.result) {
+        bjMsg = bj.result;
+      } else if (bj.phase === "player") {
+        bjMsg = "Your move.";
+      } else if (g.chips < cfg.CASINO_MIN_BET) {
+        bjMsg = noChipsMsg;
+      } else {
+        bjMsg = "Place a bet and click Deal.";
+      }
       if (el("blackjack-result")) el("blackjack-result").textContent = bjMsg;
       setBtn(el("blackjack-deal-btn"), bj.phase !== "player" && g.chips >= cfg.CASINO_MIN_BET);
       setBtn(el("blackjack-hit-btn"), bj.phase === "player");
@@ -954,7 +963,16 @@
     } else if (activeCasinoGame === "poker") {
       const ps = g.pokerState;
       if (el("poker-hand")) el("poker-hand").innerHTML = renderCards(ps.hand || [], ps.held || []);
-      let pokerMsg = ps.result || (ps.phase === "draw" ? "Select cards to hold, then click Draw." : (g.chips < cfg.CASINO_MIN_BET ? noChipsMsg : "Deal a hand."));
+      let pokerMsg;
+      if (ps.result) {
+        pokerMsg = ps.result;
+      } else if (ps.phase === "draw") {
+        pokerMsg = "Select cards to hold, then click Draw.";
+      } else if (g.chips < cfg.CASINO_MIN_BET) {
+        pokerMsg = noChipsMsg;
+      } else {
+        pokerMsg = "Deal a hand.";
+      }
       if (el("poker-result")) el("poker-result").textContent = pokerMsg;
       bindActionButtons(el("poker-hand"), "[data-poker-hold]", (btn) => {
         if (Game.Gambling.pokerToggleHold(parseInt(btn.dataset.pokerHold, 10))) UI.updateCasino();
