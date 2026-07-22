@@ -834,8 +834,8 @@
         '<div class="slots-reels"><div class="slot-reel" id="slot-0">?</div><div class="slot-reel" id="slot-1">?</div><div class="slot-reel" id="slot-2">?</div></div>' +
         '<div id="slots-result" class="muted">Match symbols to win chips.</div>';
       el("slots-spin-btn").onclick = () => {
-        const result = Game.Gambling.spinSlots(parseInt(el("slots-bet").value, 10) || 0);
-        if (result) UI.updateCasino();
+        Game.Gambling.spinSlots(parseInt(el("slots-bet").value, 10) || 0);
+        UI.updateCasino();
       };
     } else if (activeCasinoGame === "blackjack") {
       area.innerHTML =
@@ -847,10 +847,10 @@
         '<div><strong>Dealer</strong><div class="bj-hand" id="blackjack-dealer-hand"></div><div id="blackjack-dealer-score" class="muted"></div></div>' +
         '<div style="margin-top:10px"><strong>You</strong><div class="bj-hand" id="blackjack-player-hand"></div><div id="blackjack-player-score" class="muted"></div></div>' +
         '<div id="blackjack-result" class="muted" style="margin-top:8px"></div>';
-      el("blackjack-deal-btn").onclick = () => { if (Game.Gambling.blackjackStart(parseInt(el("blackjack-bet").value, 10) || 0)) UI.updateCasino(); };
-      el("blackjack-hit-btn").onclick = () => { if (Game.Gambling.blackjackHit()) UI.updateCasino(); };
-      el("blackjack-stand-btn").onclick = () => { if (Game.Gambling.blackjackStand()) UI.updateCasino(); };
-      el("blackjack-double-btn").onclick = () => { if (Game.Gambling.blackjackDouble()) UI.updateCasino(); };
+      el("blackjack-deal-btn").onclick = () => { Game.Gambling.blackjackStart(parseInt(el("blackjack-bet").value, 10) || 0); UI.updateCasino(); };
+      el("blackjack-hit-btn").onclick = () => { Game.Gambling.blackjackHit(); UI.updateCasino(); };
+      el("blackjack-stand-btn").onclick = () => { Game.Gambling.blackjackStand(); UI.updateCasino(); };
+      el("blackjack-double-btn").onclick = () => { Game.Gambling.blackjackDouble(); UI.updateCasino(); };
     } else if (activeCasinoGame === "poker") {
       area.innerHTML =
         '<div class="casino-action-row"><input id="poker-bet" class="casino-input" type="number" min="10" max="1000000" step="10" value="100" />' +
@@ -858,8 +858,8 @@
         '<button class="settings-btn" id="poker-draw-btn">Draw</button></div>' +
         '<div class="poker-hand" id="poker-hand"></div>' +
         '<div id="poker-result" class="muted"></div>';
-      el("poker-deal-btn").onclick = () => { if (Game.Gambling.pokerDeal(parseInt(el("poker-bet").value, 10) || 0)) UI.updateCasino(); };
-      el("poker-draw-btn").onclick = () => { if (Game.Gambling.pokerDraw()) UI.updateCasino(); };
+      el("poker-deal-btn").onclick = () => { Game.Gambling.pokerDeal(parseInt(el("poker-bet").value, 10) || 0); UI.updateCasino(); };
+      el("poker-draw-btn").onclick = () => { Game.Gambling.pokerDraw(); UI.updateCasino(); };
     } else if (activeCasinoGame === "roulette") {
       area.innerHTML =
         '<div class="casino-action-row">' +
@@ -871,8 +871,8 @@
         '<div class="roulette-result" id="roulette-result">—</div>' +
         '<div id="roulette-note" class="muted"></div>';
       el("roulette-spin-btn").onclick = () => {
-        const result = Game.Gambling.rouletteSpin(el("roulette-type").value, el("roulette-value").value, parseInt(el("roulette-bet").value, 10) || 0);
-        if (result) UI.updateCasino();
+        Game.Gambling.rouletteSpin(el("roulette-type").value, el("roulette-value").value, parseInt(el("roulette-bet").value, 10) || 0);
+        UI.updateCasino();
       };
       bindActionButtons(area, "[data-roulette-sample]", (btn) => {
         el("roulette-type").value = "straight";
@@ -889,8 +889,8 @@
         '<div class="dice-result" id="dice-result">🎲</div>' +
         '<div id="dice-note" class="muted"></div>';
       el("dice-roll-btn").onclick = () => {
-        const result = Game.Gambling.rollDice(el("dice-type").value, parseInt(el("dice-bet").value, 10) || 0);
-        if (result) UI.updateCasino();
+        Game.Gambling.rollDice(el("dice-type").value, parseInt(el("dice-bet").value, 10) || 0);
+        UI.updateCasino();
       };
     } else if (activeCasinoGame === "plinko") {
       area.innerHTML =
@@ -899,8 +899,8 @@
         '<div class="plinko-board" id="plinko-board">Path: —\nSlots: ' + cfg.plinkoMultipliers.map((mult) => mult + 'x').join(' | ') + '</div>' +
         '<div id="plinko-note" class="muted"></div>';
       el("plinko-play-btn").onclick = () => {
-        const result = Game.Gambling.plinkoPlay(parseInt(el("plinko-bet").value, 10) || 0);
-        if (result) UI.updateCasino();
+        Game.Gambling.plinkoPlay(parseInt(el("plinko-bet").value, 10) || 0);
+        UI.updateCasino();
       };
     }
   };
@@ -921,6 +921,7 @@
         '<div class="stat-row"><span class="stat-key">Net Chips Won</span><span class="stat-val">' + fmt(g.totalChipsWon - g.totalChipsLost) + '</span></div>' +
         '<div class="stat-row"><span class="stat-key">Slots Big Wins</span><span class="stat-val">' + fmt(g.slotStats.bigWins || 0) + '</span></div>';
     }
+    const noChipsMsg = "Not enough chips. Use 'Buy Chips' above to convert coins.";
     if (activeCasinoGame === "slots") {
       const last = g.lastSlotsResult || [];
       for (let i = 0; i < 3; i++) {
@@ -928,7 +929,13 @@
         if (reel) reel.textContent = last[i] || "?";
       }
       const note = el("slots-result");
-      if (note && last.length) note.innerHTML = 'Last spin: ' + last.join(' ') + ' • Chips: ' + fmt(g.chips);
+      if (note) {
+        if (last.length) {
+          note.innerHTML = 'Last spin: ' + last.join(' ') + ' • Chips: ' + fmt(g.chips);
+        } else if (g.chips < cfg.CASINO_MIN_BET) {
+          note.textContent = noChipsMsg;
+        }
+      }
     } else if (activeCasinoGame === "blackjack") {
       const bj = g.blackjackState;
       const player = Game.Gambling.blackjackValue(bj.playerHand || []);
@@ -938,30 +945,48 @@
       if (el("blackjack-dealer-hand")) el("blackjack-dealer-hand").innerHTML = renderBlackjackHand(bj.dealerHand || [], hideDealer);
       if (el("blackjack-player-score")) el("blackjack-player-score").textContent = bj.playerHand.length ? "Score: " + player.best : "";
       if (el("blackjack-dealer-score")) el("blackjack-dealer-score").textContent = hideDealer ? "Score: ?" : (bj.dealerHand.length ? "Score: " + dealer.best : "");
-      if (el("blackjack-result")) el("blackjack-result").textContent = bj.result || (bj.phase === "player" ? "Your move." : "Place a bet to start.");
+      let bjMsg = bj.result || (bj.phase === "player" ? "Your move." : (g.chips < cfg.CASINO_MIN_BET ? noChipsMsg : "Place a bet and click Deal."));
+      if (el("blackjack-result")) el("blackjack-result").textContent = bjMsg;
+      setBtn(el("blackjack-deal-btn"), bj.phase !== "player" && g.chips >= cfg.CASINO_MIN_BET);
       setBtn(el("blackjack-hit-btn"), bj.phase === "player");
       setBtn(el("blackjack-stand-btn"), bj.phase === "player");
       setBtn(el("blackjack-double-btn"), bj.phase === "player" && (bj.playerHand || []).length === 2 && g.chips >= bj.bet && !bj.doubled);
     } else if (activeCasinoGame === "poker") {
       const ps = g.pokerState;
       if (el("poker-hand")) el("poker-hand").innerHTML = renderCards(ps.hand || [], ps.held || []);
-      if (el("poker-result")) el("poker-result").textContent = ps.result || "Deal a hand.";
+      let pokerMsg = ps.result || (ps.phase === "draw" ? "Select cards to hold, then click Draw." : (g.chips < cfg.CASINO_MIN_BET ? noChipsMsg : "Deal a hand."));
+      if (el("poker-result")) el("poker-result").textContent = pokerMsg;
       bindActionButtons(el("poker-hand"), "[data-poker-hold]", (btn) => {
         if (Game.Gambling.pokerToggleHold(parseInt(btn.dataset.pokerHold, 10))) UI.updateCasino();
       });
+      setBtn(el("poker-deal-btn"), ps.phase !== "draw" && g.chips >= cfg.CASINO_MIN_BET);
       setBtn(el("poker-draw-btn"), ps.phase === "draw");
     } else if (activeCasinoGame === "roulette") {
       const rr = g.lastRouletteResult || {};
       if (el("roulette-result")) el("roulette-result").textContent = rr.number !== undefined ? rr.number : "—";
-      if (el("roulette-note")) el("roulette-note").textContent = rr.number !== undefined ? (rr.payout > 0 ? "Payout: " + fmt(rr.payout) + " chips" : "No payout.") : "American wheel with 0 and 00.";
+      if (el("roulette-note")) {
+        if (rr.number !== undefined) {
+          el("roulette-note").textContent = rr.payout > 0 ? "Payout: " + fmt(rr.payout) + " chips" : "No payout.";
+        } else {
+          el("roulette-note").textContent = g.chips < cfg.CASINO_MIN_BET ? noChipsMsg : "American wheel with 0 and 00.";
+        }
+      }
     } else if (activeCasinoGame === "dice") {
       const dr = g.lastDiceResult || {};
       if (el("dice-result")) el("dice-result").textContent = dr.sum ? dr.dice[0] + " + " + dr.dice[1] + " = " + dr.sum : "🎲";
-      if (el("dice-note")) el("dice-note").textContent = dr.sum ? (dr.payout > 0 ? "Payout: " + fmt(dr.payout) + " chips" : "House wins this roll.") : "Pick a bet and roll.";
+      if (el("dice-note")) {
+        if (dr.sum) {
+          el("dice-note").textContent = dr.payout > 0 ? "Payout: " + fmt(dr.payout) + " chips" : "House wins this roll.";
+        } else {
+          el("dice-note").textContent = g.chips < cfg.CASINO_MIN_BET ? noChipsMsg : "Pick a bet and roll.";
+        }
+      }
     } else if (activeCasinoGame === "plinko") {
       const pr = g.lastPlinkoResult || {};
       if (el("plinko-board")) el("plinko-board").textContent = pr.path ? "Path: " + pr.path.join(" → ") + "\nSlot: " + pr.slotIndex + " • Multiplier: " + pr.multiplier + "x" : "Path: —\nSlots: " + cfg.plinkoMultipliers.map((mult) => mult + 'x').join(' | ');
-      if (el("plinko-note")) el("plinko-note").textContent = pr.payout ? "Payout: " + fmt(pr.payout) + " chips" : "Center lands are safer. Edges are chaos.";
+      if (el("plinko-note")) {
+        el("plinko-note").textContent = pr.payout ? "Payout: " + fmt(pr.payout) + " chips" : (g.chips < cfg.CASINO_MIN_BET ? noChipsMsg : "Center lands are safer. Edges are chaos.");
+      }
     }
   };
 
@@ -974,7 +999,8 @@
       '<div id="horse-pending-bets"></div>' +
       '</div>';
     el("horse-place-bet-btn").onclick = () => {
-      if (Game.Gambling.placeBet(el("horse-bet-horse").value, el("horse-bet-type").value, parseInt(el("horse-bet-amount").value, 10) || 0)) UI.updateHorseTrack();
+      Game.Gambling.placeBet(el("horse-bet-horse").value, el("horse-bet-type").value, parseInt(el("horse-bet-amount").value, 10) || 0);
+      UI.updateHorseTrack();
     };
     built.horseTrack = true;
   };
@@ -984,13 +1010,15 @@
     Game.Gambling.ensureHorseState();
     const hs = Game.state.horses;
     const race = hs.currentRace;
+    const bettingOpen = Game.Gambling.horseBettingOpen();
+    setBtn(el("horse-place-bet-btn"), bettingOpen);
     if (race) {
       setSelectOptions(el("horse-bet-horse"), race.entries.map((entry) => ({ id: entry.id, name: entry.label })), "id", "name");
       const info = el("horse-race-info");
       if (info) {
         info.innerHTML =
           '<div class="race-countdown">' + Math.ceil(hs.nextRaceIn) + 's</div>' +
-          '<div class="race-meta-grid"><div class="race-accent-horse">Betting ' + (Game.Gambling.horseBettingOpen() ? 'OPEN' : 'LOCKED') + '</div><div>Stable: ' + hs.owned.length + ' / ' + cfg.HORSE_OWNERSHIP_LIMIT + '</div></div>' +
+          '<div class="race-meta-grid"><div class="race-accent-horse">Betting ' + (bettingOpen ? 'OPEN' : 'LOCKED') + '</div><div>Stable: ' + hs.owned.length + ' / ' + cfg.HORSE_OWNERSHIP_LIMIT + '</div></div>' +
           renderRaceField(race.entries, hs.lastRaceResult, "horse") +
           (hs.lastRaceResult ? '<div class="muted">Last winner: ' + hs.lastRaceResult.winner + ' • Passive income: ' + fmt(hs.lastRaceResult.passiveIncome || 0) + '</div>' : '<div class="muted">Eight NPC runners plus up to three of your available horses race automatically.</div>');
       }
@@ -1059,7 +1087,8 @@
       '<div id="car-pending-bets"></div>' +
       '</div>';
     el("car-place-bet-btn").onclick = () => {
-      if (Game.Gambling.placeCarBet(el("car-bet-car").value, el("car-bet-type").value, parseInt(el("car-bet-amount").value, 10) || 0)) UI.updateRaceTrack();
+      Game.Gambling.placeCarBet(el("car-bet-car").value, el("car-bet-type").value, parseInt(el("car-bet-amount").value, 10) || 0);
+      UI.updateRaceTrack();
     };
     built.raceTrack = true;
   };
@@ -1069,13 +1098,15 @@
     Game.Gambling.ensureCarState();
     const cs = Game.state.cars;
     const race = cs.currentRace;
+    const bettingOpen = Game.Gambling.carBettingOpen();
+    setBtn(el("car-place-bet-btn"), bettingOpen);
     if (race) {
       setSelectOptions(el("car-bet-car"), race.entries.map((entry) => ({ id: entry.id, name: entry.label })), "id", "name");
       const info = el("car-race-info");
       if (info) {
         info.innerHTML =
           '<div class="race-countdown">' + Math.ceil(cs.nextRaceIn) + 's</div>' +
-          '<div class="race-meta-grid"><div class="race-accent-car">Track: ' + race.track.name + '</div><div>Betting ' + (Game.Gambling.carBettingOpen() ? 'OPEN' : 'LOCKED') + '</div></div>' +
+          '<div class="race-meta-grid"><div class="race-accent-car">Track: ' + race.track.name + '</div><div>Betting ' + (bettingOpen ? 'OPEN' : 'LOCKED') + '</div></div>' +
           renderRaceField(race.entries, cs.lastRaceResult, "car") +
           (cs.lastRaceResult ? '<div class="muted">Last winner: ' + cs.lastRaceResult.winner + ' • Passive income: ' + fmt(cs.lastRaceResult.passiveIncome || 0) + '</div>' : '<div class="muted">Circuits rotate every race and reward different car setups.</div>');
       }
