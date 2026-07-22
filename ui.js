@@ -439,7 +439,8 @@
     });
 
     // Buy amount selector
-    UI._buildAmountSelectorIn(el("buy-amount-selector"));
+    const autoAmtWrap = el("buy-amount-selector");
+    if (autoAmtWrap) UI._buildAmountSelectorIn(autoAmtWrap);
     built.automation = true;
   };
 
