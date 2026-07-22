@@ -775,9 +775,10 @@
     Gambling.ensureState();
     const wager = sanitizeBet(bet);
     if (!spendChips(wager)) return false;
+    const rows = Math.max(1, (cfg.plinkoMultipliers || []).length - 1);
     const path = [];
     let rights = 0;
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < rows; i++) {
       const dir = Math.random() < 0.5 ? "L" : "R";
       path.push(dir);
       if (dir === "R") rights += 1;

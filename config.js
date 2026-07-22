@@ -1592,7 +1592,7 @@ Game.config.slotSymbols = [
   { id: "jackpot", icon: "🎰", weight: 1, payout3: 100 },
 ];
 Game.config.rouletteRedNumbers = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
-Game.config.plinkoMultipliers = [100, 25, 10, 5, 3, 5, 10, 25, 100];
+Game.config.plinkoMultipliers = [10, 3.5, 1.4, 0.6, 0.2, 0.6, 1.4, 3.5, 10];
 Game.config.casinoGames = [
   { id: "slots", label: "Slots" },
   { id: "blackjack", label: "Blackjack" },
