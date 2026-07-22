@@ -773,12 +773,12 @@
 
   Gambling.plinkoPlay = function (bet) {
     Gambling.ensureState();
-    const MIN_PLINKO_SLOTS = 2;
-    const multipliers = Array.isArray(cfg.plinkoMultipliers) && cfg.plinkoMultipliers.length >= MIN_PLINKO_SLOTS ? cfg.plinkoMultipliers : null;
-    if (!multipliers) {
-      console.error("Invalid plinkoMultipliers configuration: expected at least 2 slot multipliers.");
+    const MIN_PLINKO_MULTIPLIERS = 2;
+    if (!Array.isArray(cfg.plinkoMultipliers) || cfg.plinkoMultipliers.length < MIN_PLINKO_MULTIPLIERS) {
+      console.error("Invalid plinkoMultipliers configuration: expected at least 2 multiplier values in the array.");
       return false;
     }
+    const multipliers = cfg.plinkoMultipliers;
     const wager = sanitizeBet(bet);
     if (!spendChips(wager)) return false;
     const rows = multipliers.length - 1;
