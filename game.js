@@ -77,6 +77,7 @@
       skillCooldowns: {},
       activeSkillPowers: [],
       nextEventTime: 0,
+      population: 0,
       btc: 0,
       btcPrice: cfg.BTC_BASE_PRICE,
       btcMarketTime: 0,
@@ -504,14 +505,15 @@
     const m = Game.computeMultipliers();
     const diplomacy = Game.Diplomacy && Game.Diplomacy.getBonuses
       ? Game.Diplomacy.getBonuses()
-      : { coinsPerSecond: 0, globalMult: 1, clickMult: 1, rpMult: 1 };
+      : { coinsPerSecond: 0, globalMult: 1, clickMult: 1, rpMult: 1, happinessMult: 1 };
 
     let baseCps = 0;
     cfg.buildings.forEach((b) => {
       baseCps += Game.buildingCps(b.id, m);
     });
 
-    const cps = baseCps * m.global * diplomacy.globalMult;
+    const happinessMult = diplomacy.happinessMult || 1;
+    const cps = baseCps * m.global * diplomacy.globalMult * happinessMult;
     const gainScale = cfg.GAIN_EFFECTIVENESS_MULT || 1;
     s._cps = (cps + diplomacy.coinsPerSecond) * gainScale;
     s._baseCps = baseCps;

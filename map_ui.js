@@ -514,14 +514,22 @@
       ? '<div class="empire-buildings">' + buildingLines + '</div>'
       : '<p class="muted" style="font-size:12px">No buildings placed yet — buy buildings to populate your empire!</p>';
 
-    var diplomacyHtml = diplomacySummary
-      ? '<div class="county-summary-grid">' +
+    var diplomacyHtml = '';
+    if (diplomacySummary) {
+      var hval = diplomacySummary.happiness !== undefined ? diplomacySummary.happiness : 50;
+      var hpct = diplomacySummary.happinessPct !== undefined ? diplomacySummary.happinessPct : 0;
+      var hHtml = '<div class="county-summary-stat"><span>Happiness</span><b>' +
+        Game.happinessEmoji(hval) + ' ' + hval + ' / 100 (' + (hpct >= 0 ? '+' : '') + hpct.toFixed(1) + '% CPS)</b></div>';
+      diplomacyHtml =
+        '<div class="county-summary-grid">' +
           '<div class="county-summary-stat"><span>Diplomacy Income</span><b>+' + Game.formatNumber(diplomacySummary.coinsPerSecond) + '/s</b></div>' +
           '<div class="county-summary-stat"><span>Propaganda</span><b>' + (diplomacySummary.clickBonusPct >= 0 ? '+' : '') + diplomacySummary.clickBonusPct.toFixed(1) + '% click</b></div>' +
           '<div class="county-summary-stat"><span>Intel</span><b>' + (diplomacySummary.rpBonusPct >= 0 ? '+' : '') + diplomacySummary.rpBonusPct.toFixed(1) + '% RP</b></div>' +
           '<div class="county-summary-stat"><span>Rival Pressure</span><b>' + diplomacySummary.productionPenaltyPct.toFixed(1) + '% CPS</b></div>' +
-        '</div>'
-      : '';
+          hHtml +
+          '<div class="county-summary-stat"><span>Population</span><b>👥 ' + Game.formatNumber(s.population || 0) + '</b></div>' +
+        '</div>';
+    }
 
     if (panel) panel.innerHTML = header + desc + diplomacyHtml + buildings;
 

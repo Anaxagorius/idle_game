@@ -133,6 +133,9 @@
     s.coins -= finalCost;
     s.stats.totalCoinsSpent += finalCost;
     s.buildings[buildingId] = (s.buildings[buildingId] || 0) + amount;
+    if (buildingId === "worker") {
+      s.population = (s.population || 0) + amount;
+    }
     if (Game.MapUI) Game.MapUI.placeBuildingPin(buildingId);
     Game.recalculate();
     return amount;

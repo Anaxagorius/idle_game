@@ -37,6 +37,11 @@ function formatTime(seconds) {
 Game.formatNumber = formatNumber;
 Game.formatTime = formatTime;
 
+/** Returns an emoji representing the given happiness value (0–100). */
+Game.happinessEmoji = function (h) {
+  return h >= 75 ? "😄" : h >= 50 ? "😊" : h >= 25 ? "😐" : "😞";
+};
+
 /* --------------------------------------------------------------------------
    Global constants
    -------------------------------------------------------------------------- */
@@ -141,6 +146,13 @@ Game.config.DIPLOMACY_RELATION_INFLUENCE_FACTOR = 0.2;
 Game.config.DIPLOMACY_RELATION_SUSPICION_FACTOR = 0.5;
 Game.config.DIPLOMACY_RELATION_TARGET_MIN = -55;
 Game.config.DIPLOMACY_RELATION_TARGET_MAX = 35;
+// Happiness: derived from average county relation (-100..+100 → 0..100 scale)
+// At happiness 50 (neutral) the multiplier is 1.0; fully happy → +25%; fully unhappy → -25%.
+Game.config.HAPPINESS_MIN_MULT = 0.75;
+Game.config.HAPPINESS_MAX_MULT = 1.25;
+// Mapping constants: happiness = (relation + RELATION_OFFSET) / RELATION_SCALE
+Game.config.HAPPINESS_RELATION_OFFSET = 100;  // shifts [-100,+100] → [0,200]
+Game.config.HAPPINESS_RELATION_SCALE = 2;     // divides [0,200] → [0,100]
 Game.config.diplomacyStances = [
   { key: "allied", min: 60, label: "Allied Rival", emoji: "🤝", className: "status-allied", stroke: "#63e6be" },
   { key: "friendly", min: 25, label: "Friendly Rival", emoji: "🙂", className: "status-friendly", stroke: "#8ce99a" },
