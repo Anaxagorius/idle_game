@@ -11,13 +11,18 @@
   function resetEconomy() {
     const s = Game.state;
     s.coins = 0;
+    s.lifetimeCoins = 0;
+    s.population = 0;
+    s.clickerUpgrades = 0;
+    s.abilities = {};
+    s.nextEventTime = 0;
+    s.cycle = { phase: "stable", endTime: 0 };
     cfg.buildings.forEach((b) => (s.buildings[b.id] = 0));
     (cfg.subBuildings || []).forEach((sb) => {
       s.subBuildings[sb.id] = 0;
       s.subBuildingUpgrades[sb.id] = 0;
     });
     s.upgrades = {};
-    s.lifetimeCoins = 0;
     s.activeEvents = [];
     s.activeTalentPowers = [];
     s.activeSkillPowers = [];
@@ -37,13 +42,58 @@
     });
     s.stockTickTimer = 0;
     s.stockDividendTimer = 0;
+    s.gambling = {
+      chips: 0,
+      totalChipsWon: 0,
+      totalChipsLost: 0,
+      chipsFromCoins: 0,
+      gamesPlayed: 0,
+      gamesWon: 0,
+      slotStats: { played: 0, won: 0, bigWins: 0 },
+      blackjackStats: { played: 0, won: 0 },
+      pokerStats: { played: 0, won: 0 },
+      rouletteStats: { played: 0, won: 0 },
+      diceStats: { played: 0, won: 0 },
+      plinkoStats: { played: 0, won: 0 },
+      blackjackState: { phase: "idle", deck: [], playerHand: [], dealerHand: [], bet: 0, doubled: false, result: "" },
+      pokerState: { phase: "idle", deck: [], hand: [], held: [false, false, false, false, false], bet: 0, result: "", payout: 0 },
+    };
+    s.horses = {
+      owned: [], market: [], marketRefreshIn: 300, raceHistory: [],
+      nextRaceIn: 60, currentRace: null, pendingBets: [], lastRaceResult: null,
+      totalRaces: 0, totalWinnings: 0, totalLosses: 0,
+    };
+    s.cars = {
+      owned: [], market: [], marketRefreshIn: 600, raceHistory: [],
+      nextRaceIn: 90, currentTrackIndex: 0, currentRace: null, pendingBets: [],
+      lastRaceResult: null, totalRaces: 0, totalWinnings: 0, totalLosses: 0,
+    };
     // Clear building pins (buildings are gone), but keep the selected county
     if (s.map) s.map.pins = [];
-    s.population = 0;
     if (Game.MapUI) {
       Game.MapUI.refresh();
       Game.MapUI._updateEmpirePanel();
     }
+  }
+
+  /* Reset research, automation toggles, talents and skill trees (ascend and deeper layers) */
+  function resetMeta() {
+    const s = Game.state;
+    s.research = {};
+    s.unlocked = {};
+    s.automation.autoClick = false;
+    s.automation.autoBuy = false;
+    s.automation.autoUpgrade = false;
+    s.automation.autoResearch = false;
+    s.automation.autoPrestige = false;
+    s.automation.autoAscend = false;
+    s.godsTitans = {};
+    s.talents = {};
+    s.skillTrees = {};
+    s.talentCooldowns = {};
+    s.skillCooldowns = {};
+    s.megaProjects = {};
+    s.prestigePath = null;
   }
 
   /* ---------------------------------------------------------------------
@@ -116,44 +166,10 @@
     s.stats.ascensionCount++;
 
     // Reset everything except ascension shards, stats, achievements, milestones, settings
-    s.coins = 0;
-    s.lifetimeCoins = 0;
     s.prestigePoints = 0;
     s.researchPoints = 0;
-    cfg.buildings.forEach((b) => (s.buildings[b.id] = 0));
-    (cfg.subBuildings || []).forEach((sb) => {
-      s.subBuildings[sb.id] = 0;
-      s.subBuildingUpgrades[sb.id] = 0;
-    });
-    s.upgrades = {};
-    s.research = {};
-    s.unlocked = {};
-    s.activeEvents = [];
-    s.activeTalentPowers = [];
-    s.activeSkillPowers = [];
-    s.energy = 0;
-    s.btc = 0;
-    s.btcMarketTime = 0;
-    s.btcPrice = cfg.BTC_BASE_PRICE;
-    (cfg.energyProducers || []).forEach((p) => (s.energyProducers[p.id] = 0));
-    (cfg.btcMiners || []).forEach((m) => (s.btcMiners[m.id] = 0));
-    (cfg.batteries || []).forEach((b) => (s.batteries[b.id] = 0));
-    (cfg.coinFarmers || []).forEach((f) => (s.coinFarmers[f.id] = 0));
-    s.energyCap = cfg.BTC_BASE_ENERGY_CAP;
-    (cfg.stocks || []).forEach((st) => {
-      s.stocks[st.id] = st.basePrice;
-      s.stockHistory[st.id] = [st.basePrice];
-      s.portfolio[st.id] = { shares: 0, avgCost: 0 };
-    });
-    s.stockTickTimer = 0;
-    s.stockDividendTimer = 0;
-    // Automation toggles reset (features must be re-unlocked via research)
-    s.automation.autoClick = false;
-    s.automation.autoBuy = false;
-    s.automation.autoUpgrade = false;
-    s.automation.autoResearch = false;
-    s.automation.autoPrestige = false;
-    s.automation.autoAscend = false;
+    resetEconomy();
+    resetMeta();
 
     Game.recalculate();
     if (Game.UI && Game.UI.toast) Game.UI.toast("Ascended! +" + Game.formatNumber(shards) + " Ascension Shards", "prestige");
@@ -184,47 +200,10 @@
 
     // Reset everything except Empire Legacies+, stats, achievements, milestones, settings
     s.ascensionShards = 0;
-    s.coins = 0;
-    s.lifetimeCoins = 0;
     s.prestigePoints = 0;
     s.researchPoints = 0;
-    cfg.buildings.forEach((b) => (s.buildings[b.id] = 0));
-    (cfg.subBuildings || []).forEach((sb) => {
-      s.subBuildings[sb.id] = 0;
-      s.subBuildingUpgrades[sb.id] = 0;
-    });
-    s.upgrades = {};
-    s.research = {};
-    s.unlocked = {};
-    s.activeEvents = [];
-    s.activeTalentPowers = [];
-    s.activeSkillPowers = [];
-    s.energy = 0;
-    s.btc = 0;
-    s.btcMarketTime = 0;
-    s.btcPrice = cfg.BTC_BASE_PRICE;
-    (cfg.energyProducers || []).forEach((p) => (s.energyProducers[p.id] = 0));
-    (cfg.btcMiners || []).forEach((m) => (s.btcMiners[m.id] = 0));
-    (cfg.batteries || []).forEach((b) => (s.batteries[b.id] = 0));
-    (cfg.coinFarmers || []).forEach((f) => (s.coinFarmers[f.id] = 0));
-    s.energyCap = cfg.BTC_BASE_ENERGY_CAP;
-    (cfg.stocks || []).forEach((st) => {
-      s.stocks[st.id] = st.basePrice;
-      s.stockHistory[st.id] = [st.basePrice];
-      s.portfolio[st.id] = { shares: 0, avgCost: 0 };
-    });
-    s.stockTickTimer = 0;
-    s.stockDividendTimer = 0;
-    s.automation.autoClick = false;
-    s.automation.autoBuy = false;
-    s.automation.autoUpgrade = false;
-    s.automation.autoResearch = false;
-    s.automation.autoPrestige = false;
-    s.automation.autoAscend = false;
-    s.godsTitans = {};
-    s.talents = {};
-    s.skillTrees = {};
-    s.prestigePath = null;
+    resetEconomy();
+    resetMeta();
 
     Game.recalculate();
     if (Game.UI && Game.UI.toast) Game.UI.toast("Empire Legacy forged! +" + Game.formatNumber(legacies) + " Empire Legacies", "empire");
@@ -256,48 +235,10 @@
     // Reset everything except Time Fragments+, stats, achievements, milestones, settings
     s.empireLegacies = 0;
     s.ascensionShards = 0;
-    s.coins = 0;
-    s.lifetimeCoins = 0;
     s.prestigePoints = 0;
     s.researchPoints = 0;
-    cfg.buildings.forEach((b) => (s.buildings[b.id] = 0));
-    (cfg.subBuildings || []).forEach((sb) => {
-      s.subBuildings[sb.id] = 0;
-      s.subBuildingUpgrades[sb.id] = 0;
-    });
-    s.upgrades = {};
-    s.research = {};
-    s.unlocked = {};
-    s.activeEvents = [];
-    s.activeTalentPowers = [];
-    s.activeSkillPowers = [];
-    s.energy = 0;
-    s.btc = 0;
-    s.btcMarketTime = 0;
-    s.btcPrice = cfg.BTC_BASE_PRICE;
-    (cfg.energyProducers || []).forEach((p) => (s.energyProducers[p.id] = 0));
-    (cfg.btcMiners || []).forEach((m) => (s.btcMiners[m.id] = 0));
-    (cfg.batteries || []).forEach((b) => (s.batteries[b.id] = 0));
-    (cfg.coinFarmers || []).forEach((f) => (s.coinFarmers[f.id] = 0));
-    s.energyCap = cfg.BTC_BASE_ENERGY_CAP;
-    (cfg.stocks || []).forEach((st) => {
-      s.stocks[st.id] = st.basePrice;
-      s.stockHistory[st.id] = [st.basePrice];
-      s.portfolio[st.id] = { shares: 0, avgCost: 0 };
-    });
-    s.stockTickTimer = 0;
-    s.stockDividendTimer = 0;
-    s.automation.autoClick = false;
-    s.automation.autoBuy = false;
-    s.automation.autoUpgrade = false;
-    s.automation.autoResearch = false;
-    s.automation.autoPrestige = false;
-    s.automation.autoAscend = false;
-    s.godsTitans = {};
-    s.talents = {};
-    s.skillTrees = {};
-    s.megaProjects = {};
-    s.prestigePath = null;
+    resetEconomy();
+    resetMeta();
 
     Game.recalculate();
     if (Game.UI && Game.UI.toast) Game.UI.toast("Time Rift opened! +" + Game.formatNumber(fragments) + " Time Fragments", "empire");
@@ -330,48 +271,10 @@
     s.timeFragments = 0;
     s.empireLegacies = 0;
     s.ascensionShards = 0;
-    s.coins = 0;
-    s.lifetimeCoins = 0;
     s.prestigePoints = 0;
     s.researchPoints = 0;
-    cfg.buildings.forEach((b) => (s.buildings[b.id] = 0));
-    (cfg.subBuildings || []).forEach((sb) => {
-      s.subBuildings[sb.id] = 0;
-      s.subBuildingUpgrades[sb.id] = 0;
-    });
-    s.upgrades = {};
-    s.research = {};
-    s.unlocked = {};
-    s.activeEvents = [];
-    s.activeTalentPowers = [];
-    s.activeSkillPowers = [];
-    s.energy = 0;
-    s.btc = 0;
-    s.btcMarketTime = 0;
-    s.btcPrice = cfg.BTC_BASE_PRICE;
-    (cfg.energyProducers || []).forEach((p) => (s.energyProducers[p.id] = 0));
-    (cfg.btcMiners || []).forEach((m) => (s.btcMiners[m.id] = 0));
-    (cfg.batteries || []).forEach((b) => (s.batteries[b.id] = 0));
-    (cfg.coinFarmers || []).forEach((f) => (s.coinFarmers[f.id] = 0));
-    s.energyCap = cfg.BTC_BASE_ENERGY_CAP;
-    (cfg.stocks || []).forEach((st) => {
-      s.stocks[st.id] = st.basePrice;
-      s.stockHistory[st.id] = [st.basePrice];
-      s.portfolio[st.id] = { shares: 0, avgCost: 0 };
-    });
-    s.stockTickTimer = 0;
-    s.stockDividendTimer = 0;
-    s.automation.autoClick = false;
-    s.automation.autoBuy = false;
-    s.automation.autoUpgrade = false;
-    s.automation.autoResearch = false;
-    s.automation.autoPrestige = false;
-    s.automation.autoAscend = false;
-    s.godsTitans = {};
-    s.talents = {};
-    s.skillTrees = {};
-    s.megaProjects = {};
-    s.prestigePath = null;
+    resetEconomy();
+    resetMeta();
 
     Game.recalculate();
     if (Game.UI && Game.UI.toast) Game.UI.toast("Reality collapsed! +" + Game.formatNumber(cores) + " Reality Cores", "reality");
