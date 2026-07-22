@@ -425,7 +425,7 @@
     // Buy amount selector
     const amtWrap = el("buy-amount-selector");
     amtWrap.innerHTML = "";
-    [{ v: 1, l: "x1" }, { v: 10, l: "x10" }, { v: 100, l: "x100" }, { v: -1, l: "Max" }].forEach((o) => {
+    [{ v: 10, l: "x10" }, { v: 25, l: "x25" }, { v: 50, l: "x50" }, { v: 100, l: "x100" }, { v: 1000, l: "x1000" }, { v: -1, l: "MAX" }].forEach((o) => {
       const b = make("button", "amount-btn", o.l);
       b.dataset.amount = o.v;
       b.addEventListener("click", () => {

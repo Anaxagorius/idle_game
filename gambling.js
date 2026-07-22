@@ -773,17 +773,24 @@
 
   Gambling.plinkoPlay = function (bet) {
     Gambling.ensureState();
+    const MIN_PLINKO_MULTIPLIERS = 2;
+    if (!Array.isArray(cfg.plinkoMultipliers) || cfg.plinkoMultipliers.length < MIN_PLINKO_MULTIPLIERS) {
+      console.error("Invalid plinkoMultipliers configuration: expected at least 2 multiplier values in the array.");
+      return false;
+    }
+    const multipliers = cfg.plinkoMultipliers;
     const wager = sanitizeBet(bet);
     if (!spendChips(wager)) return false;
+    const rows = multipliers.length - 1;
     const path = [];
     let rights = 0;
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < rows; i++) {
       const dir = Math.random() < 0.5 ? "L" : "R";
       path.push(dir);
       if (dir === "R") rights += 1;
     }
     const slotIndex = rights;
-    const multiplier = cfg.plinkoMultipliers[slotIndex] || 0;
+    const multiplier = multipliers[slotIndex] || 0;
     const payout = roundCurrency(wager * multiplier);
     if (payout > 0) Game.state.gambling.chips += payout;
     scoreCasinoGame("plinkoStats", wager, payout);

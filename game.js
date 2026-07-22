@@ -65,7 +65,7 @@
         autoResearch: false,
         autoPrestige: false,
         autoAscend: false,
-        buyAmount: 1, // 1, 10, 100, or -1 for max
+        buyAmount: 10, // 10, 25, 50, 100, 1000, or -1 for max
       },
       unlocked: {}, // automation features unlocked via research
       activeEvents: [],
