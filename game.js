@@ -343,7 +343,7 @@
         m.minerEfficiency *= 1 + v;
         m.coinFarmerYield *= 1 + v;
       } else if (r.effectType === "megaproject") {
-        m.megaProjectCostMult *= Math.max(0.1, 1 - v);
+        m.megaProjectCostMult *= Math.max(MIN_MEGAPROJECT_COST_MULT, 1 - v);
       } else if (r.effectType === "casino") {
         m.casinoPayoutMult *= 1 + v;
       } else if (r.effectType === "horses") {

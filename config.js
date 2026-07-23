@@ -1215,6 +1215,7 @@ const SKILL_TREE_EFFECTS = {
     { type: "btcPriceMult", value: 0.22, penaltyType: "clickMult", penaltyMult: 0.98 },
     { type: "skillPower", powerId: "crypto_bull" },
   ],
+  // megaProjectCostMult values are cost reduction fractions; higher value = greater discount.
   foreman: [
     { type: "megaProjectCostMult", value: 0.5 },
     { type: "costReduction", value: 0.03 },
