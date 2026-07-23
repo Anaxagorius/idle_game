@@ -66,6 +66,29 @@
     return Math.max(0, Math.round(value));
   }
 
+  function casinoMult() {
+    return (Game.state._mult && Game.state._mult.casinoPayoutMult) || 1;
+  }
+
+  function horseWinMult() {
+    return (Game.state._mult && Game.state._mult.horseWinMult) || 1;
+  }
+
+  function carWinMult() {
+    return (Game.state._mult && Game.state._mult.carWinMult) || 1;
+  }
+
+  /* Applies the casino payout multiplier only to profit above the wager.
+     Push payouts (payout === wager) are returned unchanged. */
+  function applyCasinoMult(wager, rawPayout) {
+    if (rawPayout <= 0) return 0;
+    const mult = casinoMult();
+    if (mult <= 1) return rawPayout;
+    const profit = rawPayout - wager;
+    if (profit <= 0) return rawPayout;
+    return roundCurrency(wager + profit * mult);
+  }
+
   function sanitizeBet(bet) {
     const amount = Math.floor(bet || 0);
     if (amount < cfg.CASINO_MIN_BET) return 0;
@@ -531,7 +554,7 @@
       }
       if (!forceLoss || payout <= 0) break;
     }
-    if (payout > 0) Game.state.gambling.chips += payout;
+    if (payout > 0) Game.state.gambling.chips += applyCasinoMult(wager, payout);
     scoreCasinoGame("slotStats", wager, payout);
     if (payout >= wager * 10) Game.state.gambling.slotStats.bigWins += 1;
     Game.state.gambling.lastSlotsResult = reels.map((symbol) => symbol.icon);
@@ -562,7 +585,7 @@
       payout = roundCurrency(state.bet);
       state.result = "Push.";
     }
-    if (payout > 0) Game.state.gambling.chips += payout;
+    if (payout > 0) Game.state.gambling.chips += applyCasinoMult(state.bet, payout);
     state.phase = "result";
     scoreCasinoGame("blackjackStats", state.bet, payout);
     return { result: state.result, payout };
@@ -696,7 +719,7 @@
     }
     const rank = evaluatePokerHand(state.hand);
     const payout = roundCurrency(state.bet * rank.multiplier);
-    if (payout > 0) Game.state.gambling.chips += payout;
+    if (payout > 0) Game.state.gambling.chips += applyCasinoMult(state.bet, payout);
     state.payout = payout;
     state.result = rank.name + (payout > 0 ? "!" : ". Better luck next hand.");
     state.phase = "result";
@@ -738,7 +761,7 @@
     const payoutMap = { straight: 36, redblack: 2, oddeven: 2, lowhigh: 2, dozen: 3, column: 3 };
     const won = rouletteWin(number, betType, betValue);
     const payout = won ? roundCurrency(wager * (payoutMap[betType] || 0)) : 0;
-    if (payout > 0) Game.state.gambling.chips += payout;
+    if (payout > 0) Game.state.gambling.chips += applyCasinoMult(wager, payout);
     scoreCasinoGame("rouletteStats", wager, payout);
     Game.state.gambling.lastRouletteResult = { number, betType, betValue, payout };
     return { number, payout, win: payout > wager };
@@ -765,7 +788,7 @@
     } else if (betType === "exactly7" && sum === 7) {
       payout = roundCurrency(wager * 5);
     }
-    if (payout > 0) Game.state.gambling.chips += payout;
+    if (payout > 0) Game.state.gambling.chips += applyCasinoMult(wager, payout);
     scoreCasinoGame("diceStats", wager, payout);
     Game.state.gambling.lastDiceResult = { dice: [d1, d2], sum, payout, betType };
     return { dice: [d1, d2], sum, payout, win: payout > wager };
@@ -792,7 +815,7 @@
     const slotIndex = rights;
     const multiplier = multipliers[slotIndex] || 0;
     const payout = roundCurrency(wager * multiplier);
-    if (payout > 0) Game.state.gambling.chips += payout;
+    if (payout > 0) Game.state.gambling.chips += applyCasinoMult(wager, payout);
     scoreCasinoGame("plinkoStats", wager, payout);
     Game.state.gambling.lastPlinkoResult = { path, slotIndex, multiplier, payout };
     return { path, slotIndex, multiplier, payout };
@@ -974,7 +997,7 @@
       }
       if (horse.age >= 10) horse.retired = true;
     });
-    passiveIncome = roundCurrency(passiveIncome);
+    passiveIncome = roundCurrency(passiveIncome * horseWinMult());
     addCoins(passiveIncome);
 
     let betPayoutTotal = 0;
@@ -991,7 +1014,9 @@
         hs.totalLosses += bet.amount;
         return;
       }
-      const payout = roundCurrency(bet.amount * (bet.odds || 1));
+      const rawPayout = roundCurrency(bet.amount * (bet.odds || 1));
+      const profit = rawPayout - bet.amount;
+      const payout = profit > 0 ? roundCurrency(bet.amount + profit * horseWinMult()) : rawPayout;
       hs.totalWinnings += Math.max(0, payout - bet.amount);
       betPayoutTotal += payout;
     });
@@ -1207,7 +1232,7 @@
       car.fuel = clamp(car.fuel - fuelBurnBase, 0, car.fuelCapacity);
       car.condition = clamp(car.condition - wear, 0, 100);
     });
-    passiveIncome = roundCurrency(passiveIncome);
+    passiveIncome = roundCurrency(passiveIncome * carWinMult());
     addCoins(passiveIncome);
 
     let betPayoutTotal = 0;
@@ -1224,7 +1249,9 @@
         cs.totalLosses += bet.amount;
         return;
       }
-      const payout = roundCurrency(bet.amount * (bet.odds || 1));
+      const rawPayout = roundCurrency(bet.amount * (bet.odds || 1));
+      const profit = rawPayout - bet.amount;
+      const payout = profit > 0 ? roundCurrency(bet.amount + profit * carWinMult()) : rawPayout;
       cs.totalWinnings += Math.max(0, payout - bet.amount);
       betPayoutTotal += payout;
     });

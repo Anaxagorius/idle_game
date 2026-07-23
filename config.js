@@ -499,7 +499,7 @@ Game.config.upgradeMap = {};
 UPGRADES.forEach((u) => (Game.config.upgradeMap[u.id] = u));
 
 /* --------------------------------------------------------------------------
-   Research Tree (80 nodes across 5 branches)
+   Research Tree (128 nodes across 11 branches)
    -------------------------------------------------------------------------- */
 const RESEARCH_BRANCHES = {
   economics: {
@@ -552,6 +552,54 @@ const RESEARCH_BRANCHES = {
       ["Omniversal Prestige", 3000], ["Perfect Prestige", 5000], ["Infinite Loop", 7500], ["Singularity", 10000],
     ],
   },
+  stocks: {
+    name: "Market Analysis",
+    color: "#43aa8b",
+    nodes: [
+      ["Technical Analysis", 5], ["Sector Rotation", 15], ["Dividend Reinvestment", 30], ["Hedge Strategies", 60],
+      ["Arbitrage Networks", 120], ["High-Frequency Trading", 250], ["Sovereign Capital", 500], ["Market Oracle", 1000],
+    ],
+  },
+  bitcoin: {
+    name: "Cryptography",
+    color: "#ffb703",
+    nodes: [
+      ["Hash Functions", 10], ["Mining Algorithms", 20], ["ASIC Optimization", 40], ["Proof-of-Work Mastery", 80],
+      ["Energy Arbitrage", 150], ["Liquidity Pools", 300], ["Decentralized Finance", 600], ["Quantum Cryptography", 1200],
+    ],
+  },
+  megaproject: {
+    name: "Grand Engineering",
+    color: "#e07a5f",
+    nodes: [
+      ["Urban Planning", 20], ["Supply Chains", 50], ["Industrial Scale", 100], ["Advanced Logistics", 200],
+      ["Quantum Engineering", 400], ["Orbital Construction", 800], ["Stellar Architecture", 1500], ["Reality Fabrication", 3000],
+    ],
+  },
+  casino: {
+    name: "Game Theory",
+    color: "#f6c453",
+    nodes: [
+      ["Probability Theory", 10], ["Card Counting", 25], ["House Edge Analysis", 50], ["Risk Management", 100],
+      ["Applied Game Theory", 200], ["Casino Mathematics", 400], ["Statistical Mastery", 800], ["Quantum Luck", 1500],
+    ],
+  },
+  horses: {
+    name: "Equine Science",
+    color: "#8b5e3c",
+    nodes: [
+      ["Animal Husbandry", 5], ["Breeding Programs", 15], ["Nutrition Science", 30], ["Race Psychology", 60],
+      ["Veterinary Arts", 120], ["Performance Analytics", 250], ["Elite Bloodlines", 500], ["Legendary Breeding", 1000],
+    ],
+  },
+  racecar: {
+    name: "Motorsport Engineering",
+    color: "#ef476f",
+    nodes: [
+      ["Aerodynamics", 10], ["Engine Tuning", 25], ["Tire Compounds", 50], ["Pit Strategy", 100],
+      ["Telemetry Systems", 200], ["Chassis Engineering", 400], ["Hybrid Technology", 800], ["Quantum Mechanics", 1500],
+    ],
+  },
 };
 
 /* Automation feature unlocks tied to specific automation nodes */
@@ -571,11 +619,17 @@ Game.config.autoclickTierNodes = AUTOCLICK_TIER_NODES;
 
 const RESEARCH = [];
 const branchEffectBase = {
-  economics: { type: "coin", base: 0.1 },
-  industry: { type: "building", base: 0.12 },
-  science: { type: "global", base: 0.1 },
-  automation: { type: "automation", base: 0.08 },
-  prestige: { type: "prestige", base: 0.2 },
+  economics:   { type: "coin",        base: 0.1 },
+  industry:    { type: "building",    base: 0.12 },
+  science:     { type: "global",      base: 0.1 },
+  automation:  { type: "automation",  base: 0.08 },
+  prestige:    { type: "prestige",    base: 0.2 },
+  stocks:      { type: "stocks",      base: 0.1 },
+  bitcoin:     { type: "bitcoin",     base: 0.1 },
+  megaproject: { type: "megaproject", base: 0.6 },
+  casino:      { type: "casino",      base: 0.1 },
+  horses:      { type: "horses",      base: 0.1 },
+  racecar:     { type: "racecar",     base: 0.1 },
 };
 
 /* Convert a raw bonus value to a display percentage string, rounded to one decimal place.
@@ -602,6 +656,12 @@ Object.keys(RESEARCH_BRANCHES).forEach((branchKey) => {
       if (AUTOMATION_UNLOCKS[id]) desc = "Unlocks " + AUTOMATION_UNLOCKS[id] + " automation. ";
       desc += "+" + scaledPct + "% global production.";
     }
+    else if (eff.type === "stocks")      desc = "+" + scaledPct + "% stock dividend returns and fee reduction.";
+    else if (eff.type === "bitcoin")     desc = "+" + scaledPct + "% miner efficiency and coin farmer yield.";
+    else if (eff.type === "megaproject") desc = "-" + scaledPct + "% mega project costs.";
+    else if (eff.type === "casino")      desc = "+" + scaledPct + "% casino payout multiplier.";
+    else if (eff.type === "horses")      desc = "+" + scaledPct + "% horse race winnings.";
+    else if (eff.type === "racecar")     desc = "+" + scaledPct + "% car race winnings.";
     RESEARCH.push({
       id,
       branch: branchKey,
@@ -1020,25 +1080,37 @@ GODS_TITANS.forEach((gt) => {
    Skill Trees (8 branches x 8 nodes)
    -------------------------------------------------------------------------- */
 const SKILL_TREE_BRANCHES = {
-  civic: { name: "Civic", color: "#f6c453" },
-  engineering: { name: "Engineering", color: "#e07a5f" },
-  education: { name: "Education", color: "#4ea8de" },
-  spiritual: { name: "Spiritual", color: "#b388eb" },
-  military: { name: "Military", color: "#ef476f" },
-  hashforge: { name: "Hash Forge", color: "#48cae4" },
-  energygrid: { name: "Energy Grid", color: "#90e0ef" },
-  blockchain: { name: "Blockchain", color: "#ffb703" },
+  civic:        { name: "Civic",        color: "#f6c453" },
+  engineering:  { name: "Engineering",  color: "#e07a5f" },
+  education:    { name: "Education",    color: "#4ea8de" },
+  spiritual:    { name: "Spiritual",    color: "#b388eb" },
+  military:     { name: "Military",     color: "#ef476f" },
+  hashforge:    { name: "Hash Forge",   color: "#48cae4" },
+  energygrid:   { name: "Energy Grid",  color: "#90e0ef" },
+  blockchain:   { name: "Blockchain",   color: "#ffb703" },
+  trading:      { name: "Trading",      color: "#43aa8b" },
+  cryptomarket: { name: "Crypto Market", color: "#fb8500" },
+  foreman:      { name: "Foreman",      color: "#a8dadc" },
+  gambler:      { name: "Gambler",      color: "#f4a261" },
+  breeder:      { name: "Breeder",      color: "#8b5e3c" },
+  motorsport:   { name: "Motorsport",   color: "#e63946" },
 };
 
 const SKILL_TREE_NAMES = {
-  civic: ["Town Hall Charters", "Civil Services", "Public Works", "Policy Coordination", "Bureau of Trade", "Urban Harmonization", "Grand Senate", "Unified Commonwealth"],
-  engineering: ["Blueprint Standards", "Precision Tooling", "Process Control", "Industrial Optimization", "Power Architecture", "Deep Infrastructure", "Megaproject Cadence", "Singularity Fabrication"],
-  education: ["Literacy Program", "Open Libraries", "Scholarly Exchange", "Applied Academia", "Research Consortium", "Experimental Campus", "Think Tank Assembly", "Cognitive Nexus"],
-  spiritual: ["Temple Network", "Ritual Discipline", "Pilgrim Unity", "Meditative Economy", "Sacred Oaths", "Harmony Doctrine", "Transcendent Creed", "Eternal Chorus"],
-  military: ["Logistics Corps", "Drill Grounds", "Tactical Schools", "Armor Works", "Fleet Doctrine", "War Office", "Combined Arms", "Strategic Command"],
-  hashforge: ["Finger Conditioning", "Click Cadence", "Reflex Overdrive", "Input Pipeline", "Burst Protocol", "Hyper Tapping", "Neural Rhythm", "Mythic Throughput"],
-  energygrid: ["Capacitor Discipline", "Battery Standards", "Collector Crews", "Grid Balancing", "Thermal Routing", "Reserve Margins", "Regional Microgrids", "Black Start Doctrine"],
-  blockchain: ["Cold Wallets", "Hash Boards", "Liquidity Routing", "Validator Swarms", "Difficulty Games", "Market Timing", "Chain Foundries", "Blockspace Dominion"],
+  civic:        ["Town Hall Charters", "Civil Services", "Public Works", "Policy Coordination", "Bureau of Trade", "Urban Harmonization", "Grand Senate", "Unified Commonwealth"],
+  engineering:  ["Blueprint Standards", "Precision Tooling", "Process Control", "Industrial Optimization", "Power Architecture", "Deep Infrastructure", "Megaproject Cadence", "Singularity Fabrication"],
+  education:    ["Literacy Program", "Open Libraries", "Scholarly Exchange", "Applied Academia", "Research Consortium", "Experimental Campus", "Think Tank Assembly", "Cognitive Nexus"],
+  spiritual:    ["Temple Network", "Ritual Discipline", "Pilgrim Unity", "Meditative Economy", "Sacred Oaths", "Harmony Doctrine", "Transcendent Creed", "Eternal Chorus"],
+  military:     ["Logistics Corps", "Drill Grounds", "Tactical Schools", "Armor Works", "Fleet Doctrine", "War Office", "Combined Arms", "Strategic Command"],
+  hashforge:    ["Finger Conditioning", "Click Cadence", "Reflex Overdrive", "Input Pipeline", "Burst Protocol", "Hyper Tapping", "Neural Rhythm", "Mythic Throughput"],
+  energygrid:   ["Capacitor Discipline", "Battery Standards", "Collector Crews", "Grid Balancing", "Thermal Routing", "Reserve Margins", "Regional Microgrids", "Black Start Doctrine"],
+  blockchain:   ["Cold Wallets", "Hash Boards", "Liquidity Routing", "Validator Swarms", "Difficulty Games", "Market Timing", "Chain Foundries", "Blockspace Dominion"],
+  trading:      ["Market Entry", "Trend Reading", "Volume Analysis", "Portfolio Balancing", "Swing Trading", "Dark Pool Access", "Algorithmic Edge", "Market Dominance"],
+  cryptomarket: ["Cold Storage", "Wallet Security", "DeFi Protocols", "Yield Farming", "NFT Liquidity", "Market Making", "Flash Loans", "Omnichain Oracle"],
+  foreman:      ["Site Survey", "Procurement Office", "Project Management", "Modular Construction", "Fast Tracking", "Value Engineering", "Megascale Assembly", "Monument Builder"],
+  gambler:      ["Lucky Draw", "Card Shark", "House Rules", "Comp System", "Edge Calculator", "Monte Carlo", "VIP Circuit", "Casino Dynasty"],
+  breeder:      ["Foal Selection", "Paddock Discipline", "Track Preparation", "Jockey Bond", "Race Conditioning", "Champion Bloodline", "Cup Contender", "Dynasty Steed"],
+  motorsport:   ["Qualifying Prep", "Pit Lane Mastery", "Suspension Tuning", "Driver Data", "Team Coordination", "Wind Tunnel Access", "Racing Line Mastery", "Grand Prix Legend"],
 };
 
 const SKILL_TREE_EFFECTS = {
@@ -1122,6 +1194,66 @@ const SKILL_TREE_EFFECTS = {
     { type: "btcPriceMult", value: 0.12, penaltyType: "globalMult", penaltyMult: 0.985 },
     { type: "skillPower", powerId: "hash_surge" },
   ],
+  trading: [
+    { type: "stockFeeReduction", value: 0.1 },
+    { type: "stockDividendMult", value: 0.12 },
+    { type: "globalMult", value: 0.04 },
+    { type: "stockFeeReduction", value: 0.14 },
+    { type: "stockDividendMult", value: 0.18, penaltyType: "rpMult", penaltyMult: 0.97 },
+    { type: "stockInsight", value: 1 },
+    { type: "stockFeeReduction", value: 0.18, penaltyType: "globalMult", penaltyMult: 0.985 },
+    { type: "skillPower", powerId: "market_surge" },
+  ],
+  cryptomarket: [
+    { type: "btcPriceMult", value: 0.1 },
+    { type: "coinFarmerYield", value: 0.12 },
+    { type: "btcPriceMult", value: 0.14 },
+    { type: "coinFarmerYield", value: 0.16 },
+    { type: "btcPriceMult", value: 0.18, penaltyType: "energyProduction", penaltyMult: 0.97 },
+    { type: "coinFarmerYield", value: 0.2, penaltyType: "globalMult", penaltyMult: 0.985 },
+    { type: "btcPriceMult", value: 0.22, penaltyType: "clickMult", penaltyMult: 0.98 },
+    { type: "skillPower", powerId: "crypto_bull" },
+  ],
+  foreman: [
+    { type: "megaProjectCostMult", value: 0.5 },
+    { type: "costReduction", value: 0.03 },
+    { type: "megaProjectCostMult", value: 0.6 },
+    { type: "globalMult", value: 0.04 },
+    { type: "megaProjectCostMult", value: 0.8, penaltyType: "rpMult", penaltyMult: 0.97 },
+    { type: "costReduction", value: 0.04, penaltyType: "clickMult", penaltyMult: 0.98 },
+    { type: "megaProjectCostMult", value: 1.0, penaltyType: "globalMult", penaltyMult: 0.985 },
+    { type: "skillPower", powerId: "grand_vision" },
+  ],
+  gambler: [
+    { type: "casinoPayoutMult", value: 0.1 },
+    { type: "casinoPayoutMult", value: 0.12 },
+    { type: "globalMult", value: 0.03 },
+    { type: "casinoPayoutMult", value: 0.14 },
+    { type: "casinoPayoutMult", value: 0.18, penaltyType: "rpMult", penaltyMult: 0.97 },
+    { type: "globalMult", value: 0.04, penaltyType: "clickMult", penaltyMult: 0.98 },
+    { type: "casinoPayoutMult", value: 0.22, penaltyType: "globalMult", penaltyMult: 0.985 },
+    { type: "skillPower", powerId: "lucky_streak" },
+  ],
+  breeder: [
+    { type: "horseWinMult", value: 0.1 },
+    { type: "globalMult", value: 0.03 },
+    { type: "horseWinMult", value: 0.12 },
+    { type: "horseWinMult", value: 0.15 },
+    { type: "horseWinMult", value: 0.18, penaltyType: "globalMult", penaltyMult: 0.985 },
+    { type: "globalMult", value: 0.04, penaltyType: "clickMult", penaltyMult: 0.98 },
+    { type: "horseWinMult", value: 0.22, penaltyType: "costReduction", penaltyMult: 1.02 },
+    { type: "skillPower", powerId: "championship_form" },
+  ],
+  motorsport: [
+    { type: "carWinMult", value: 0.1 },
+    { type: "globalMult", value: 0.03 },
+    { type: "carWinMult", value: 0.12 },
+    { type: "carWinMult", value: 0.15 },
+    { type: "carWinMult", value: 0.18, penaltyType: "globalMult", penaltyMult: 0.985 },
+    { type: "globalMult", value: 0.04, penaltyType: "clickMult", penaltyMult: 0.98 },
+    { type: "carWinMult", value: 0.22, penaltyType: "costReduction", penaltyMult: 1.02 },
+    { type: "skillPower", powerId: "pole_position" },
+  ],
 };
 
 const SKILL_BASE_COST = 12;
@@ -1129,9 +1261,15 @@ const SKILL_COST_INCREMENT = 8;
 // Hash Forge offers strong click scaling, so its node costs are slightly higher.
 const HASHFORGE_COST_MULTIPLIER = 1.05;
 const SKILL_POWER_DESCRIPTIONS = {
-  grid_overdrive: "Unlock power: Grid Overdrive.",
-  hash_surge: "Unlock power: Hash Surge.",
-  research_burst: "Unlock power: Research Burst.",
+  grid_overdrive:     "Unlock power: Grid Overdrive.",
+  hash_surge:         "Unlock power: Hash Surge.",
+  research_burst:     "Unlock power: Research Burst.",
+  market_surge:       "Unlock power: Market Surge.",
+  crypto_bull:        "Unlock power: Crypto Bull.",
+  grand_vision:       "Unlock power: Grand Vision.",
+  lucky_streak:       "Unlock power: Lucky Streak.",
+  championship_form:  "Unlock power: Championship Form.",
+  pole_position:      "Unlock power: Pole Position.",
 };
 const SKILL_TREE_NODES = [];
 Object.keys(SKILL_TREE_NAMES).forEach((branch) => {
@@ -1161,9 +1299,14 @@ Object.keys(SKILL_TREE_NAMES).forEach((branch) => {
     else if (effect.type === "btcClick") desc = "+" + scaledDisplayPct(effect.value) + "% manual bitcoin farming.";
     else if (effect.type === "coinFarmerYield") desc = "+" + scaledDisplayPct(effect.value) + "% coin farmer yield.";
     else if (effect.type === "stockFeeReduction") desc = "Reduce stock trade fees.";
+    else if (effect.type === "stockDividendMult") desc = "+" + scaledDisplayPct(effect.value) + "% stock dividend payout.";
     else if (effect.type === "stockInsight") desc = "Unlock stock trend insight.";
     else if (effect.type === "clickCpsFractionMult") desc = "Clicks gain more from CPS.";
     else if (effect.type === "autoClickBoost") desc = "Boost auto-click speed.";
+    else if (effect.type === "casinoPayoutMult") desc = "+" + scaledDisplayPct(effect.value) + "% casino payout.";
+    else if (effect.type === "horseWinMult") desc = "+" + scaledDisplayPct(effect.value) + "% horse race winnings.";
+    else if (effect.type === "carWinMult") desc = "+" + scaledDisplayPct(effect.value) + "% car race winnings.";
+    else if (effect.type === "megaProjectCostMult") desc = "-" + scaledDisplayPct(effect.value) + "% mega project costs.";
     else if (effect.type === "skillPower") desc = SKILL_POWER_DESCRIPTIONS[effect.powerId] || "Unlock power.";
     if (effect.penaltyType) desc += " Tradeoff applies.";
     SKILL_TREE_NODES.push({
@@ -1224,6 +1367,73 @@ Game.config.skillPowers = {
       { type: "minerEfficiency", mult: 2.5 },
       { type: "btcClick", mult: 2.2 },
       { type: "coinFarmerYield", mult: 1.8 },
+      { type: "globalMult", mult: 0.92 },
+    ],
+  },
+  market_surge: {
+    id: "market_surge",
+    name: "Market Surge",
+    desc: "Trigger a bull run: stock dividends pay out at 2.5× but empire production slows.",
+    duration: 30,
+    cooldown: 240,
+    effects: [
+      { type: "stockDividendMult", mult: 2.5 },
+      { type: "globalMult", mult: 0.88 },
+    ],
+  },
+  crypto_bull: {
+    id: "crypto_bull",
+    name: "Crypto Bull",
+    desc: "BTC price and coin farmer yield spike, but energy production lags.",
+    duration: 35,
+    cooldown: 250,
+    effects: [
+      { type: "btcPriceMult", mult: 2.2 },
+      { type: "coinFarmerYield", mult: 1.8 },
+      { type: "energyProduction", mult: 0.75 },
+    ],
+  },
+  grand_vision: {
+    id: "grand_vision",
+    name: "Grand Vision",
+    desc: "Mega project costs are halved and global production rises briefly.",
+    duration: 40,
+    cooldown: 320,
+    effects: [
+      { type: "megaProjectCostMult", mult: 0.5 },
+      { type: "globalMult", mult: 1.3 },
+    ],
+  },
+  lucky_streak: {
+    id: "lucky_streak",
+    name: "Lucky Streak",
+    desc: "Casino payouts triple for a short window, but your empire's focus wavers.",
+    duration: 25,
+    cooldown: 240,
+    effects: [
+      { type: "casinoPayoutMult", mult: 3.0 },
+      { type: "globalMult", mult: 0.85 },
+    ],
+  },
+  championship_form: {
+    id: "championship_form",
+    name: "Championship Form",
+    desc: "Your horses perform at their absolute peak, tripling race winnings.",
+    duration: 60,
+    cooldown: 300,
+    effects: [
+      { type: "horseWinMult", mult: 3.0 },
+      { type: "globalMult", mult: 0.92 },
+    ],
+  },
+  pole_position: {
+    id: "pole_position",
+    name: "Pole Position",
+    desc: "Your cars dominate the track, tripling car race winnings.",
+    duration: 60,
+    cooldown: 300,
+    effects: [
+      { type: "carWinMult", mult: 3.0 },
       { type: "globalMult", mult: 0.92 },
     ],
   },
