@@ -7,6 +7,11 @@
   const cfg = Game.config;
   const MegaProjects = {};
 
+  function getCostMult() {
+    const m = Game.state._mult;
+    return (m && m.megaProjectCostMult != null) ? m.megaProjectCostMult : 1;
+  }
+
   /* Check whether the player has completed a project. */
   MegaProjects.completed = function (id) {
     return !!(Game.state.megaProjects && Game.state.megaProjects[id]);
@@ -18,12 +23,13 @@
     if (!proj || MegaProjects.completed(id)) return false;
     const s = Game.state;
     const costs = proj.costs || {};
-    if (costs.coins           && s.coins              < costs.coins)           return false;
-    if (costs.researchPoints  && s.researchPoints      < costs.researchPoints)  return false;
-    if (costs.ascensionShards && s.ascensionShards     < costs.ascensionShards) return false;
-    if (costs.empireLegacies  && (s.empireLegacies||0) < costs.empireLegacies)  return false;
-    if (costs.timeFragments   && (s.timeFragments||0)  < costs.timeFragments)   return false;
-    if (costs.realityCores    && (s.realityCores||0)   < costs.realityCores)    return false;
+    const costMult = getCostMult();
+    if (costs.coins           && s.coins              < costs.coins           * costMult) return false;
+    if (costs.researchPoints  && s.researchPoints      < costs.researchPoints  * costMult) return false;
+    if (costs.ascensionShards && s.ascensionShards     < costs.ascensionShards * costMult) return false;
+    if (costs.empireLegacies  && (s.empireLegacies||0) < costs.empireLegacies  * costMult) return false;
+    if (costs.timeFragments   && (s.timeFragments||0)  < costs.timeFragments   * costMult) return false;
+    if (costs.realityCores    && (s.realityCores||0)   < costs.realityCores    * costMult) return false;
     return true;
   };
 
@@ -33,14 +39,15 @@
     if (!proj || !MegaProjects.canAfford(id)) return false;
     const s = Game.state;
     const costs = proj.costs || {};
+    const costMult = getCostMult();
 
     // Deduct costs
-    if (costs.coins)           s.coins              -= costs.coins;
-    if (costs.researchPoints)  s.researchPoints      -= costs.researchPoints;
-    if (costs.ascensionShards) s.ascensionShards     -= costs.ascensionShards;
-    if (costs.empireLegacies)  s.empireLegacies      = (s.empireLegacies||0)  - costs.empireLegacies;
-    if (costs.timeFragments)   s.timeFragments        = (s.timeFragments||0)   - costs.timeFragments;
-    if (costs.realityCores)    s.realityCores         = (s.realityCores||0)    - costs.realityCores;
+    if (costs.coins)           s.coins              -= costs.coins           * costMult;
+    if (costs.researchPoints)  s.researchPoints      -= costs.researchPoints  * costMult;
+    if (costs.ascensionShards) s.ascensionShards     -= costs.ascensionShards * costMult;
+    if (costs.empireLegacies)  s.empireLegacies       = (s.empireLegacies||0)  - costs.empireLegacies  * costMult;
+    if (costs.timeFragments)   s.timeFragments        = (s.timeFragments||0)   - costs.timeFragments   * costMult;
+    if (costs.realityCores)    s.realityCores         = (s.realityCores||0)    - costs.realityCores    * costMult;
 
     if (!s.megaProjects) s.megaProjects = {};
     s.megaProjects[id] = true;
@@ -61,13 +68,14 @@
     if (MegaProjects.completed(id)) return 1;
     const s = Game.state;
     const costs = proj.costs || {};
+    const costMult = getCostMult();
     let minRatio = Infinity;
-    if (costs.coins)           minRatio = Math.min(minRatio, s.coins / costs.coins);
-    if (costs.researchPoints)  minRatio = Math.min(minRatio, s.researchPoints / costs.researchPoints);
-    if (costs.ascensionShards) minRatio = Math.min(minRatio, (s.ascensionShards||0) / costs.ascensionShards);
-    if (costs.empireLegacies)  minRatio = Math.min(minRatio, (s.empireLegacies||0)  / costs.empireLegacies);
-    if (costs.timeFragments)   minRatio = Math.min(minRatio, (s.timeFragments||0)   / costs.timeFragments);
-    if (costs.realityCores)    minRatio = Math.min(minRatio, (s.realityCores||0)    / costs.realityCores);
+    if (costs.coins)           minRatio = Math.min(minRatio, s.coins / (costs.coins * costMult));
+    if (costs.researchPoints)  minRatio = Math.min(minRatio, s.researchPoints / (costs.researchPoints * costMult));
+    if (costs.ascensionShards) minRatio = Math.min(minRatio, (s.ascensionShards||0) / (costs.ascensionShards * costMult));
+    if (costs.empireLegacies)  minRatio = Math.min(minRatio, (s.empireLegacies||0)  / (costs.empireLegacies  * costMult));
+    if (costs.timeFragments)   minRatio = Math.min(minRatio, (s.timeFragments||0)   / (costs.timeFragments   * costMult));
+    if (costs.realityCores)    minRatio = Math.min(minRatio, (s.realityCores||0)    / (costs.realityCores    * costMult));
     return minRatio === Infinity ? 0 : Math.min(1, Math.max(0, minRatio));
   };
 

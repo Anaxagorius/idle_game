@@ -189,6 +189,7 @@
   Game.computeMultipliers = function () {
     const s = Game.state;
     const bonusScale = cfg.BONUS_EFFECTIVENESS_MULT || 1;
+    const MIN_MEGAPROJECT_COST_MULT = 0.1;
     function scaleBonus(value) {
       return (value || 0) * bonusScale;
     }
@@ -238,6 +239,10 @@
       clickerPenalty: 1,
       stockDividendMult: 1,
       btcIncomeBoost: 0,
+      casinoPayoutMult: 1,
+      horseWinMult: 1,
+      carWinMult: 1,
+      megaProjectCostMult: 1,
     };
 
     function applyEffect(effect) {
@@ -291,6 +296,17 @@
         m.stockDividendMult *= mv;
       } else if (type === "btcIncomeBoost") {
         m.btcIncomeBoost += effect.value || 0;
+      } else if (type === "casinoPayoutMult") {
+        m.casinoPayoutMult *= effectMultiplier;
+      } else if (type === "horseWinMult") {
+        m.horseWinMult *= effectMultiplier;
+      } else if (type === "carWinMult") {
+        m.carWinMult *= effectMultiplier;
+      } else if (type === "megaProjectCostMult") {
+        const value = scaleBonus(effect.value || 0);
+        const reduction = effect.mult !== undefined ? effect.mult : 1 - value;
+        m.megaProjectCostMult *= reduction;
+        m.megaProjectCostMult = Math.max(MIN_MEGAPROJECT_COST_MULT, m.megaProjectCostMult);
       } else if (type === "buildingMult") {
         const buildingId = effect.building;
         if (!buildingId) return;
@@ -320,6 +336,20 @@
       } else if (r.effectType === "prestige") {
         m.researchPrestige *= 1 + v;
         m.prestigeGain *= 1 + v;
+      } else if (r.effectType === "stocks") {
+        m.stockDividendMult *= 1 + v;
+        m.stockFeeReduction *= 1 + v;
+      } else if (r.effectType === "bitcoin") {
+        m.minerEfficiency *= 1 + v;
+        m.coinFarmerYield *= 1 + v;
+      } else if (r.effectType === "megaproject") {
+        m.megaProjectCostMult *= Math.max(MIN_MEGAPROJECT_COST_MULT, 1 - v);
+      } else if (r.effectType === "casino") {
+        m.casinoPayoutMult *= 1 + v;
+      } else if (r.effectType === "horses") {
+        m.horseWinMult *= 1 + v;
+      } else if (r.effectType === "racecar") {
+        m.carWinMult *= 1 + v;
       }
     });
 
