@@ -626,6 +626,7 @@ const branchEffectBase = {
   prestige:    { type: "prestige",    base: 0.2 },
   stocks:      { type: "stocks",      base: 0.1 },
   bitcoin:     { type: "bitcoin",     base: 0.1 },
+  // Higher base (0.6) because this is a cost reduction (1 - value), not a gain multiplier.
   megaproject: { type: "megaproject", base: 0.6 },
   casino:      { type: "casino",      base: 0.1 },
   horses:      { type: "horses",      base: 0.1 },

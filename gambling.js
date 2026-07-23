@@ -66,17 +66,13 @@
     return Math.max(0, Math.round(value));
   }
 
-  function casinoMult() {
-    return (Game.state._mult && Game.state._mult.casinoPayoutMult) || 1;
+  function getStateMult(key) {
+    return (Game.state._mult && Game.state._mult[key]) || 1;
   }
 
-  function horseWinMult() {
-    return (Game.state._mult && Game.state._mult.horseWinMult) || 1;
-  }
-
-  function carWinMult() {
-    return (Game.state._mult && Game.state._mult.carWinMult) || 1;
-  }
+  function casinoMult() { return getStateMult("casinoPayoutMult"); }
+  function horseWinMult() { return getStateMult("horseWinMult"); }
+  function carWinMult() { return getStateMult("carWinMult"); }
 
   /* Applies the casino payout multiplier only to profit above the wager.
      Push payouts (payout === wager) are returned unchanged. */

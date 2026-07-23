@@ -7,6 +7,11 @@
   const cfg = Game.config;
   const MegaProjects = {};
 
+  function getCostMult() {
+    const m = Game.state._mult;
+    return (m && m.megaProjectCostMult != null) ? m.megaProjectCostMult : 1;
+  }
+
   /* Check whether the player has completed a project. */
   MegaProjects.completed = function (id) {
     return !!(Game.state.megaProjects && Game.state.megaProjects[id]);
@@ -18,7 +23,7 @@
     if (!proj || MegaProjects.completed(id)) return false;
     const s = Game.state;
     const costs = proj.costs || {};
-    const costMult = (s._mult && s._mult.megaProjectCostMult != null) ? s._mult.megaProjectCostMult : 1;
+    const costMult = getCostMult();
     if (costs.coins           && s.coins              < costs.coins           * costMult) return false;
     if (costs.researchPoints  && s.researchPoints      < costs.researchPoints  * costMult) return false;
     if (costs.ascensionShards && s.ascensionShards     < costs.ascensionShards * costMult) return false;
@@ -34,7 +39,7 @@
     if (!proj || !MegaProjects.canAfford(id)) return false;
     const s = Game.state;
     const costs = proj.costs || {};
-    const costMult = (s._mult && s._mult.megaProjectCostMult != null) ? s._mult.megaProjectCostMult : 1;
+    const costMult = getCostMult();
 
     // Deduct costs
     if (costs.coins)           s.coins              -= costs.coins           * costMult;
@@ -63,7 +68,7 @@
     if (MegaProjects.completed(id)) return 1;
     const s = Game.state;
     const costs = proj.costs || {};
-    const costMult = (s._mult && s._mult.megaProjectCostMult != null) ? s._mult.megaProjectCostMult : 1;
+    const costMult = getCostMult();
     let minRatio = Infinity;
     if (costs.coins)           minRatio = Math.min(minRatio, s.coins / (costs.coins * costMult));
     if (costs.researchPoints)  minRatio = Math.min(minRatio, s.researchPoints / (costs.researchPoints * costMult));

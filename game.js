@@ -189,6 +189,7 @@
   Game.computeMultipliers = function () {
     const s = Game.state;
     const bonusScale = cfg.BONUS_EFFECTIVENESS_MULT || 1;
+    const MIN_MEGAPROJECT_COST_MULT = 0.1;
     function scaleBonus(value) {
       return (value || 0) * bonusScale;
     }
@@ -305,7 +306,7 @@
         const value = scaleBonus(effect.value || 0);
         const reduction = effect.mult !== undefined ? effect.mult : 1 - value;
         m.megaProjectCostMult *= reduction;
-        m.megaProjectCostMult = Math.max(0.1, m.megaProjectCostMult);
+        m.megaProjectCostMult = Math.max(MIN_MEGAPROJECT_COST_MULT, m.megaProjectCostMult);
       } else if (type === "buildingMult") {
         const buildingId = effect.building;
         if (!buildingId) return;
