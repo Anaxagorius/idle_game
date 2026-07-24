@@ -49,10 +49,26 @@
     return portfolioEntry ? Math.max(0, Math.floor(portfolioEntry.shares || 0)) : 0;
   }
 
+  function getPositiveBasePrice(st, fallback) {
+    if (typeof st.basePrice === "number" && st.basePrice > 0) return st.basePrice;
+    const key = st.id + ":basePricePositive";
+    if (!missingFieldWarnings[key] && missingFieldWarningCount < MAX_MISSING_FIELD_WARNINGS) {
+      missingFieldWarnings[key] = true;
+      missingFieldWarningCount++;
+      console.warn("Stock config basePrice must be > 0:", st.id, "using fallback", fallback);
+    }
+    return fallback;
+  }
+
   function pickRegime() {
     const roll = Math.random();
-    const bullChance = cfg.STOCK_REGIME_BULL_CHANCE || 0.28;
-    const bearChance = cfg.STOCK_REGIME_BEAR_CHANCE || 0.32;
+    let bullChance = Math.max(0, cfg.STOCK_REGIME_BULL_CHANCE || 0.28);
+    let bearChance = Math.max(0, cfg.STOCK_REGIME_BEAR_CHANCE || 0.32);
+    const total = bullChance + bearChance;
+    if (total > 1) {
+      bullChance /= total;
+      bearChance /= total;
+    }
     if (roll < bullChance) return 1;
     if (roll < bullChance + bearChance) return -1;
     return 0;
@@ -62,7 +78,8 @@
     const yieldRate = st.dividendYield || 0;
     if (yieldRate <= 0) return false;
     const minMult = cfg.STOCK_DIVIDEND_MIN_PRICE_MULT || 0;
-    if (minMult > 0 && price < st.basePrice * minMult) return false;
+    const basePrice = getPositiveBasePrice(st, cfg.STOCK_MIN_BASE_PRICE || 0.01);
+    if (minMult > 0 && price < basePrice * minMult) return false;
     return true;
   }
 
@@ -280,8 +297,8 @@
         const volatility = stockFieldWithFallback(st, "volatility", defaultVolatility);
         const sectorDrift = (st.drift + (Math.random() - 0.5) * volatility) * cycleDriftMult;
         const correlated = eventShift * (cfg.STOCK_EVENT_CORRELATION_MIN + Math.random() * cfg.STOCK_EVENT_CORRELATION_RANGE);
-        const targetBasePrice = st.basePrice;
-        const safeBasePrice = Math.max(minBasePrice, Math.abs(targetBasePrice));
+        const targetBasePrice = getPositiveBasePrice(st, minBasePrice);
+        const safeBasePrice = Math.max(minBasePrice, targetBasePrice);
         const revert = ((targetBasePrice - price) / safeBasePrice) * meanReversion;
         const next = price * (1 + marketMove * beta + sectorDrift + correlated + revert);
         const minPrice = Math.max(1, st.basePrice * minPriceMult);
