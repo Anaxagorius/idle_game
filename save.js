@@ -77,6 +77,12 @@
     if (!fresh.stocks || typeof fresh.stocks !== "object") fresh.stocks = {};
     if (!fresh.stockHistory || typeof fresh.stockHistory !== "object") fresh.stockHistory = {};
     if (!fresh.portfolio || typeof fresh.portfolio !== "object") fresh.portfolio = {};
+    if (typeof fresh.stockBuyAmount !== "number") fresh.stockBuyAmount = 1;
+    if (![1, 10, 25, 50, 100, 1000, -1].includes(fresh.stockBuyAmount)) fresh.stockBuyAmount = 1;
+    if (typeof fresh.stockMarketRegime !== "number") fresh.stockMarketRegime = 0;
+    if (typeof fresh.stockRegimeTimer !== "number") fresh.stockRegimeTimer = 0;
+    if (typeof fresh.stockDividendLastPayout !== "number") fresh.stockDividendLastPayout = 0;
+    if (typeof fresh.stockDividendLifetime !== "number") fresh.stockDividendLifetime = 0;
     (cfg.energyProducers || []).forEach((p) => {
       if (typeof fresh.energyProducers[p.id] !== "number") fresh.energyProducers[p.id] = 0;
     });

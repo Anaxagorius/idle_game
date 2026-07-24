@@ -135,6 +135,11 @@
       },
       stockTickTimer: 0,
       stockDividendTimer: 0,
+      stockBuyAmount: 1,
+      stockMarketRegime: 0,
+      stockRegimeTimer: 0,
+      stockDividendLastPayout: 0,
+      stockDividendLifetime: 0,
       stats: {
         totalClicks: 0,
         totalCoinsSpent: 0,
