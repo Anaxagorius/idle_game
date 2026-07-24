@@ -7,6 +7,7 @@
   const cfg = Game.config;
   const Stocks = {};
   const TRADE_AMOUNTS = [1, 10, 25, 50, 100, 1000, -1];
+  const missingFieldWarnings = {};
 
   function ensureState() {
     const s = Game.state;
@@ -29,6 +30,16 @@
     const min = cfg.STOCK_REGIME_MIN_SECONDS || 45;
     const max = cfg.STOCK_REGIME_MAX_SECONDS || 180;
     return min + Math.random() * Math.max(1, max - min);
+  }
+
+  function stockFieldWithFallback(st, field, fallback) {
+    if (typeof st[field] === "number") return st[field];
+    const key = st.id + ":" + field;
+    if (!missingFieldWarnings[key]) {
+      missingFieldWarnings[key] = true;
+      console.warn("Stock config missing numeric field:", st.id, field, "using fallback", fallback);
+    }
+    return fallback;
   }
 
   function pickRegime() {
@@ -250,8 +261,9 @@
       const marketMove = (baseDrift + randomMarket + regimeDrift) * cycleDriftMult;
       cfg.stocks.forEach((st) => {
         const price = s.stocks[st.id];
-        const beta = st.beta || 1;
-        const sectorDrift = (st.drift + (Math.random() - 0.5) * (st.volatility || 0.03)) * cycleDriftMult;
+        const beta = stockFieldWithFallback(st, "beta", 1);
+        const volatility = stockFieldWithFallback(st, "volatility", 0.03);
+        const sectorDrift = (st.drift + (Math.random() - 0.5) * volatility) * cycleDriftMult;
         const correlated = eventShift * (cfg.STOCK_EVENT_CORRELATION_MIN + Math.random() * cfg.STOCK_EVENT_CORRELATION_RANGE);
         const revert = ((st.basePrice - price) / Math.max(1, st.basePrice)) * meanReversion;
         const next = price * (1 + marketMove * beta + sectorDrift + correlated + revert);

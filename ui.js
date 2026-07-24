@@ -715,6 +715,7 @@
     list.innerHTML = "";
     UI._stockRows = {};
     cfg.stocks.forEach((st) => {
+      if (!st._yieldLabel) st._yieldLabel = ((st.dividendYield || 0) * 100).toFixed(2) + "%";
       const row = make("div", "stock-row");
       row.innerHTML =
         '<div class="stock-meta"><div class="stock-name">' + st.name + ' <span class="muted">(' + st.ticker + ")</span></div>" +
@@ -761,8 +762,7 @@
       const trend = Game.Stocks.trend(st.id);
       row.querySelector("[data-trend]").textContent = mults.stockInsight > 0 ? "Trend: " + trend : "Trend: locked (unlock via Engineering/Education)";
       const pnl = p.shares > 0 ? (price - p.avgCost) * p.shares : 0;
-      const yieldPct = ((st.dividendYield || 0) * 100).toFixed(2) + "%";
-      row.querySelector("[data-portfolio]").textContent = "Shares: " + fmt(p.shares) + " • Avg: " + fmt(p.avgCost) + " • P/L: " + fmt(pnl) + " • Yield: " + yieldPct;
+      row.querySelector("[data-portfolio]").textContent = "Shares: " + fmt(p.shares) + " • Avg: " + fmt(p.avgCost) + " • P/L: " + fmt(pnl) + " • Yield: " + st._yieldLabel;
       const buyAmount = Game.Stocks.resolveTradeAmount(st.id, "buy");
       const sellAmount = Game.Stocks.resolveTradeAmount(st.id, "sell");
       row.querySelector("[data-buy]").textContent = "Buy " + (selectedAmount === -1 ? "MAX" : selectedAmount);
