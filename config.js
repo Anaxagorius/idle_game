@@ -1538,8 +1538,11 @@ Game.config.STOCK_TICK_SECONDS = 5;
 Game.config.STOCK_HISTORY_POINTS = 20;
 Game.config.STOCK_TRADING_FEE = 0.01;
 Game.config.STOCK_DIVIDEND_SECONDS = 30;
+// Stock pays dividends only when price stays above this base-price multiple.
 Game.config.STOCK_DIVIDEND_MIN_PRICE_MULT = 0.75;
+// Compress "annual" dividend yields into game-time seconds.
 Game.config.STOCK_DIVIDEND_YEAR_SECONDS = 3600;
+Game.config.STOCK_MIN_PRICE_MULT = 0.15;
 Game.config.STOCK_MARKET_BASE_DRIFT = 0.0004;
 Game.config.STOCK_MARKET_VOLATILITY = 0.008;
 Game.config.STOCK_MEAN_REVERSION = 0.0035;

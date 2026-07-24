@@ -23,6 +23,12 @@
     return e;
   }
 
+  function setAmountButtonsActive(selector, value) {
+    document.querySelectorAll(selector).forEach((b) => {
+      b.classList.toggle("active", parseInt(b.dataset.amount, 10) === value);
+    });
+  }
+
   /** Returns { happiness, happinessMult } from the cached diplomacy snapshot with safe defaults. */
   function getDiplomacyStats(state) {
     const dipl = state._mult && state._mult.diplomacy;
@@ -472,9 +478,7 @@
         r.status.textContent = Game.state.automation[key] ? "Enabled" : "Disabled";
       }
     });
-    document.querySelectorAll("#buy-amount-selector .amount-btn, #buy-amount-selector-buildings .amount-btn").forEach((b) => {
-      b.classList.toggle("active", parseInt(b.dataset.amount, 10) === Game.state.automation.buyAmount);
-    });
+    setAmountButtonsActive("#buy-amount-selector .amount-btn, #buy-amount-selector-buildings .amount-btn", Game.state.automation.buyAmount);
   };
 
   /* ---------------------------------------------------------------------
@@ -747,9 +751,8 @@
       '<div class="stat-row"><span class="stat-key">Next Dividend</span><span class="stat-val">in ' + Game.formatTime(Math.ceil(tracking.nextInSeconds)) + "</span></div>" +
       '<div class="stat-row"><span class="stat-key">Last Dividend</span><span class="stat-val">' + fmt(tracking.lastPayout) + " coins</span></div>" +
       '<div class="stat-row"><span class="stat-key">Lifetime Dividends</span><span class="stat-val">' + fmt(tracking.lifetimePayout) + " coins</span></div>";
-    document.querySelectorAll(".stock-amount-btn").forEach((b) => {
-      b.classList.toggle("active", parseInt(b.dataset.amount, 10) === Game.Stocks.tradeAmount());
-    });
+    const selectedAmount = Game.Stocks.tradeAmount();
+    setAmountButtonsActive(".stock-amount-btn", selectedAmount);
     cfg.stocks.forEach((st) => {
       const row = UI._stockRows[st.id];
       const price = s.stocks[st.id];
@@ -762,8 +765,8 @@
       row.querySelector("[data-portfolio]").textContent = "Shares: " + fmt(p.shares) + " • Avg: " + fmt(p.avgCost) + " • P/L: " + fmt(pnl) + " • Yield: " + yieldPct;
       const buyAmount = Game.Stocks.resolveTradeAmount(st.id, "buy");
       const sellAmount = Game.Stocks.resolveTradeAmount(st.id, "sell");
-      row.querySelector("[data-buy]").textContent = "Buy " + (Game.Stocks.tradeAmount() === -1 ? "MAX" : buyAmount);
-      row.querySelector("[data-sell]").textContent = "Sell " + (Game.Stocks.tradeAmount() === -1 ? "MAX" : sellAmount);
+      row.querySelector("[data-buy]").textContent = "Buy " + (selectedAmount === -1 ? "MAX" : selectedAmount);
+      row.querySelector("[data-sell]").textContent = "Sell " + (selectedAmount === -1 ? "MAX" : selectedAmount);
       row.querySelector("[data-buy]").disabled = buyAmount < 1;
       row.querySelector("[data-sell]").disabled = sellAmount < 1;
     });

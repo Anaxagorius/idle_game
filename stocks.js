@@ -41,7 +41,7 @@
   function canPayDividend(st, price) {
     const yieldRate = st.dividendYield || 0;
     if (yieldRate <= 0) return false;
-    const minMult = cfg.STOCK_DIVIDEND_MIN_PRICE_MULT || cfg.STOCK_DIVIDEND_PRICE_THRESHOLD_MULT || 0;
+    const minMult = cfg.STOCK_DIVIDEND_MIN_PRICE_MULT || 0;
     if (minMult > 0 && price < st.basePrice * minMult) return false;
     return true;
   }
@@ -97,7 +97,13 @@
       }
       return Stocks.maxAffordableShares(stockId);
     }
-    return Math.max(1, Math.floor(setting || 1));
+    const target = Math.max(1, Math.floor(setting || 1));
+    if (side === "sell") {
+      const p = s.portfolio[stockId];
+      const shares = p ? Math.max(0, Math.floor(p.shares || 0)) : 0;
+      return shares >= target ? target : 0;
+    }
+    return Stocks.maxAffordableShares(stockId) >= target ? target : 0;
   };
 
   Stocks.buy = function (stockId, shares) {
@@ -249,7 +255,7 @@
         const correlated = eventShift * (cfg.STOCK_EVENT_CORRELATION_MIN + Math.random() * cfg.STOCK_EVENT_CORRELATION_RANGE);
         const revert = ((st.basePrice - price) / Math.max(1, st.basePrice)) * meanReversion;
         const next = price * (1 + marketMove * beta + sectorDrift + correlated + revert);
-        const minPrice = Math.max(1, st.basePrice * 0.15);
+        const minPrice = Math.max(1, st.basePrice * (cfg.STOCK_MIN_PRICE_MULT || 0.15));
         s.stocks[st.id] = Math.max(minPrice, next);
         const hist = s.stockHistory[st.id];
         hist.push(s.stocks[st.id]);
