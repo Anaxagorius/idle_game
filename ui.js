@@ -715,7 +715,7 @@
     list.innerHTML = "";
     UI._stockRows = {};
     cfg.stocks.forEach((st) => {
-      if (!st._yieldLabel) st._yieldLabel = ((st.dividendYield || 0) * 100).toFixed(2) + "%";
+      const yieldLabel = ((st.dividendYield || 0) * 100).toFixed(2) + "%";
       const row = make("div", "stock-row");
       row.innerHTML =
         '<div class="stock-meta"><div class="stock-name">' + st.name + ' <span class="muted">(' + st.ticker + ")</span></div>" +
@@ -731,7 +731,7 @@
         if (amount > 0 && Game.Stocks.sell(st.id, amount)) UI.update();
       });
       list.appendChild(row);
-      UI._stockRows[st.id] = row;
+      UI._stockRows[st.id] = { row, yieldLabel };
     });
     built.stocks = true;
   };
@@ -755,14 +755,16 @@
     const selectedAmount = Game.Stocks.tradeAmount();
     setAmountButtonsActive(".stock-amount-btn", selectedAmount);
     cfg.stocks.forEach((st) => {
-      const row = UI._stockRows[st.id];
+      const stockRow = UI._stockRows[st.id];
+      if (!stockRow) return;
+      const row = stockRow.row;
       const price = s.stocks[st.id];
       const p = s.portfolio[st.id];
       row.querySelector("[data-price]").textContent = "Price: " + fmt(price) + " coins";
       const trend = Game.Stocks.trend(st.id);
       row.querySelector("[data-trend]").textContent = mults.stockInsight > 0 ? "Trend: " + trend : "Trend: locked (unlock via Engineering/Education)";
       const pnl = p.shares > 0 ? (price - p.avgCost) * p.shares : 0;
-      row.querySelector("[data-portfolio]").textContent = "Shares: " + fmt(p.shares) + " • Avg: " + fmt(p.avgCost) + " • P/L: " + fmt(pnl) + " • Yield: " + st._yieldLabel;
+      row.querySelector("[data-portfolio]").textContent = "Shares: " + fmt(p.shares) + " • Avg: " + fmt(p.avgCost) + " • P/L: " + fmt(pnl) + " • Yield: " + stockRow.yieldLabel;
       const buyAmount = Game.Stocks.resolveTradeAmount(st.id, "buy");
       const sellAmount = Game.Stocks.resolveTradeAmount(st.id, "sell");
       row.querySelector("[data-buy]").textContent = "Buy " + (selectedAmount === -1 ? "MAX" : selectedAmount);
