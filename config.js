@@ -1502,24 +1502,59 @@ Game.config.BTC_MANUAL_MINE_ENERGY_COST = 18;
    Stock Market
    -------------------------------------------------------------------------- */
 const STOCKS = [
-  { id: "stock_novatek", ticker: "NVT", name: "NovaTek Systems", sector: "Tech", basePrice: 42, volatility: 0.032, drift: 0.0012 },
-  { id: "stock_solaris", ticker: "SLR", name: "Solaris Energy", sector: "Energy", basePrice: 34, volatility: 0.028, drift: 0.001 },
-  { id: "stock_ironpeak", ticker: "IRP", name: "IronPeak Mining", sector: "Industry", basePrice: 29, volatility: 0.035, drift: 0.0008 },
-  { id: "stock_aurum", ticker: "AUR", name: "Aurum Finance", sector: "Finance", basePrice: 51, volatility: 0.03, drift: 0.0011 },
-  { id: "stock_hyperlane", ticker: "HYP", name: "Hyperlane Logistics", sector: "Logistics", basePrice: 24, volatility: 0.027, drift: 0.0009 },
-  { id: "stock_orbitex", ticker: "ORX", name: "Orbitex Aerospace", sector: "Space", basePrice: 63, volatility: 0.04, drift: 0.0013 },
-  { id: "stock_biozen", ticker: "BZN", name: "BioZen Labs", sector: "Biotech", basePrice: 38, volatility: 0.031, drift: 0.001 },
-  { id: "stock_quantis", ticker: "QNT", name: "Quantis Compute", sector: "Compute", basePrice: 57, volatility: 0.036, drift: 0.0012 },
-  { id: "stock_tidewater", ticker: "TDW", name: "Tidewater Foods", sector: "Consumer", basePrice: 19, volatility: 0.022, drift: 0.0007 },
-  { id: "stock_crown", ticker: "CRW", name: "Crown Estates", sector: "Realty", basePrice: 47, volatility: 0.026, drift: 0.0009 },
+  { id: "stock_novatek", ticker: "NVT", name: "NovaTek Systems", sector: "Tech", basePrice: 42, volatility: 0.032, drift: 0.0012, beta: 1.35, dividendYield: 0.0 },
+  { id: "stock_solaris", ticker: "SLR", name: "Solaris Energy", sector: "Energy", basePrice: 34, volatility: 0.028, drift: 0.001, beta: 1.05, dividendYield: 0.021 },
+  { id: "stock_ironpeak", ticker: "IRP", name: "IronPeak Mining", sector: "Industry", basePrice: 29, volatility: 0.035, drift: 0.0008, beta: 1.2, dividendYield: 0.034 },
+  { id: "stock_aurum", ticker: "AUR", name: "Aurum Finance", sector: "Finance", basePrice: 51, volatility: 0.03, drift: 0.0011, beta: 1.1, dividendYield: 0.028 },
+  { id: "stock_hyperlane", ticker: "HYP", name: "Hyperlane Logistics", sector: "Logistics", basePrice: 24, volatility: 0.027, drift: 0.0009, beta: 0.95, dividendYield: 0.018 },
+  { id: "stock_orbitex", ticker: "ORX", name: "Orbitex Aerospace", sector: "Space", basePrice: 63, volatility: 0.04, drift: 0.0013, beta: 1.45, dividendYield: 0.0 },
+  { id: "stock_biozen", ticker: "BZN", name: "BioZen Labs", sector: "Biotech", basePrice: 38, volatility: 0.031, drift: 0.001, beta: 1.3, dividendYield: 0.0 },
+  { id: "stock_quantis", ticker: "QNT", name: "Quantis Compute", sector: "Compute", basePrice: 57, volatility: 0.036, drift: 0.0012, beta: 1.25, dividendYield: 0.009 },
+  { id: "stock_tidewater", ticker: "TDW", name: "Tidewater Foods", sector: "Consumer", basePrice: 19, volatility: 0.022, drift: 0.0007, beta: 0.8, dividendYield: 0.041 },
+  { id: "stock_crown", ticker: "CRW", name: "Crown Estates", sector: "Realty", basePrice: 47, volatility: 0.026, drift: 0.0009, beta: 0.9, dividendYield: 0.036 },
+  { id: "stock_lattice", ticker: "LTC", name: "Lattice Robotics", sector: "Robotics", basePrice: 68, volatility: 0.043, drift: 0.00135, beta: 1.5, dividendYield: 0.0 },
+  { id: "stock_blueharbor", ticker: "BHR", name: "BlueHarbor Shipping", sector: "Shipping", basePrice: 27, volatility: 0.025, drift: 0.00085, beta: 0.92, dividendYield: 0.024 },
+  { id: "stock_everwell", ticker: "EVW", name: "Everwell Health", sector: "Healthcare", basePrice: 44, volatility: 0.027, drift: 0.00095, beta: 0.88, dividendYield: 0.026 },
+  { id: "stock_skyforge", ticker: "SKF", name: "Skyforge Defense", sector: "Defense", basePrice: 73, volatility: 0.038, drift: 0.00125, beta: 1.3, dividendYield: 0.012 },
+  { id: "stock_riverbank", ticker: "RVB", name: "Riverbank Utilities", sector: "Utilities", basePrice: 22, volatility: 0.019, drift: 0.0007, beta: 0.65, dividendYield: 0.048 },
+  { id: "stock_midas", ticker: "MDS", name: "Midas Retail Group", sector: "Retail", basePrice: 31, volatility: 0.024, drift: 0.00085, beta: 0.9, dividendYield: 0.019 },
+  { id: "stock_hexacore", ticker: "HXC", name: "Hexacore Semiconductors", sector: "Semiconductors", basePrice: 66, volatility: 0.041, drift: 0.0013, beta: 1.4, dividendYield: 0.007 },
+  { id: "stock_freshleaf", ticker: "FRL", name: "FreshLeaf Agriculture", sector: "Agriculture", basePrice: 18, volatility: 0.02, drift: 0.00065, beta: 0.72, dividendYield: 0.044 },
+  { id: "stock_neptune", ticker: "NPT", name: "Neptune Waterworks", sector: "Infrastructure", basePrice: 36, volatility: 0.023, drift: 0.00082, beta: 0.8, dividendYield: 0.031 },
+  { id: "stock_zenith", ticker: "ZTH", name: "Zenith Cloud", sector: "Cloud", basePrice: 59, volatility: 0.037, drift: 0.0012, beta: 1.22, dividendYield: 0.006 },
+  { id: "stock_granite", ticker: "GRT", name: "Granite Construction", sector: "Construction", basePrice: 26, volatility: 0.027, drift: 0.00088, beta: 1.02, dividendYield: 0.029 },
+  { id: "stock_silversea", ticker: "SLS", name: "SilverSea Cruises", sector: "Travel", basePrice: 21, volatility: 0.034, drift: 0.00105, beta: 1.18, dividendYield: 0.0 },
+  { id: "stock_vaultline", ticker: "VLT", name: "Vaultline Insurance", sector: "Insurance", basePrice: 49, volatility: 0.024, drift: 0.00086, beta: 0.74, dividendYield: 0.039 },
+  { id: "stock_auroragrid", ticker: "ARG", name: "Aurora Grid", sector: "Power", basePrice: 41, volatility: 0.021, drift: 0.00078, beta: 0.7, dividendYield: 0.045 },
+  { id: "stock_stellarnet", ticker: "STN", name: "StellarNet Telecom", sector: "Telecom", basePrice: 33, volatility: 0.022, drift: 0.0008, beta: 0.77, dividendYield: 0.033 },
+  { id: "stock_pioneer", ticker: "PNR", name: "Pioneer Mobility", sector: "Auto", basePrice: 46, volatility: 0.029, drift: 0.00094, beta: 1.06, dividendYield: 0.017 },
+  { id: "stock_quantumfoods", ticker: "QFD", name: "Quantum Foods Intl", sector: "Food", basePrice: 23, volatility: 0.02, drift: 0.00072, beta: 0.68, dividendYield: 0.043 },
+  { id: "stock_redstone", ticker: "RDS", name: "Redstone Materials", sector: "Materials", basePrice: 28, volatility: 0.03, drift: 0.00092, beta: 1.08, dividendYield: 0.027 },
+  { id: "stock_comet", ticker: "CMT", name: "Comet Entertainment", sector: "Media", basePrice: 39, volatility: 0.033, drift: 0.00108, beta: 1.16, dividendYield: 0.011 },
+  { id: "stock_fortress", ticker: "FRT", name: "Fortress REIT", sector: "REIT", basePrice: 54, volatility: 0.023, drift: 0.00084, beta: 0.75, dividendYield: 0.052 },
 ];
 Game.config.stocks = STOCKS;
 Game.config.STOCK_TICK_SECONDS = 5;
 Game.config.STOCK_HISTORY_POINTS = 20;
 Game.config.STOCK_TRADING_FEE = 0.01;
 Game.config.STOCK_DIVIDEND_SECONDS = 30;
-Game.config.STOCK_DIVIDEND_PRICE_THRESHOLD_MULT = 1.1;
-Game.config.STOCK_DIVIDEND_RATE = 0.0005;
+// Stock pays dividends only when price is at or above this base-price multiple.
+Game.config.STOCK_DIVIDEND_MIN_PRICE_MULT = 0.75;
+// Compress "annual" dividend yields into game-time seconds.
+Game.config.STOCK_DIVIDEND_YEAR_SECONDS = 3600;
+Game.config.STOCK_MIN_PRICE_MULT = 0.15;
+Game.config.STOCK_MARKET_BASE_DRIFT = 0.0004;
+Game.config.STOCK_MARKET_VOLATILITY = 0.008;
+Game.config.STOCK_MEAN_REVERSION = 0.0035;
+Game.config.STOCK_REGIME_MIN_SECONDS = 45;
+Game.config.STOCK_REGIME_MAX_SECONDS = 180;
+Game.config.STOCK_REGIME_BULL_CHANCE = 0.28;
+Game.config.STOCK_REGIME_BEAR_CHANCE = 0.32;
+Game.config.STOCK_REGIME_BULL_DRIFT = 0.0024;
+Game.config.STOCK_REGIME_BEAR_DRIFT = -0.0026;
+Game.config.STOCK_DEFAULT_BETA = 1;
+Game.config.STOCK_DEFAULT_VOLATILITY = 0.03;
+Game.config.STOCK_MIN_BASE_PRICE = 0.01;
 Game.config.STOCK_EVENT_BEAR_CHANCE = 0.03;
 Game.config.STOCK_EVENT_BULL_CHANCE = 0.97;
 Game.config.STOCK_EVENT_BEAR_SHIFT = -0.08;

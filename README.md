@@ -117,9 +117,9 @@ These provide permanent multipliers and drive long-term progression.
 
 ### Stocks
 
-- Simulated stock prices with history tracking
-- Buy/sell shares with portfolio accounting
-- Dividend timer payouts
+- 30-stock simulated market with regime shifts, volatility, and trend history
+- Bulk stock trading (1, 10, 25, 50, 100, 1000, MAX)
+- Dividend-aware portfolio with payout forecasting and tracking
 
 ### Achievements & Milestones
 

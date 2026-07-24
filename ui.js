@@ -23,6 +23,12 @@
     return e;
   }
 
+  function setAmountButtonsActive(selector, value) {
+    document.querySelectorAll(selector).forEach((b) => {
+      b.classList.toggle("active", parseInt(b.dataset.amount, 10) === value);
+    });
+  }
+
   /** Returns { happiness, happinessMult } from the cached diplomacy snapshot with safe defaults. */
   function getDiplomacyStats(state) {
     const dipl = state._mult && state._mult.diplomacy;
@@ -407,6 +413,18 @@
     });
   };
 
+  UI._buildStockAmountSelectorIn = function (wrap) {
+    wrap.innerHTML = "";
+    [{ v: 1, l: "x1" }, { v: 10, l: "x10" }, { v: 25, l: "x25" }, { v: 50, l: "x50" }, { v: 100, l: "x100" }, { v: 1000, l: "x1000" }, { v: -1, l: "MAX" }].forEach((o) => {
+      const b = make("button", "amount-btn stock-amount-btn", o.l);
+      b.dataset.amount = o.v;
+      b.addEventListener("click", () => {
+        if (Game.Stocks.setTradeAmount(o.v)) UI.update();
+      });
+      wrap.appendChild(b);
+    });
+  };
+
   UI.buildAutomation = function () {
     const container = el("automation-list");
     container.innerHTML = "";
@@ -460,9 +478,7 @@
         r.status.textContent = Game.state.automation[key] ? "Enabled" : "Disabled";
       }
     });
-    document.querySelectorAll(".amount-btn").forEach((b) => {
-      b.classList.toggle("active", parseInt(b.dataset.amount, 10) === Game.state.automation.buyAmount);
-    });
+    setAmountButtonsActive("#buy-amount-selector .amount-btn, #buy-amount-selector-buildings .amount-btn", Game.state.automation.buyAmount);
   };
 
   /* ---------------------------------------------------------------------
@@ -694,23 +710,28 @@
   UI.buildStocks = function () {
     const list = el("stock-list");
     if (!list) return;
+    const amtWrap = el("stock-buy-amount-selector");
+    if (amtWrap) UI._buildStockAmountSelectorIn(amtWrap);
     list.innerHTML = "";
     UI._stockRows = {};
     cfg.stocks.forEach((st) => {
+      const yieldLabel = ((st.dividendYield || 0) * 100).toFixed(2) + "%";
       const row = make("div", "stock-row");
       row.innerHTML =
         '<div class="stock-meta"><div class="stock-name">' + st.name + ' <span class="muted">(' + st.ticker + ")</span></div>" +
         '<div class="stock-price" data-price></div><div class="stock-trend muted" data-trend></div></div>' +
         '<div class="stock-portfolio" data-portfolio></div>' +
-        '<div class="stock-actions"><button data-buy class="settings-btn">Buy 1</button><button data-sell class="settings-btn">Sell 1</button></div>';
+        '<div class="stock-actions"><button data-buy class="settings-btn">Buy</button><button data-sell class="settings-btn">Sell</button></div>';
       row.querySelector("[data-buy]").addEventListener("click", () => {
-        if (Game.Stocks.buy(st.id, 1)) UI.update();
+        const amount = Game.Stocks.resolveTradeAmount(st.id, "buy");
+        if (amount > 0 && Game.Stocks.buy(st.id, amount)) UI.update();
       });
       row.querySelector("[data-sell]").addEventListener("click", () => {
-        if (Game.Stocks.sell(st.id, 1)) UI.update();
+        const amount = Game.Stocks.resolveTradeAmount(st.id, "sell");
+        if (amount > 0 && Game.Stocks.sell(st.id, amount)) UI.update();
       });
       list.appendChild(row);
-      UI._stockRows[st.id] = row;
+      UI._stockRows[st.id] = { row, yieldLabel };
     });
     built.stocks = true;
   };
@@ -720,20 +741,36 @@
     const s = Game.state;
     const mults = s._mult || { stockInsight: 0, stockFeeReduction: 1 };
     const summary = el("stock-summary");
+    const tracking = Game.Stocks.dividendTracking();
+    const forecast = tracking.forecast;
     summary.innerHTML =
       '<div class="stat-row"><span class="stat-key">Portfolio Value</span><span class="stat-val">' + fmt(Game.Stocks.portfolioValue()) + " coins</span></div>" +
-      '<div class="stat-row"><span class="stat-key">Trade Fee</span><span class="stat-val">' + (Game.Stocks.feeRate() * 100).toFixed(2) + "%</span></div>";
+      '<div class="stat-row"><span class="stat-key">Trade Fee</span><span class="stat-val">' + (Game.Stocks.feeRate() * 100).toFixed(2) + "%</span></div>" +
+      '<div class="stat-row"><span class="stat-key">Dividend Forecast</span><span class="stat-val">' + fmt(forecast.totalPerPayout) + " / payout</span></div>" +
+      '<div class="stat-row"><span class="stat-key">Projected Dividend Rate</span><span class="stat-val">' + fmt(forecast.perMinute) + " / min</span></div>" +
+      '<div class="stat-row"><span class="stat-key">Dividend Coverage</span><span class="stat-val">' + forecast.eligibleStocks + " active • " + forecast.dividendStocksOwned + " yielding</span></div>" +
+      '<div class="stat-row"><span class="stat-key">Next Dividend</span><span class="stat-val">in ' + Game.formatTime(Math.ceil(tracking.nextInSeconds)) + "</span></div>" +
+      '<div class="stat-row"><span class="stat-key">Last Dividend</span><span class="stat-val">' + fmt(tracking.lastPayout) + " coins</span></div>" +
+      '<div class="stat-row"><span class="stat-key">Lifetime Dividends</span><span class="stat-val">' + fmt(tracking.lifetimePayout) + " coins</span></div>";
+    const selectedAmount = Game.Stocks.tradeAmount();
+    setAmountButtonsActive(".stock-amount-btn", selectedAmount);
     cfg.stocks.forEach((st) => {
-      const row = UI._stockRows[st.id];
+      const stockRow = UI._stockRows[st.id];
+      if (!stockRow) return;
+      const row = stockRow.row;
       const price = s.stocks[st.id];
       const p = s.portfolio[st.id];
       row.querySelector("[data-price]").textContent = "Price: " + fmt(price) + " coins";
       const trend = Game.Stocks.trend(st.id);
       row.querySelector("[data-trend]").textContent = mults.stockInsight > 0 ? "Trend: " + trend : "Trend: locked (unlock via Engineering/Education)";
       const pnl = p.shares > 0 ? (price - p.avgCost) * p.shares : 0;
-      row.querySelector("[data-portfolio]").textContent = "Shares: " + fmt(p.shares) + " • Avg: " + fmt(p.avgCost) + " • P/L: " + fmt(pnl);
-      row.querySelector("[data-buy]").disabled = s.coins < price * (1 + Game.Stocks.feeRate());
-      row.querySelector("[data-sell]").disabled = p.shares < 1;
+      row.querySelector("[data-portfolio]").textContent = "Shares: " + fmt(p.shares) + " • Avg: " + fmt(p.avgCost) + " • P/L: " + fmt(pnl) + " • Yield: " + stockRow.yieldLabel;
+      const buyAmount = Game.Stocks.resolveTradeAmount(st.id, "buy");
+      const sellAmount = Game.Stocks.resolveTradeAmount(st.id, "sell");
+      row.querySelector("[data-buy]").textContent = "Buy " + (selectedAmount === -1 ? "MAX" : selectedAmount);
+      row.querySelector("[data-sell]").textContent = "Sell " + (selectedAmount === -1 ? "MAX" : selectedAmount);
+      row.querySelector("[data-buy]").disabled = buyAmount < 1;
+      row.querySelector("[data-sell]").disabled = sellAmount < 1;
     });
   };
 
