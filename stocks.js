@@ -9,6 +9,7 @@
   const TRADE_AMOUNTS = [1, 10, 25, 50, 100, 1000, -1];
   const MAX_MISSING_FIELD_WARNINGS = 512;
   const missingFieldWarnings = {};
+  let missingFieldWarningCount = 0;
 
   function ensureState() {
     const s = Game.state;
@@ -35,10 +36,10 @@
 
   function stockFieldWithFallback(st, field, fallback) {
     if (typeof st[field] === "number") return st[field];
-    if (Object.keys(missingFieldWarnings).length >= MAX_MISSING_FIELD_WARNINGS) return fallback;
     const key = st.id + ":" + field;
-    if (!missingFieldWarnings[key]) {
+    if (!missingFieldWarnings[key] && missingFieldWarningCount < MAX_MISSING_FIELD_WARNINGS) {
       missingFieldWarnings[key] = true;
+      missingFieldWarningCount++;
       console.warn("Stock config missing numeric field:", st.id, field, "using fallback", fallback);
     }
     return fallback;
@@ -193,7 +194,7 @@
 
     cfg.stocks.forEach((st) => {
       const p = s.portfolio[st.id];
-      const shares = p ? Math.max(0, p.shares || 0) : 0;
+      const shares = getShareCount(p);
       totalShares += shares;
       const price = s.stocks[st.id] || st.basePrice;
       const perShare = dividendPerShare(st, price, divMult);
@@ -279,8 +280,9 @@
         const volatility = stockFieldWithFallback(st, "volatility", defaultVolatility);
         const sectorDrift = (st.drift + (Math.random() - 0.5) * volatility) * cycleDriftMult;
         const correlated = eventShift * (cfg.STOCK_EVENT_CORRELATION_MIN + Math.random() * cfg.STOCK_EVENT_CORRELATION_RANGE);
-        const basePrice = Math.max(minBasePrice, st.basePrice);
-        const revert = ((basePrice - price) / basePrice) * meanReversion;
+        const targetBasePrice = st.basePrice;
+        const safeBasePrice = Math.max(minBasePrice, Math.abs(targetBasePrice));
+        const revert = ((targetBasePrice - price) / safeBasePrice) * meanReversion;
         const next = price * (1 + marketMove * beta + sectorDrift + correlated + revert);
         const minPrice = Math.max(1, st.basePrice * minPriceMult);
         s.stocks[st.id] = Math.max(minPrice, next);
