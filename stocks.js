@@ -7,6 +7,7 @@
   const cfg = Game.config;
   const Stocks = {};
   const TRADE_AMOUNTS = [1, 10, 25, 50, 100, 1000, -1];
+  const MAX_MISSING_FIELD_WARNINGS = 512;
   const missingFieldWarnings = {};
 
   function ensureState() {
@@ -34,7 +35,7 @@
 
   function stockFieldWithFallback(st, field, fallback) {
     if (typeof st[field] === "number") return st[field];
-    if (Object.keys(missingFieldWarnings).length >= 512) return fallback;
+    if (Object.keys(missingFieldWarnings).length >= MAX_MISSING_FIELD_WARNINGS) return fallback;
     const key = st.id + ":" + field;
     if (!missingFieldWarnings[key]) {
       missingFieldWarnings[key] = true;
@@ -243,6 +244,15 @@
   Stocks.update = function (dtSeconds) {
     ensureState();
     const s = Game.state;
+    const defaultBeta = cfg.STOCK_DEFAULT_BETA || 1;
+    const defaultVolatility = cfg.STOCK_DEFAULT_VOLATILITY || 0.03;
+    const baseDrift = cfg.STOCK_MARKET_BASE_DRIFT || 0.0004;
+    const marketVol = cfg.STOCK_MARKET_VOLATILITY || 0.008;
+    const bullDrift = cfg.STOCK_REGIME_BULL_DRIFT || 0.0024;
+    const bearDrift = cfg.STOCK_REGIME_BEAR_DRIFT || -0.0026;
+    const meanReversion = cfg.STOCK_MEAN_REVERSION || 0.0035;
+    const minBasePrice = cfg.STOCK_MIN_BASE_PRICE || 0.01;
+    const minPriceMult = cfg.STOCK_MIN_PRICE_MULT || 0.15;
     s.stockTickTimer = (s.stockTickTimer || 0) + dtSeconds;
     s.stockDividendTimer = (s.stockDividendTimer || 0) + dtSeconds;
     s.stockRegimeTimer = (s.stockRegimeTimer || 0) - dtSeconds;
@@ -254,13 +264,10 @@
     while (s.stockTickTimer >= cfg.STOCK_TICK_SECONDS) {
       s.stockTickTimer -= cfg.STOCK_TICK_SECONDS;
       const cycleDriftMult = (Game.Cycles && Game.Cycles.stockDriftMult) ? Game.Cycles.stockDriftMult() : 1;
-      const baseDrift = cfg.STOCK_MARKET_BASE_DRIFT || 0.0004;
-      const marketVol = cfg.STOCK_MARKET_VOLATILITY || 0.008;
       const randomMarket = (Math.random() * 2 - 1) * marketVol;
       const regimeDrift = s.stockMarketRegime > 0
-        ? (cfg.STOCK_REGIME_BULL_DRIFT || 0.0024)
-        : (s.stockMarketRegime < 0 ? (cfg.STOCK_REGIME_BEAR_DRIFT || -0.0026) : 0);
-      const meanReversion = cfg.STOCK_MEAN_REVERSION || 0.0035;
+        ? bullDrift
+        : (s.stockMarketRegime < 0 ? bearDrift : 0);
       const marketEventRoll = Math.random();
       let eventShift = 0;
       if (marketEventRoll < cfg.STOCK_EVENT_BEAR_CHANCE) eventShift = cfg.STOCK_EVENT_BEAR_SHIFT;
@@ -268,14 +275,14 @@
       const marketMove = (baseDrift + randomMarket + regimeDrift) * cycleDriftMult;
       cfg.stocks.forEach((st) => {
         const price = s.stocks[st.id];
-        const beta = stockFieldWithFallback(st, "beta", cfg.STOCK_DEFAULT_BETA || 1);
-        const volatility = stockFieldWithFallback(st, "volatility", cfg.STOCK_DEFAULT_VOLATILITY || 0.03);
+        const beta = stockFieldWithFallback(st, "beta", defaultBeta);
+        const volatility = stockFieldWithFallback(st, "volatility", defaultVolatility);
         const sectorDrift = (st.drift + (Math.random() - 0.5) * volatility) * cycleDriftMult;
         const correlated = eventShift * (cfg.STOCK_EVENT_CORRELATION_MIN + Math.random() * cfg.STOCK_EVENT_CORRELATION_RANGE);
-        const basePrice = Math.max(cfg.STOCK_MIN_BASE_PRICE || 0.01, st.basePrice);
+        const basePrice = Math.max(minBasePrice, st.basePrice);
         const revert = ((basePrice - price) / basePrice) * meanReversion;
         const next = price * (1 + marketMove * beta + sectorDrift + correlated + revert);
-        const minPrice = Math.max(1, st.basePrice * (cfg.STOCK_MIN_PRICE_MULT || 0.15));
+        const minPrice = Math.max(1, st.basePrice * minPriceMult);
         s.stocks[st.id] = Math.max(minPrice, next);
         const hist = s.stockHistory[st.id];
         hist.push(s.stocks[st.id]);

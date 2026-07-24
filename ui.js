@@ -712,10 +712,12 @@
     if (!list) return;
     const amtWrap = el("stock-buy-amount-selector");
     if (amtWrap) UI._buildStockAmountSelectorIn(amtWrap);
+    if (!UI._stockYieldLabels) UI._stockYieldLabels = {};
     list.innerHTML = "";
     UI._stockRows = {};
     cfg.stocks.forEach((st) => {
-      const yieldLabel = ((st.dividendYield || 0) * 100).toFixed(2) + "%";
+      const yieldLabel = UI._stockYieldLabels[st.id] || (((st.dividendYield || 0) * 100).toFixed(2) + "%");
+      UI._stockYieldLabels[st.id] = yieldLabel;
       const row = make("div", "stock-row");
       row.innerHTML =
         '<div class="stock-meta"><div class="stock-name">' + st.name + ' <span class="muted">(' + st.ticker + ")</span></div>" +
