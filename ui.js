@@ -1709,7 +1709,16 @@
       ["Total Coins Earned (lifetime)", fmt(stats.totalCoinsEarned)],
       ["Current Coins", fmt(s.coins)],
       ["Total Coins Spent", fmt(stats.totalCoinsSpent)],
-      ["Coins Per Second", fmt(s._cps)],
+      ["Coins Per Second (Total)", (function () {
+        let t = s._cps;
+        if (Game.Bitcoin && Game.Bitcoin.coinFarmerRate) t += Game.Bitcoin.coinFarmerRate();
+        if (Game.Stocks && Game.Stocks.dividendForecast) {
+          const df = Game.Stocks.dividendForecast();
+          if (df.intervalSeconds > 0) t += df.totalPerPayout / df.intervalSeconds;
+        }
+        if (Game.Bitcoin && Game.Bitcoin.snapshot && s.btcPrice > 0) t += Game.Bitcoin.snapshot(1).miningRate * s.btcPrice;
+        return fmt(t);
+      })()],
       ["Research Per Second", fmt(s._rps)],
       ["Click Value", fmt(s._clickValue)],
       ["Total Clicks", fmt(stats.totalClicks)],
@@ -1828,7 +1837,16 @@
     const s = Game.state;
     if (Game.Bitcoin && Game.Bitcoin.energyCap) s.energyCap = Game.Bitcoin.energyCap();
     refs.coins.textContent = fmt(s.coins);
-    refs.cps.textContent = fmt(s._cps) + " / sec";
+    let totalCps = s._cps;
+    if (Game.Bitcoin && Game.Bitcoin.coinFarmerRate) totalCps += Game.Bitcoin.coinFarmerRate();
+    if (Game.Stocks && Game.Stocks.dividendForecast) {
+      const df = Game.Stocks.dividendForecast();
+      if (df.intervalSeconds > 0) totalCps += df.totalPerPayout / df.intervalSeconds;
+    }
+    if (Game.Bitcoin && Game.Bitcoin.snapshot && s.btcPrice > 0) {
+      totalCps += Game.Bitcoin.snapshot(1).miningRate * s.btcPrice;
+    }
+    refs.cps.textContent = fmt(totalCps) + " / sec";
     refs.clickValue.textContent = "+" + fmt(s._clickValue) + " / click";
 
     // Conditional resource displays
