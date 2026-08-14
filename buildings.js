@@ -262,7 +262,34 @@
   };
 
   /* ---------------------------------------------------------------------
-     Clicker upgrades
+     Clicker tier subsection upgrades
+     --------------------------------------------------------------------- */
+  Buildings.clickerSubsectionCost = function (tierIdx, subIdx) {
+    const tierLevels = (Game.state.clickerTiers || [])[tierIdx] || [];
+    const level = tierLevels[subIdx] || 0;
+    if (level >= cfg.CLICKER_SUBSECTION_MAX) return Infinity;
+    const sub = cfg.clickerUpgradeDefs[tierIdx].subsections[subIdx];
+    return sub.baseCost * Math.pow(cfg.CLICKER_SUBSECTION_LEVEL_MULT, level);
+  };
+
+  Buildings.buyClickerSubsection = function (tierIdx, subIdx) {
+    const cost = Buildings.clickerSubsectionCost(tierIdx, subIdx);
+    if (!isFinite(cost) || Game.state.coins < cost) return false;
+    Game.state.coins -= cost;
+    Game.state.stats.totalCoinsSpent += cost;
+    if (!Array.isArray(Game.state.clickerTiers)) {
+      Game.state.clickerTiers = Array.from({ length: 10 }, function () { return new Array(10).fill(0); });
+    }
+    if (!Array.isArray(Game.state.clickerTiers[tierIdx])) {
+      Game.state.clickerTiers[tierIdx] = new Array(10).fill(0);
+    }
+    Game.state.clickerTiers[tierIdx][subIdx] = (Game.state.clickerTiers[tierIdx][subIdx] || 0) + 1;
+    Game.recalculate();
+    return true;
+  };
+
+  /* ---------------------------------------------------------------------
+     Legacy clicker upgrades (kept for backward compatibility)
      --------------------------------------------------------------------- */
   Buildings.clickerUpgradeCost = function () {
     const level = Game.state.clickerUpgrades || 0;

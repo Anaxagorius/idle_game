@@ -14,6 +14,7 @@
     s.lifetimeCoins = 0;
     s.population = 0;
     s.clickerUpgrades = 0;
+    s.clickerTiers = Array.from({ length: 10 }, function () { return new Array(10).fill(0); });
     s.abilities = {};
     s.nextEventTime = 0;
     s.cycle = { phase: "stable", endTime: 0 };

@@ -197,6 +197,30 @@
     if (typeof fresh.stats.realityCount !== "number") fresh.stats.realityCount = 0;
     if (typeof fresh.stats.megaProjectsCompleted !== "number") fresh.stats.megaProjectsCompleted = 0;
 
+    // Migrate legacy clickerUpgrades integer → clickerTiers 2-D array.
+    // Each legacy tier that was purchased maps to subsection 0 at level 1,
+    // approximating the original one-time boost without over-inflating power.
+    if (!Array.isArray(fresh.clickerTiers) || fresh.clickerTiers.length === 0) {
+      const legacyTiers = typeof fresh.clickerUpgrades === "number" ? fresh.clickerUpgrades : 0;
+      fresh.clickerTiers = Array.from({ length: 10 }, function (_, t) {
+        const sub0 = t < legacyTiers ? 1 : 0;
+        return [sub0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+      });
+    }
+    // Validate clickerTiers shape and clamp values (always runs)
+    for (let t = 0; t < 10; t++) {
+      if (!Array.isArray(fresh.clickerTiers[t])) {
+        fresh.clickerTiers[t] = new Array(10).fill(0);
+      } else {
+        for (let s = 0; s < 10; s++) {
+          if (typeof fresh.clickerTiers[t][s] !== "number") fresh.clickerTiers[t][s] = 0;
+          fresh.clickerTiers[t][s] = Math.max(0, Math.min(Game.config.CLICKER_SUBSECTION_MAX, fresh.clickerTiers[t][s]));
+        }
+        while (fresh.clickerTiers[t].length < 10) fresh.clickerTiers[t].push(0);
+      }
+    }
+    while (fresh.clickerTiers.length < 10) fresh.clickerTiers.push(new Array(10).fill(0));
+
     // Difficulty
     if (!["hardcore", "weak", "coward"].includes(fresh.difficulty)) fresh.difficulty = "hardcore";
 

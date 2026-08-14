@@ -304,9 +304,12 @@
   UI.wireClickerUpgrades = function () {
     const container = el("clicker-upgrades");
     if (!container) return;
-    container.addEventListener("click", (e) => {
-      if (e.target.closest("[data-cu-buy]")) {
-        if (Game.Buildings.buyClickerUpgrade()) UI.update();
+    container.addEventListener("click", function (e) {
+      const btn = e.target.closest("[data-cu-buy]");
+      if (btn) {
+        const t = parseInt(btn.dataset.tier, 10);
+        const si = parseInt(btn.dataset.sub, 10);
+        if (Game.Buildings.buyClickerSubsection(t, si)) UI.update();
       }
     });
   };
@@ -315,27 +318,51 @@
     const container = el("clicker-upgrades");
     if (!container) return;
     const s = Game.state;
-    const level = s.clickerUpgrades || 0;
-    const maxed = level >= cfg.CLICKER_UPGRADE_MAX;
-    const cost = Game.Buildings.clickerUpgradeCost();
-    const affordable = !maxed && s.coins >= cost;
-    const def = cfg.clickerUpgradeDefs[level] || null;
+    const tierData = s.clickerTiers || [];
+    const subMax = cfg.CLICKER_SUBSECTION_MAX;
 
-    let html = '<div class="cu-header">Click Upgrades <span class="cu-level">' + level + " / " + cfg.CLICKER_UPGRADE_MAX + "</span></div>";
-    if (maxed) {
-      html += '<div class="cu-maxed">Maximum suffering achieved. The coins are yours.</div>';
-    } else {
-      const boostPct = Math.round((def.clickBoost - 1) * 100);
-      const penaltyPct = Math.round((1 - def.globalPenalty) * 100);
-      html +=
-        '<div class="cu-next">' +
-        '<div class="cu-name">' + def.name + "</div>" +
-        '<div class="cu-flavor">' + def.flavor + "</div>" +
-        '<div class="cu-effect">+' + boostPct + '% click value &nbsp;|&nbsp; <span class="cu-penalty">-' + penaltyPct + '% global production</span></div>' +
-        '<div class="cu-cost">' + fmt(cost) + " coins</div>" +
-        '<button class="cu-btn' + (affordable ? "" : " disabled") + '" data-cu-buy>Upgrade</button>' +
-        "</div>";
-    }
+    let html = '<div class="cu-header">Click Upgrades</div>';
+
+    cfg.clickerUpgradeDefs.forEach(function (tier, t) {
+      const tierLevels = tierData[t] || [];
+      const totalLevels = tierLevels.reduce(function (a, b) { return a + (b || 0); }, 0);
+      const maxLevels = tier.subsections.length * subMax;
+      const allMaxed = totalLevels >= maxLevels;
+
+      html += '<details class="cu-tier-section">';
+      html += '<summary class="cu-tier-summary">';
+      html += '<span class="cu-tier-name">' + tier.name + '</span>';
+      html += '<span class="cu-tier-progress' + (allMaxed ? ' cu-tier-maxed' : '') + '">' + totalLevels + '/' + maxLevels + '</span>';
+      html += '</summary>';
+      html += '<div class="cu-tier-flavor">' + tier.flavor + '</div>';
+      html += '<div class="cu-subsections">';
+
+      tier.subsections.forEach(function (sub, si) {
+        const level = Math.min(subMax, tierLevels[si] || 0);
+        const maxed = level >= subMax;
+        const cost = maxed ? Infinity : Game.Buildings.clickerSubsectionCost(t, si);
+        const affordable = !maxed && s.coins >= cost;
+        const boostPct = ((sub.clickBoostPerLevel - 1) * 100).toFixed(1);
+        const penaltyPct = ((1 - sub.globalPenaltyPerLevel) * 100).toFixed(2);
+
+        html += '<div class="cu-sub' + (maxed ? ' cu-sub-maxed' : affordable ? '' : ' cu-sub-locked') + '">';
+        html += '<div class="cu-sub-header">';
+        html += '<span class="cu-sub-name">' + sub.name + '</span>';
+        html += '<span class="cu-sub-level">' + level + '/' + subMax + '</span>';
+        html += '</div>';
+        if (maxed) {
+          html += '<div class="cu-sub-done">Maxed</div>';
+        } else {
+          html += '<div class="cu-sub-effect">+' + boostPct + '% click &nbsp;|&nbsp; <span class="cu-penalty">-' + penaltyPct + '% global</span></div>';
+          html += '<div class="cu-sub-cost">' + fmt(cost) + ' coins</div>';
+          html += '<button class="cu-btn' + (affordable ? '' : ' disabled') + '"' + (affordable ? '' : ' disabled') + ' data-cu-buy data-tier="' + t + '" data-sub="' + si + '">Upgrade</button>';
+        }
+        html += '</div>';
+      });
+
+      html += '</div></details>';
+    });
+
     container.innerHTML = html;
   };
 

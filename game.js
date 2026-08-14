@@ -177,6 +177,7 @@
         focusCounty: null,
       },
       clickerUpgrades: 0,
+      clickerTiers: Array.from({ length: 10 }, function () { return new Array(10).fill(0); }),
       difficulty: "hardcore",
       lastSave: Date.now(),
       lastTick: Date.now(),
@@ -482,13 +483,18 @@
       m.talentGlobal *= 1 + (s.btc || 0) * m.btcIncomeBoost;
     }
 
-    // Clicker upgrades: direct multipliers, not scaled by BONUS_EFFECTIVENESS_MULT.
-    const clickerLevels = Math.min(cfg.CLICKER_UPGRADE_MAX, s.clickerUpgrades || 0);
-    for (let i = 0; i < clickerLevels; i++) {
-      const def = cfg.clickerUpgradeDefs[i];
-      m.clickMult *= def.clickBoost;
-      m.clickerPenalty *= def.globalPenalty;
-    }
+    // Clicker tier subsections: direct multipliers, not scaled by BONUS_EFFECTIVENESS_MULT.
+    const tierData = s.clickerTiers || [];
+    cfg.clickerUpgradeDefs.forEach(function (tier, t) {
+      const tierLevels = tierData[t] || [];
+      tier.subsections.forEach(function (sub, si) {
+        const lvl = Math.min(cfg.CLICKER_SUBSECTION_MAX, tierLevels[si] || 0);
+        if (lvl > 0) {
+          m.clickMult *= Math.pow(sub.clickBoostPerLevel, lvl);
+          m.clickerPenalty *= Math.pow(sub.globalPenaltyPerLevel, lvl);
+        }
+      });
+    });
 
     // Global production multiplier applied to CPS
     m.global =

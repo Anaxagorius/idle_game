@@ -67,6 +67,8 @@ Game.config = {
   CLICKER_UPGRADE_BASE_COST: 50,
   CLICKER_UPGRADE_MAX: 10,
   CLICKER_UPGRADE_COST_MULT: 3,
+  CLICKER_SUBSECTION_MAX: 10,
+  CLICKER_SUBSECTION_LEVEL_MULT: 1.5,
 };
 
 /* --------------------------------------------------------------------------
@@ -87,6 +89,61 @@ Game.config.clickerUpgradeDefs = [
   { name: "Cursed Touch",        flavor: "Every coin carries a cost of flesh.",                clickBoost: 1.65, globalPenalty: 0.91 },
   { name: "Fist of Desperation", flavor: "Shattered. Relentless. Irreplaceable.",              clickBoost: 1.80, globalPenalty: 0.90 },
 ];
+
+/* --------------------------------------------------------------------------
+   Clicker subsection definitions — injected into clickerUpgradeDefs.
+   10 subsections per tier, each upgradeable up to CLICKER_SUBSECTION_MAX times.
+   clickBoostPerLevel and globalPenaltyPerLevel are applied per level purchased.
+   -------------------------------------------------------------------------- */
+(function () {
+  const SUBSECTION_NAMES = [
+    // Tier 0: Calloused Fingers
+    ["Raw Skin", "Toughened Palms", "Grip Calluses", "Pressure Points", "Friction Burns",
+     "Knuckle Grooves", "Scar Lines", "Deep Tissue", "Iron Grip", "Hardened Core"],
+    // Tier 1: Knuckle Grease
+    ["Joint Oil", "Cartilage Grease", "Bone Lubricant", "Tendon Wax", "Marrow Slick",
+     "Synovial Fluid", "Muscle Oil", "Gristle Polish", "Blood Grease", "Black Ichor"],
+    // Tier 2: Torn Ligaments
+    ["Micro Tears", "Fiber Splits", "Tension Rips", "Anchor Pulls", "Sheath Cracks",
+     "Snapping Cords", "Frayed Edges", "Deep Splits", "Ligament Shreds", "Complete Rupture"],
+    // Tier 3: Fractured Bones
+    ["Hairline Cracks", "Stress Fractures", "Fissure Lines", "Compound Splits", "Marrow Leaks",
+     "Bone Slivers", "Calcified Breaks", "Splinter Points", "Core Fractures", "Shattered Density"],
+    // Tier 4: Severed Tendons
+    ["Partial Cuts", "Tension Breaks", "Snapped Cords", "Severed Fibers", "Dangling Threads",
+     "Disconnected Pulls", "Fraying Ends", "Recoiled Snaps", "Exposed Stumps", "Complete Severance"],
+    // Tier 5: Crushed Nerves
+    ["Pinched Lines", "Signal Breaks", "Neural Crushes", "Deadened Paths", "Muffled Signals",
+     "Pain Routing", "Nerve Death", "Phantom Pulses", "Silent Conduits", "Crushed Pathways"],
+    // Tier 6: Withered Grip
+    ["Weakened Clasp", "Trembling Hold", "Fading Clench", "Ghost Grip", "Wasted Muscles",
+     "Atrophied Flex", "Hollow Squeeze", "Dead Press", "Limp Grasp", "Final Clutch"],
+    // Tier 7: Ruined Flesh
+    ["Necrotic Touch", "Tissue Decay", "Flesh Ruin", "Exposed Bone", "Cellular Collapse",
+     "Putrid Gains", "Festering Power", "Rot Engine", "Decay Multiplier", "Total Ruination"],
+    // Tier 8: Cursed Touch
+    ["Minor Hex", "Coin Taint", "Cursed Press", "Blood Coins", "Hex Channeling",
+     "Dark Contact", "Corrupted Grip", "Cursed Callus", "Malevolent Touch", "Accursed Hand"],
+    // Tier 9: Fist of Desperation
+    ["Desperate Strike", "Frantic Tempo", "Furious Press", "Manic Grip", "Unhinged Force",
+     "Last Resort Push", "Reckless Channel", "Desperate Power", "Final Fury", "Desperation Incarnate"],
+  ];
+
+  const BASE = Game.config.CLICKER_UPGRADE_BASE_COST;
+  Game.config.clickerUpgradeDefs.forEach(function (tier, t) {
+    tier.subsections = SUBSECTION_NAMES[t].map(function (name, s) {
+      return {
+        name: name,
+        // click boost per level: scales gently with tier and subsection index
+        clickBoostPerLevel: 1 + 0.02 + t * 0.002 + s * 0.001,
+        // global production penalty per level: small but cumulative
+        globalPenaltyPerLevel: 1 - (0.001 + t * 0.0002 + s * 0.0001),
+        // base cost: escalates steeply by tier, moderately by subsection index
+        baseCost: BASE * Math.pow(5, t) * Math.pow(2, s),
+      };
+    });
+  });
+}());
 
 Game.config.DIPLOMACY_RELATION_MIN = -100;
 Game.config.DIPLOMACY_RELATION_MAX = 100;
