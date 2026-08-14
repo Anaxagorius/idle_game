@@ -322,6 +322,16 @@ header {
   user-select: none;
 }
 .cu-tier-summary::-webkit-details-marker { display: none; }
+.cu-tier-arrow {
+  font-size: 10px;
+  color: var(--muted);
+  transition: transform 0.2s;
+  margin-left: 6px;
+  flex-shrink: 0;
+}
+.cu-tier-section[open] > .cu-tier-summary .cu-tier-arrow {
+  transform: rotate(180deg);
+}
 .cu-tier-section[open] > .cu-tier-summary {
   border-bottom: 1px solid var(--border);
 }

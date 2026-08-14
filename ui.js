@@ -321,6 +321,12 @@
     const tierData = s.clickerTiers || [];
     const subMax = cfg.CLICKER_SUBSECTION_MAX;
 
+    // Preserve open/closed state before rebuilding
+    const openStates = {};
+    container.querySelectorAll(".cu-tier-section[data-tier-idx]").forEach(function (d) {
+      openStates[d.dataset.tierIdx] = d.open;
+    });
+
     let html = '<div class="cu-header">Click Upgrades</div>';
 
     cfg.clickerUpgradeDefs.forEach(function (tier, t) {
@@ -328,11 +334,13 @@
       const totalLevels = tierLevels.reduce(function (a, b) { return a + (b || 0); }, 0);
       const maxLevels = tier.subsections.length * subMax;
       const allMaxed = totalLevels >= maxLevels;
+      const isOpen = openStates.hasOwnProperty(t) ? openStates[t] : false;
 
-      html += '<details class="cu-tier-section">';
+      html += '<details class="cu-tier-section" data-tier-idx="' + t + '"' + (isOpen ? ' open' : '') + '>';
       html += '<summary class="cu-tier-summary">';
       html += '<span class="cu-tier-name">' + tier.name + '</span>';
       html += '<span class="cu-tier-progress' + (allMaxed ? ' cu-tier-maxed' : '') + '">' + totalLevels + '/' + maxLevels + '</span>';
+      html += '<span class="cu-tier-arrow">&#9660;</span>';
       html += '</summary>';
       html += '<div class="cu-tier-flavor">' + tier.flavor + '</div>';
       html += '<div class="cu-subsections">';
