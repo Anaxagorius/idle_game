@@ -197,6 +197,9 @@
     if (typeof fresh.stats.realityCount !== "number") fresh.stats.realityCount = 0;
     if (typeof fresh.stats.megaProjectsCompleted !== "number") fresh.stats.megaProjectsCompleted = 0;
 
+    // Difficulty
+    if (!["hardcore", "weak", "coward"].includes(fresh.difficulty)) fresh.difficulty = "hardcore";
+
     Game.state = fresh;
     if (Game.Diplomacy && Game.Diplomacy.ensureState) Game.Diplomacy.ensureState();
     if (Game.Cycles && Game.Cycles.ensureState) Game.Cycles.ensureState();

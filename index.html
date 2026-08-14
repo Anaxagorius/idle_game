@@ -451,6 +451,7 @@
       <div class="panel">
         <h2>Danger Zone</h2>
         <p class="muted">This permanently deletes all progress.</p>
+        <p class="muted">Current difficulty: <strong id="current-difficulty-label">Hardcore</strong></p>
         <button class="settings-btn danger" id="btn-hardreset">🗑️ Hard Reset</button>
       </div>
     </section>
@@ -487,7 +488,42 @@
     </div>
   </div>
 
-  <!-- ================= Scripts (load order matters) ================= -->
+  <!-- ================= Difficulty Reset Modal ================= -->
+  <div class="overlay" id="difficulty-reset-overlay">
+    <div class="popup difficulty-reset-modal">
+      <h2>⚠️ New Game — Choose Difficulty</h2>
+      <p class="muted">This will permanently delete all progress. Choose your difficulty for the new game.</p>
+      <div class="difficulty-options">
+        <label class="difficulty-option">
+          <input type="radio" name="new-difficulty" value="hardcore" checked />
+          <span class="difficulty-label">
+            <strong>💀 Hardcore</strong> <em>(Normal)</em>
+            <span class="muted">Standard income.</span>
+          </span>
+        </label>
+        <label class="difficulty-option">
+          <input type="radio" name="new-difficulty" value="weak" />
+          <span class="difficulty-label">
+            <strong>🌿 Weak</strong>
+            <span class="muted">3× profits from all sources.</span>
+          </span>
+        </label>
+        <label class="difficulty-option">
+          <input type="radio" name="new-difficulty" value="coward" />
+          <span class="difficulty-label">
+            <strong>🐔 Coward</strong>
+            <span class="muted">10× profits from all sources.</span>
+          </span>
+        </label>
+      </div>
+      <div class="difficulty-reset-actions">
+        <button id="btn-difficulty-confirm" class="settings-btn danger">🗑️ Reset &amp; Start New Game</button>
+        <button id="btn-difficulty-cancel" class="settings-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+
   <script src="config.js"></script>
   <script src="map.js"></script>
   <script src="game.js"></script>

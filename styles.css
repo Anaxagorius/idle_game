@@ -1277,3 +1277,16 @@ textarea#save-string {
 .casino-result-win { color:var(--green); font-weight:700; }
 .casino-result-loss { color:var(--red); font-weight:700; }
 .casino-chip-balance { color:var(--gold); font-weight:700; font-size:18px; }
+
+/* ── Difficulty Reset Modal ──────────────────────────────────────────────── */
+.difficulty-reset-modal { max-width: 480px; text-align: left; }
+.difficulty-reset-modal h2 { text-align: center; }
+.difficulty-options { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+.difficulty-option { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; transition: border-color 0.15s; }
+.difficulty-option:has(input:checked) { border-color: var(--gold); }
+.difficulty-option input[type="radio"] { margin-top: 2px; accent-color: var(--gold); }
+.difficulty-label { display: flex; flex-direction: column; gap: 2px; }
+.difficulty-label strong { color: var(--text); }
+.difficulty-label em { color: var(--muted); font-style: normal; font-size: 12px; }
+.difficulty-reset-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.difficulty-reset-actions .settings-btn { width: 100%; text-align: center; }
