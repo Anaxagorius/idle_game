@@ -177,6 +177,7 @@
         focusCounty: null,
       },
       clickerUpgrades: 0,
+      difficulty: "hardcore",
       lastSave: Date.now(),
       lastTick: Date.now(),
       startTime: Date.now(),
@@ -248,6 +249,7 @@
       horseWinMult: 1,
       carWinMult: 1,
       megaProjectCostMult: 1,
+      difficulty: s.difficulty === "weak" ? 3 : s.difficulty === "coward" ? 10 : 1,
     };
 
     function applyEffect(effect) {
@@ -504,7 +506,8 @@
       m.milestone *
       m.event *
       m.talentGlobal *
-      m.clickerPenalty;
+      m.clickerPenalty *
+      m.difficulty;
 
     return m;
   };
@@ -560,7 +563,7 @@
       (s.buildings.laboratory || 0) * 0.2 +
       (s.buildings.university || 0) * 2 +
       (s.buildings.datacenter || 0) * 5;
-    s._rps = rpBase * m.researchGlobal * m.prestige * (1 + s.ascensionShards * cfg.ASCENSION_PER_SHARD_MULT * (cfg.BONUS_EFFECTIVENESS_MULT || 1)) * m.rpGain * diplomacy.rpMult * gainScale;
+    s._rps = rpBase * m.researchGlobal * m.prestige * (1 + s.ascensionShards * cfg.ASCENSION_PER_SHARD_MULT * (cfg.BONUS_EFFECTIVENESS_MULT || 1)) * m.rpGain * diplomacy.rpMult * gainScale * m.difficulty;
 
     // Click value: flat scaled by global mult + fraction of CPS
     s._clickValue = ((1 * m.global * diplomacy.globalMult + cps * cfg.CLICK_CPS_FRACTION * m.clickCpsFractionMult) * m.clickMult * diplomacy.clickMult) * gainScale;

@@ -1805,12 +1805,26 @@
       }
     });
     el("btn-hardreset").addEventListener("click", () => {
-      if (confirm("Hard reset will DELETE all progress permanently. Continue?")) {
-        Game.Save.hardReset();
-        UI.rebuildAll();
-        UI.update();
-        UI.toast("Game reset to defaults.", "info");
-      }
+      const overlay = el("difficulty-reset-overlay");
+      // Pre-select current difficulty
+      const currentDiff = Game.state.difficulty || "hardcore";
+      const radio = overlay.querySelector(`input[name="new-difficulty"][value="${currentDiff}"]`);
+      if (radio) radio.checked = true;
+      overlay.classList.add("show");
+    });
+    el("btn-difficulty-cancel").addEventListener("click", () => {
+      el("difficulty-reset-overlay").classList.remove("show");
+    });
+    el("btn-difficulty-confirm").addEventListener("click", () => {
+      const selected = el("difficulty-reset-overlay").querySelector("input[name=\"new-difficulty\"]:checked");
+      const difficulty = selected ? selected.value : "hardcore";
+      el("difficulty-reset-overlay").classList.remove("show");
+      Game.Save.hardReset();
+      Game.state.difficulty = difficulty;
+      Game.Save.save();
+      UI.rebuildAll();
+      UI.update();
+      UI.toast("Game reset to defaults.", "info");
     });
     const notif = el("toggle-notifications");
     notif.checked = Game.state.settings.notifications;
@@ -1895,6 +1909,12 @@
     refs.as.textContent = fmt(s.ascensionShards);
     refs.btc.textContent = fmt(s.btc);
     refs.energy.textContent = fmt(s.energy) + " / " + fmt(s.energyCap);
+
+    const diffLabel = el("current-difficulty-label");
+    if (diffLabel) {
+      const diffNames = { hardcore: "Hardcore (Normal)", weak: "Weak (3× profits)", coward: "Coward (10× profits)" };
+      diffLabel.textContent = diffNames[s.difficulty || "hardcore"] || "Hardcore (Normal)";
+    }
 
     UI.updateActiveEvents();
 
