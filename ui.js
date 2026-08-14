@@ -355,7 +355,7 @@
         } else {
           html += '<div class="cu-sub-effect">+' + boostPct + '% click &nbsp;|&nbsp; <span class="cu-penalty">-' + penaltyPct + '% global</span></div>';
           html += '<div class="cu-sub-cost">' + fmt(cost) + ' coins</div>';
-          html += '<button class="cu-btn' + (affordable ? '' : ' disabled') + '" data-cu-buy data-tier="' + t + '" data-sub="' + si + '">Upgrade</button>';
+          html += '<button class="cu-btn' + (affordable ? '' : ' disabled') + '"' + (affordable ? '' : ' disabled') + ' data-cu-buy data-tier="' + t + '" data-sub="' + si + '">Upgrade</button>';
         }
         html += '</div>';
       });
