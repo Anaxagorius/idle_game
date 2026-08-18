@@ -320,14 +320,14 @@
       s.stockMarketRegime = pickRegime();
       s.stockRegimeTimer = resetRegimeTimer();
     }
+    const cycleEvent = Stocks.activeCycleEvent();
+    const cycleEventMarketDrift = cycleEvent ? (cycleEvent.marketDrift || 0) : 0;
+    const cycleEventVolatilityMult = cycleEvent ? Math.max(0, cycleEvent.volatilityMult || 1) : 1;
+    const cycleEventSectorEffects = cycleEvent && cycleEvent.sectorEffects ? cycleEvent.sectorEffects : null;
 
     while (s.stockTickTimer >= cfg.STOCK_TICK_SECONDS) {
       s.stockTickTimer -= cfg.STOCK_TICK_SECONDS;
       const cycleDriftMult = (Game.Cycles && Game.Cycles.stockDriftMult) ? Game.Cycles.stockDriftMult() : 1;
-      const cycleEvent = Stocks.activeCycleEvent();
-      const cycleEventMarketDrift = cycleEvent ? (cycleEvent.marketDrift || 0) : 0;
-      const cycleEventVolatilityMult = cycleEvent ? Math.max(0, cycleEvent.volatilityMult || 1) : 1;
-      const cycleEventSectorEffects = cycleEvent && cycleEvent.sectorEffects ? cycleEvent.sectorEffects : null;
       const randomMarket = (Math.random() * 2 - 1) * marketVol;
       const regimeDrift = s.stockMarketRegime > 0
         ? bullDrift
