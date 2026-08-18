@@ -777,6 +777,7 @@
     const summary = el("stock-summary");
     const tracking = Game.Stocks.dividendTracking();
     const forecast = tracking.forecast;
+    const marketEvent = Game.Stocks.activeCycleEvent ? Game.Stocks.activeCycleEvent() : null;
     const fmtDividend = (value) => {
       if (!Number.isFinite(value) || value === 0) return "0";
       if (Math.abs(value) < 0.01) return value.toFixed(4);
@@ -790,7 +791,9 @@
       '<div class="stat-row"><span class="stat-key">Dividend Coverage</span><span class="stat-val">' + forecast.eligibleStocks + " paying • " + forecast.dividendStocksOwned + " dividend stocks</span></div>" +
       '<div class="stat-row"><span class="stat-key">Next Dividend</span><span class="stat-val">in ' + Game.formatTime(Math.ceil(tracking.nextInSeconds)) + "</span></div>" +
       '<div class="stat-row"><span class="stat-key">Last Dividend</span><span class="stat-val">' + fmtDividend(tracking.lastPayout) + " coins</span></div>" +
-      '<div class="stat-row"><span class="stat-key">Lifetime Dividends</span><span class="stat-val">' + fmtDividend(tracking.lifetimePayout) + " coins</span></div>";
+      '<div class="stat-row"><span class="stat-key">Lifetime Dividends</span><span class="stat-val">' + fmtDividend(tracking.lifetimePayout) + " coins</span></div>" +
+      '<div class="stat-row"><span class="stat-key">Market Event</span><span class="stat-val">' + (marketEvent ? (marketEvent.icon + " " + marketEvent.name) : "None this cycle") + "</span></div>" +
+      '<div class="stat-row"><span class="stat-key">Event Impact</span><span class="stat-val">' + (marketEvent ? marketEvent.desc : "No market event triggered on this cycle change.") + "</span></div>";
     const selectedAmount = Game.Stocks.tradeAmount();
     setAmountButtonsActive(".stock-amount-btn", selectedAmount);
     cfg.stocks.forEach((st) => {
@@ -2071,6 +2074,13 @@
       chip.style.color = e.def.color;
       container.appendChild(chip);
     });
+    const marketEvent = Game.Stocks && Game.Stocks.activeCycleEvent ? Game.Stocks.activeCycleEvent() : null;
+    if (marketEvent && Game.Cycles) {
+      const chip = make("div", "event-chip", marketEvent.icon + " " + marketEvent.name + " — " + Math.ceil(Game.Cycles.timeRemaining()) + "s");
+      chip.style.borderColor = marketEvent.color;
+      chip.style.color = marketEvent.color;
+      container.appendChild(chip);
+    }
   };
 
   /* ---------------------------------------------------------------------

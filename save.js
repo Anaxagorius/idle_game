@@ -82,6 +82,8 @@
     if (![1, 10, 25, 50, 100, 1000, -1].includes(fresh.stockBuyAmount)) fresh.stockBuyAmount = 1;
     if (typeof fresh.stockMarketRegime !== "number") fresh.stockMarketRegime = 0;
     if (typeof fresh.stockRegimeTimer !== "number") fresh.stockRegimeTimer = 0;
+    if (typeof fresh.stockCycleEventId !== "string") fresh.stockCycleEventId = "";
+    if (fresh.stockCycleEventId && !(cfg.stockCycleEventMap && cfg.stockCycleEventMap[fresh.stockCycleEventId])) fresh.stockCycleEventId = "";
     if (typeof fresh.stockDividendLastPayout !== "number") fresh.stockDividendLastPayout = 0;
     if (typeof fresh.stockDividendLifetime !== "number") fresh.stockDividendLifetime = 0;
     (cfg.energyProducers || []).forEach((p) => {
