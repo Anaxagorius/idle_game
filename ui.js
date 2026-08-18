@@ -787,7 +787,7 @@
       '<div class="stat-row"><span class="stat-key">Trade Fee</span><span class="stat-val">' + (Game.Stocks.feeRate() * 100).toFixed(2) + "%</span></div>" +
       '<div class="stat-row"><span class="stat-key">Dividend Forecast</span><span class="stat-val">' + fmtDividend(forecast.totalPerPayout) + " / payout</span></div>" +
       '<div class="stat-row"><span class="stat-key">Projected Dividend Rate</span><span class="stat-val">' + fmtDividend(forecast.perMinute) + " / min</span></div>" +
-      '<div class="stat-row"><span class="stat-key">Dividend Coverage</span><span class="stat-val">' + forecast.eligibleStocks + " active • " + forecast.dividendStocksOwned + " yielding</span></div>" +
+      '<div class="stat-row"><span class="stat-key">Dividend Coverage</span><span class="stat-val">' + forecast.eligibleStocks + " paying • " + forecast.dividendStocksOwned + " dividend stocks</span></div>" +
       '<div class="stat-row"><span class="stat-key">Next Dividend</span><span class="stat-val">in ' + Game.formatTime(Math.ceil(tracking.nextInSeconds)) + "</span></div>" +
       '<div class="stat-row"><span class="stat-key">Last Dividend</span><span class="stat-val">' + fmtDividend(tracking.lastPayout) + " coins</span></div>" +
       '<div class="stat-row"><span class="stat-key">Lifetime Dividends</span><span class="stat-val">' + fmtDividend(tracking.lifetimePayout) + " coins</span></div>";
