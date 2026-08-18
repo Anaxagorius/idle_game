@@ -778,7 +778,7 @@
     const tracking = Game.Stocks.dividendTracking();
     const forecast = tracking.forecast;
     const fmtDividend = (value) => {
-      if (!value) return "0";
+      if (!Number.isFinite(value) || value === 0) return "0";
       if (Math.abs(value) < 0.01) return value.toFixed(4);
       return fmt(value);
     };
