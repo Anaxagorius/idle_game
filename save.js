@@ -77,6 +77,7 @@
     if (!fresh.stocks || typeof fresh.stocks !== "object") fresh.stocks = {};
     if (!fresh.stockHistory || typeof fresh.stockHistory !== "object") fresh.stockHistory = {};
     if (!fresh.portfolio || typeof fresh.portfolio !== "object") fresh.portfolio = {};
+    if (!fresh.people || typeof fresh.people !== "object") fresh.people = {};
     if (typeof fresh.stockBuyAmount !== "number") fresh.stockBuyAmount = 1;
     if (![1, 10, 25, 50, 100, 1000, -1].includes(fresh.stockBuyAmount)) fresh.stockBuyAmount = 1;
     if (typeof fresh.stockMarketRegime !== "number") fresh.stockMarketRegime = 0;
@@ -101,6 +102,10 @@
       if (!fresh.portfolio[st.id] || typeof fresh.portfolio[st.id] !== "object") fresh.portfolio[st.id] = { shares: 0, avgCost: 0 };
       if (typeof fresh.portfolio[st.id].shares !== "number") fresh.portfolio[st.id].shares = 0;
       if (typeof fresh.portfolio[st.id].avgCost !== "number") fresh.portfolio[st.id].avgCost = 0;
+    });
+    (cfg.peopleSpecialists || []).forEach((p) => {
+      if (typeof fresh.people[p.id] !== "number") fresh.people[p.id] = 0;
+      fresh.people[p.id] = Math.max(0, Math.floor(fresh.people[p.id]));
     });
     if (!fresh.map || typeof fresh.map !== "object") fresh.map = {};
     if (!Array.isArray(fresh.map.pins)) fresh.map.pins = [];

@@ -71,6 +71,9 @@ Game.config = {
   CLICKER_SUBSECTION_LEVEL_MULT: 1.5,
 };
 
+Game.config.EXTRA_PRESTIGE_TALENTS = 20;
+Game.config.EXTRA_ASCENSION_UPGRADES = 20;
+
 /* --------------------------------------------------------------------------
    Clicker upgrade definitions (10 levels, punishing theme)
    Each level multiplies click value by clickBoost (applied directly, not
@@ -1045,6 +1048,49 @@ const TALENTS = [
   },
 ];
 
+const EXTRA_PRESTIGE_TALENT_NAMES = [
+  "Legacy Markets",
+  "Mythic Dividends",
+  "Ascendant Supply Chains",
+  "Transcendent Logistics",
+  "Eternal Compounders",
+  "Hypercapital Doctrine",
+  "Quantum Treasury",
+  "Infinite Boardroom",
+  "Starbound Syndicates",
+  "Nebula Finance",
+  "Interstellar Trust",
+  "Omniwealth Engine",
+  "Celestial Conglomerate",
+  "Singularity Holdings",
+  "Multiversal Exchange",
+  "Entropy Arbitrage",
+  "Chrono Capital",
+  "Event Horizon Hedge",
+  "Godspeed Commerce",
+  "Final Ledger",
+];
+
+let extraTalentRequires = "talent_climate_9";
+for (let i = 0; i < Game.config.EXTRA_PRESTIGE_TALENTS; i++) {
+  const id = "talent_legacy_plus_" + i;
+  const isPrestigeNode = i % 3 === 1;
+  const value = isPrestigeNode ? (0.16 + i * 0.01) : (0.14 + i * 0.008);
+  const type = isPrestigeNode ? "prestigeGain" : "globalMult";
+  const name = EXTRA_PRESTIGE_TALENT_NAMES[i] || ("Legacy Expansion " + (i + 1));
+  TALENTS.push({
+    id,
+    branch: "economics",
+    name,
+    cost: 900 + i * 140,
+    type,
+    value,
+    desc: (isPrestigeNode ? "Boost prestige gain." : "Boost global production.") + " (Legacy extension tier " + (i + 1) + ")",
+    requires: extraTalentRequires,
+  });
+  extraTalentRequires = id;
+}
+
 Game.config.talents = TALENTS;
 Game.config.talentMap = {};
 Game.config.talentPowerMap = {};
@@ -1128,6 +1174,44 @@ const GODS_TITANS = [
     requires: "god_fortune",
   },
 ];
+
+const EXTRA_ASCENSION_UPGRADE_DEFS = [
+  { name: "Hermes' Brokers", desc: "Stock brokers tighten spreads and boost payouts.", effects: [{ type: "stockDividendMult", value: 0.12 }, { type: "stockFeeReduction", value: 0.08 }, { type: "clickMult", value: -0.02 }] },
+  { name: "Atlas' Landlords", desc: "Property caretakers sharpen rent collection.", effects: [{ type: "buildingMult", building: "bank", value: 0.1 }, { type: "buildingMult", building: "corporation", value: 0.08 }, { type: "energyClick", value: -0.02 }] },
+  { name: "Bitcoin Bros", desc: "Hashing crews squeeze more from every watt.", effects: [{ type: "minerEfficiency", value: 0.1 }, { type: "coinFarmerYield", value: 0.08 }, { type: "costReduction", value: -0.02 }] },
+  { name: "Gaia's Foremen", desc: "Foremen steady worker output across the empire.", effects: [{ type: "buildingMult", building: "worker", value: 0.12 }, { type: "globalMult", value: 0.05 }, { type: "prestigeGain", value: -0.02 }] },
+  { name: "Apollo's Analysts", desc: "Market analysts convert signals into returns.", effects: [{ type: "stockDividendMult", value: 0.1 }, { type: "rpMult", value: 0.06 }, { type: "buildingMult", building: "mine", value: -0.03 }] },
+  { name: "Poseidon's Fleetmasters", desc: "Shipping planners improve logistics chains.", effects: [{ type: "buildingMult", building: "shipyard", value: 0.11 }, { type: "buildingMult", building: "spaceport", value: 0.08 }, { type: "clickCpsFractionMult", value: -0.03 }] },
+  { name: "Athena's Educators", desc: "Mentors grow smarter managers and brighter labs.", effects: [{ type: "buildingMult", building: "university", value: 0.1 }, { type: "buildingMult", building: "laboratory", value: 0.1 }, { type: "stockFeeReduction", value: -0.02 }] },
+  { name: "Vulcan's Mechanics", desc: "Engineers tune reactors and mining arrays.", effects: [{ type: "energyProduction", value: 0.1 }, { type: "minerEfficiency", value: 0.08 }, { type: "clickMult", value: -0.02 }] },
+  { name: "Tyche's Card Counters", desc: "Probability teams improve wager outcomes.", effects: [{ type: "casinoPayoutMult", value: 0.1 }, { type: "horseWinMult", value: 0.06 }, { type: "carWinMult", value: -0.02 }] },
+  { name: "Hera's Quartermasters", desc: "Quartermasters reduce empire-wide bottlenecks.", effects: [{ type: "globalMult", value: 0.08 }, { type: "buildingMult", building: "factory", value: 0.08 }, { type: "costReduction", value: -0.02 }] },
+  { name: "Demeter's Agronomists", desc: "Agronomy specialists improve food and labor output.", effects: [{ type: "buildingMult", building: "farm", value: 0.12 }, { type: "buildingMult", building: "worker", value: 0.08 }, { type: "buildingMult", building: "dysonswarm", value: -0.03 }] },
+  { name: "Ares' Drillmasters", desc: "Discipline crews increase heavy-industry tempo.", effects: [{ type: "buildingMult", building: "factory", value: 0.1 }, { type: "buildingMult", building: "refinery", value: 0.1 }, { type: "rpMult", value: -0.03 }] },
+  { name: "Hades' Risk Desk", desc: "Risk teams weaponize downturn volatility.", effects: [{ type: "stockDividendMult", value: 0.08 }, { type: "stockFeeReduction", value: 0.06 }, { type: "energyCapacity", value: -0.03 }] },
+  { name: "Helios' Grid Chiefs", desc: "Grid chiefs stabilize energy and battery throughput.", effects: [{ type: "energyProduction", value: 0.12 }, { type: "energyCapacity", value: 0.08 }, { type: "prestigeGain", value: -0.02 }] },
+  { name: "Nemesis Auditors", desc: "Auditors punish inefficiency and improve margins.", effects: [{ type: "globalMult", value: 0.07 }, { type: "costReduction", value: 0.03 }, { type: "clickCpsFractionMult", value: -0.03 }] },
+  { name: "Selene Prospectors", desc: "Prospectors increase colony extraction quality.", effects: [{ type: "buildingMult", building: "mooncolony", value: 0.12 }, { type: "buildingMult", building: "marscolony", value: 0.1 }, { type: "btcClick", value: -0.02 }] },
+  { name: "Chronos Accountants", desc: "Temporal ledgers improve long-run compounding.", effects: [{ type: "prestigeGain", value: 0.1 }, { type: "globalMult", value: 0.06 }, { type: "horseWinMult", value: -0.02 }] },
+  { name: "Erebus Market Makers", desc: "Market makers deepen liquidity and dividends.", effects: [{ type: "stockFeeReduction", value: 0.1 }, { type: "stockDividendMult", value: 0.08 }, { type: "carWinMult", value: -0.02 }] },
+  { name: "Mnemosyne Archivists", desc: "Knowledge custodians improve research throughput.", effects: [{ type: "rpMult", value: 0.1 }, { type: "buildingMult", building: "datacenter", value: 0.08 }, { type: "minerEfficiency", value: -0.02 }] },
+  { name: "Prometheus Overclock", desc: "Final overclock for industry, markets and crypto.", effects: [{ type: "globalMult", value: 0.1 }, { type: "stockDividendMult", value: 0.1 }, { type: "coinFarmerYield", value: 0.08 }] },
+];
+
+let extraGodTitanRequires = "titan_void";
+for (let i = 0; i < Game.config.EXTRA_ASCENSION_UPGRADES; i++) {
+  const def = EXTRA_ASCENSION_UPGRADE_DEFS[i] || EXTRA_ASCENSION_UPGRADE_DEFS[EXTRA_ASCENSION_UPGRADE_DEFS.length - 1];
+  const id = "mythic_upgrade_" + i;
+  GODS_TITANS.push({
+    id,
+    name: def.name,
+    cost: 14 + i * 2,
+    desc: def.desc,
+    effects: def.effects,
+    requires: extraGodTitanRequires,
+  });
+  extraGodTitanRequires = id;
+}
 Game.config.godsTitans = GODS_TITANS;
 Game.config.godTitanMap = {};
 GODS_TITANS.forEach((gt) => {
@@ -1594,7 +1678,7 @@ Game.config.stocks = STOCKS;
 Game.config.STOCK_TICK_SECONDS = 5;
 Game.config.STOCK_HISTORY_POINTS = 20;
 Game.config.STOCK_TRADING_FEE = 0.01;
-Game.config.STOCK_DIVIDEND_SECONDS = 30;
+Game.config.STOCK_DIVIDEND_SECONDS = 1;
 // Stock pays dividends only when price is at or above this base-price multiple.
 Game.config.STOCK_DIVIDEND_MIN_PRICE_MULT = 0.75;
 // Compress "annual" dividend yields into game-time seconds.
@@ -1618,6 +1702,29 @@ Game.config.STOCK_EVENT_BEAR_SHIFT = -0.08;
 Game.config.STOCK_EVENT_BULL_SHIFT = 0.1;
 Game.config.STOCK_EVENT_CORRELATION_MIN = 0.6;
 Game.config.STOCK_EVENT_CORRELATION_RANGE = 0.8;
+
+Game.config.peopleSpecialists = [
+  { id: "people_stock_broker", name: "Stock Brokers", baseCost: 15000, costMult: 1.17, maxLevel: 40, desc: "Boosts dividend income and trims stock fees.", effects: [{ type: "stockDividendMult", value: 0.08 }, { type: "stockFeeReduction", value: 0.05 }] },
+  { id: "people_landlords", name: "Landlords", baseCost: 25000, costMult: 1.16, maxLevel: 35, desc: "Improves property upkeep for banks and corporations.", effects: [{ type: "buildingMult", building: "bank", value: 0.08 }, { type: "buildingMult", building: "corporation", value: 0.08 }] },
+  { id: "people_bitcoin_bros", name: "Bitcoin Bros", baseCost: 40000, costMult: 1.18, maxLevel: 35, desc: "Increases miner throughput and coin farmer yield.", effects: [{ type: "minerEfficiency", value: 0.08 }, { type: "coinFarmerYield", value: 0.08 }] },
+  { id: "people_foremen", name: "Foremen", baseCost: 9000, costMult: 1.15, maxLevel: 45, desc: "General workforce discipline for all production.", effects: [{ type: "globalMult", value: 0.06 }] },
+  { id: "people_agronomists", name: "Agronomists", baseCost: 12000, costMult: 1.15, maxLevel: 40, desc: "Upgrades food and labor output pipelines.", effects: [{ type: "buildingMult", building: "farm", value: 0.1 }, { type: "buildingMult", building: "worker", value: 0.08 }] },
+  { id: "people_mine_supervisors", name: "Mine Supervisors", baseCost: 16000, costMult: 1.16, maxLevel: 40, desc: "Optimizes ore extraction and refining handoff.", effects: [{ type: "buildingMult", building: "mine", value: 0.1 }, { type: "buildingMult", building: "refinery", value: 0.08 }] },
+  { id: "people_factory_operators", name: "Factory Operators", baseCost: 22000, costMult: 1.16, maxLevel: 40, desc: "Improves heavy manufacturing uptime.", effects: [{ type: "buildingMult", building: "factory", value: 0.1 }, { type: "buildingMult", building: "shipyard", value: 0.07 }] },
+  { id: "people_energy_engineers", name: "Energy Engineers", baseCost: 28000, costMult: 1.17, maxLevel: 40, desc: "Grows energy production and storage stability.", effects: [{ type: "energyProduction", value: 0.09 }, { type: "energyCapacity", value: 0.07 }] },
+  { id: "people_quant_analysts", name: "Quant Analysts", baseCost: 50000, costMult: 1.18, maxLevel: 35, desc: "Combines market and prestige math for compounding gains.", effects: [{ type: "stockDividendMult", value: 0.07 }, { type: "prestigeGain", value: 0.06 }] },
+  { id: "people_lab_directors", name: "Lab Directors", baseCost: 65000, costMult: 1.18, maxLevel: 35, desc: "Drives research and advanced infrastructure output.", effects: [{ type: "buildingMult", building: "laboratory", value: 0.1 }, { type: "buildingMult", building: "university", value: 0.09 }, { type: "rpMult", value: 0.06 }] },
+  { id: "people_data_architects", name: "Data Architects", baseCost: 90000, costMult: 1.19, maxLevel: 35, desc: "Boosts datacenter productivity and click scaling.", effects: [{ type: "buildingMult", building: "datacenter", value: 0.1 }, { type: "clickCpsFractionMult", value: 0.06 }] },
+  { id: "people_port_commanders", name: "Port Commanders", baseCost: 120000, costMult: 1.2, maxLevel: 32, desc: "Improves space-age logistics and launch cadence.", effects: [{ type: "buildingMult", building: "spaceport", value: 0.1 }, { type: "buildingMult", building: "orbital", value: 0.08 }] },
+  { id: "people_colony_governors", name: "Colony Governors", baseCost: 150000, costMult: 1.2, maxLevel: 32, desc: "Increases colony administration efficiency.", effects: [{ type: "buildingMult", building: "mooncolony", value: 0.1 }, { type: "buildingMult", building: "marscolony", value: 0.1 }] },
+  { id: "people_swarm_technicians", name: "Swarm Technicians", baseCost: 220000, costMult: 1.21, maxLevel: 30, desc: "Maintains dyson and nexus infrastructure.", effects: [{ type: "buildingMult", building: "dysonswarm", value: 0.09 }, { type: "buildingMult", building: "galacticnexus", value: 0.09 }] },
+  { id: "people_treasury_managers", name: "Treasury Managers", baseCost: 180000, costMult: 1.2, maxLevel: 30, desc: "Improves overall finances and fee discipline.", effects: [{ type: "globalMult", value: 0.05 }, { type: "stockFeeReduction", value: 0.05 }] },
+  { id: "people_casino_hosts", name: "Casino Hosts", baseCost: 75000, costMult: 1.18, maxLevel: 30, desc: "Raises casino, horse track, and race track returns.", effects: [{ type: "casinoPayoutMult", value: 0.08 }, { type: "horseWinMult", value: 0.06 }, { type: "carWinMult", value: 0.06 }] },
+  { id: "people_automation_coordinators", name: "Automation Coordinators", baseCost: 95000, costMult: 1.19, maxLevel: 30, desc: "Keeps automated systems synchronized and efficient.", effects: [{ type: "automationMult", value: 0.06 }, { type: "globalMult", value: 0.04 }] },
+  { id: "people_reality_consultants", name: "Reality Consultants", baseCost: 300000, costMult: 1.22, maxLevel: 25, desc: "A little bit of everything, because why not.", effects: [{ type: "globalMult", value: 0.06 }, { type: "stockDividendMult", value: 0.06 }, { type: "minerEfficiency", value: 0.06 }, { type: "coinFarmerYield", value: 0.06 }] },
+];
+Game.config.peopleSpecialistMap = {};
+Game.config.peopleSpecialists.forEach(function (p) { Game.config.peopleSpecialistMap[p.id] = p; });
 
 Game.config.MIN_EVENT_DELAY_MULT = 0.5;
 Game.config.MAX_EVENT_DELAY_MULT = 1.5;
