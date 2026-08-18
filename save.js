@@ -201,6 +201,19 @@
     if (typeof fresh.stats.timeCount    !== "number") fresh.stats.timeCount    = 0;
     if (typeof fresh.stats.realityCount !== "number") fresh.stats.realityCount = 0;
     if (typeof fresh.stats.megaProjectsCompleted !== "number") fresh.stats.megaProjectsCompleted = 0;
+    if (typeof fresh.stats.realEstateEarned !== "number") fresh.stats.realEstateEarned = 0;
+
+    // Real estate state
+    if (!fresh.realEstate || typeof fresh.realEstate !== "object") fresh.realEstate = null;
+    // If non-null, ensure required sub-objects exist
+    if (fresh.realEstate) {
+      if (!fresh.realEstate.owned || typeof fresh.realEstate.owned !== "object") fresh.realEstate.owned = {};
+      if (!fresh.realEstate.upgrades || typeof fresh.realEstate.upgrades !== "object") fresh.realEstate.upgrades = {};
+      if (!Array.isArray(fresh.realEstate.activeEvents)) fresh.realEstate.activeEvents = [];
+      if (typeof fresh.realEstate.nextEventTime !== "number") fresh.realEstate.nextEventTime = 0;
+      if (typeof fresh.realEstate.totalEarned !== "number") fresh.realEstate.totalEarned = 0;
+      if (typeof fresh.realEstate.totalSpent !== "number") fresh.realEstate.totalSpent = 0;
+    }
 
     // Migrate legacy clickerUpgrades integer → clickerTiers 2-D array.
     // Each legacy tier that was purchased maps to subsection 0 at level 1,

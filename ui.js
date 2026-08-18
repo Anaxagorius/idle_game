@@ -1786,6 +1786,139 @@
   }
 
   /* ---------------------------------------------------------------------
+     Real Estate tab
+     --------------------------------------------------------------------- */
+  UI.updateRealEstate = function () {
+    if (!Game.RealEstate) return;
+    const s = Game.state;
+    const RE = Game.RealEstate;
+    const re = s.realEstate || RE.defaultRealEstateState();
+    const fmtR = RE.fmt;
+
+    // Summary panel
+    const summaryEl = el("re-summary");
+    if (summaryEl) {
+      const totalRent = RE.totalRentPerSecond();
+      const totalOwned = RE.properties.reduce(function (sum, p) { return sum + ((re.owned && re.owned[p.id]) || 0); }, 0);
+      const lifetimeEarned = (re.totalEarned || 0);
+      summaryEl.innerHTML =
+        '<div class="re-summary-grid">' +
+        '<div class="re-stat"><span class="re-stat-label">Rent / sec</span><span class="re-stat-value">' + fmtR(totalRent) + '</span></div>' +
+        '<div class="re-stat"><span class="re-stat-label">Properties Owned</span><span class="re-stat-value">' + totalOwned + '</span></div>' +
+        '<div class="re-stat"><span class="re-stat-label">Lifetime Rent Earned</span><span class="re-stat-value">' + fmtR(lifetimeEarned) + '</span></div>' +
+        '<div class="re-stat"><span class="re-stat-label">Portfolio Value</span><span class="re-stat-value">' + fmtR(RE.portfolioValue()) + '</span></div>' +
+        '</div>';
+    }
+
+    // Active events panel
+    const eventsEl = el("re-events");
+    if (eventsEl) {
+      const activeEvts = RE.activeEventList();
+      if (activeEvts.length > 0) {
+        eventsEl.innerHTML =
+          '<div class="re-events-title">⚡ Active Events</div>' +
+          activeEvts.map(function (ev) {
+            return '<div class="re-event-chip">' + ev.emoji + ' <strong>' + ev.name + '</strong> — ' + ev.desc + ' <span class="re-event-timer">(' + Math.ceil(ev.remaining) + 's)</span></div>';
+          }).join('');
+      } else {
+        eventsEl.innerHTML = '';
+      }
+    }
+
+    // Properties list
+    const propsEl = el("re-properties");
+    if (!propsEl) return;
+    propsEl.innerHTML = '';
+
+    // Group by tier
+    const tierGroups = {};
+    RE.properties.forEach(function (p) {
+      if (!tierGroups[p.tier]) tierGroups[p.tier] = [];
+      tierGroups[p.tier].push(p);
+    });
+
+    const TIER_LABELS = {
+      1: "Tier 1 — Street Level",
+      2: "Tier 2 — Basic Residences",
+      3: "Tier 3 — Mid-Range Homes",
+      4: "Tier 4 — Upscale Residences",
+      5: "Tier 5 — Commercial Basics",
+      6: "Tier 6 — Large Commercial",
+      7: "Tier 7 — Prestige Commercial",
+      8: "Tier 8 — Mega-Structures",
+      9: "Tier 9 — Iconic Landmarks",
+      10: "Tier 10 — Dubai Ultra-Premium",
+    };
+
+    Object.keys(tierGroups).sort(function (a, b) { return +a - +b; }).forEach(function (tier) {
+      const tierPanel = make("div", "panel re-tier-panel");
+      const tierLabel = TIER_LABELS[tier] || ("Tier " + tier);
+      tierPanel.innerHTML = '<h3 class="re-tier-header">' + tierLabel + '</h3>';
+      const grid = make("div", "re-property-grid");
+
+      tierGroups[tier].forEach(function (p) {
+        const owned = (re.owned && re.owned[p.id]) || 0;
+        const upgLevel = (re.upgrades && re.upgrades[p.id]) || 0;
+        const rentPerSec = RE.unitRentPerSecond(p.id);
+        const buyPrice = RE.buyPrice(p.id);
+        const sellPrice = RE.sellPrice(p.id);
+        const upgCost = owned > 0 ? RE.upgradeCost(p.id) : 0;
+        const canBuy = s.coins >= buyPrice && owned < p.maxOwned;
+        const canSell = owned > 0;
+        const canUpgrade = owned > 0 && upgLevel < RE.maxUpgradeLevel && s.coins >= upgCost;
+
+        const card = make("div", "re-property-card" + (owned > 0 ? " re-owned" : ""));
+        card.innerHTML =
+          '<div class="re-prop-header">' +
+            '<span class="re-prop-emoji">' + p.emoji + '</span>' +
+            '<span class="re-prop-name">' + p.name + '</span>' +
+            '<span class="re-prop-tier-badge">T' + p.tier + '</span>' +
+          '</div>' +
+          '<div class="re-prop-desc muted">' + p.desc + '</div>' +
+          '<div class="re-prop-stats">' +
+            '<div>💰 Cost: <strong>' + fmtR(buyPrice) + '</strong></div>' +
+            '<div>📈 Net Rent/s: <strong>' + fmtR(rentPerSec) + '</strong>' + (owned > 0 ? ' × ' + owned : '') + '</div>' +
+            '<div>🔧 Maint: <strong>' + (p.maintenancePct * 100).toFixed(0) + '%</strong></div>' +
+            '<div>🏠 Owned: <strong>' + owned + ' / ' + p.maxOwned + '</strong></div>' +
+            '<div>⭐ Upgrade: <strong>' + upgLevel + ' / ' + RE.maxUpgradeLevel + '</strong>' +
+              (owned > 0 && upgLevel < RE.maxUpgradeLevel ? ' (+' + (RE.upgradeRentBonus * 100).toFixed(0) + '% ea)' : '') +
+            '</div>' +
+          '</div>' +
+          '<div class="re-prop-actions">' +
+            '<button class="settings-btn re-buy-btn" data-re-id="' + p.id + '" ' + (canBuy ? '' : 'disabled') + '>Buy (' + fmtR(buyPrice) + ')</button>' +
+            '<button class="settings-btn re-sell-btn" data-re-id="' + p.id + '" ' + (canSell ? '' : 'disabled') + '>Sell (' + fmtR(sellPrice) + ')</button>' +
+            (owned > 0 && upgLevel < RE.maxUpgradeLevel
+              ? '<button class="settings-btn re-upgrade-btn" data-re-id="' + p.id + '" ' + (canUpgrade ? '' : 'disabled') + '>Upgrade (' + fmtR(upgCost) + ')</button>'
+              : (upgLevel >= RE.maxUpgradeLevel && owned > 0 ? '<span class="re-maxed">★ MAX Upgraded</span>' : '')) +
+          '</div>';
+
+        grid.appendChild(card);
+      });
+
+      tierPanel.appendChild(grid);
+      propsEl.appendChild(tierPanel);
+    });
+
+    // Wire up buttons (event delegation on propsEl)
+    propsEl.onclick = function (e) {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+      const id = btn.dataset.reId;
+      if (!id) return;
+      if (btn.classList.contains("re-buy-btn")) {
+        RE.buy(id);
+        UI.update();
+      } else if (btn.classList.contains("re-sell-btn")) {
+        RE.sell(id);
+        UI.update();
+      } else if (btn.classList.contains("re-upgrade-btn")) {
+        RE.upgrade(id);
+        UI.update();
+      }
+    };
+  };
+
+  /* ---------------------------------------------------------------------
      Statistics
      --------------------------------------------------------------------- */
   UI.updateStatistics = function () {
@@ -1805,6 +1938,7 @@
           if (df.intervalSeconds > 0) t += df.totalPerPayout / df.intervalSeconds;
         }
         if (Game.Bitcoin && Game.Bitcoin.snapshot && s.btcPrice > 0) t += Game.Bitcoin.snapshot(1).miningRate * s.btcPrice;
+        if (Game.RealEstate) t += Game.RealEstate.totalRentPerSecond();
         return fmt(t);
       })()],
       ["Research Per Second", fmt(s._rps)],
@@ -1840,6 +1974,12 @@
       ["Horse Track Losses", fmt((s.horses && s.horses.totalLosses) || 0)],
       ["Race Track Winnings", fmt((s.cars && s.cars.totalWinnings) || 0)],
       ["Race Track Losses", fmt((s.cars && s.cars.totalLosses) || 0)],
+      ["Real Estate Rental Income (lifetime)", fmt((s.stats && s.stats.realEstateEarned) || 0)],
+      ["Real Estate Properties Owned", (function () {
+        if (!Game.RealEstate || !s.realEstate) return "0";
+        return fmt(Game.RealEstate.properties.reduce(function (sum, p) { return sum + ((s.realEstate.owned && s.realEstate.owned[p.id]) || 0); }, 0));
+      })()],
+      ["Real Estate Rent / sec", fmt(Game.RealEstate ? Game.RealEstate.totalRentPerSecond() : 0)],
       ["Prestige Points", fmt(s.prestigePoints)],
       ["Lifetime Prestige Points", fmt(s.lifetimePrestigePoints)],
       ["Prestige Count", fmt(stats.prestigeCount)],
@@ -2036,6 +2176,9 @@
         break;
       case "racetrack":
         UI.updateRaceTrack();
+        break;
+      case "realestate":
+        UI.updateRealEstate();
         break;
       case "achievements":
         UI.updateAchievements();

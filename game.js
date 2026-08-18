@@ -171,7 +171,9 @@
         timeCount: 0,
         realityCount: 0,
         megaProjectsCompleted: 0,
+        realEstateEarned: 0,
       },
+      realEstate: null, // initialised lazily by RealEstate module
       settings: {
         notifications: true,
       },
@@ -643,6 +645,7 @@
     if (Game.Stocks && Game.Stocks.update) Game.Stocks.update(dtSeconds);
     if (Game.Diplomacy && Game.Diplomacy.update) Game.Diplomacy.update(dtSeconds);
     if (Game.Gambling && Game.Gambling.update) Game.Gambling.update(dtSeconds);
+    if (Game.RealEstate && Game.RealEstate.update) Game.RealEstate.update(dtSeconds);
     Game.Automation.update(dtSeconds);
     Game.Achievements.check();
     Game.Milestones.check();
