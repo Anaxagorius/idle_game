@@ -9,7 +9,7 @@
   const UI = {};
 
   let refs = {};
-  let built = { research: false, achievements: false, milestones: false, automation: false, bitcoin: false, stocks: false, gambling: false, horseTrack: false, raceTrack: false };
+  let built = { research: false, achievements: false, milestones: false, automation: false, bitcoin: false, stocks: false, people: false, gambling: false, horseTrack: false, raceTrack: false };
   let currentTab = "economy";
   let activeCasinoGame = "slots";
 
@@ -96,6 +96,7 @@
     UI.buildSkillTrees();
     UI.buildBitcoin();
     UI.buildStocks();
+    UI.buildPeople();
     UI.buildCasino();
     UI.buildHorseTrack();
     UI.buildRaceTrack();
@@ -806,6 +807,55 @@
       row.querySelector("[data-sell]").textContent = "Sell " + (selectedAmount === -1 ? "MAX" : selectedAmount);
       row.querySelector("[data-buy]").disabled = buyAmount < 1;
       row.querySelector("[data-sell]").disabled = sellAmount < 1;
+    });
+  };
+
+  /* ---------------------------------------------------------------------
+     People
+     --------------------------------------------------------------------- */
+  UI.buildPeople = function () {
+    const list = el("people-list");
+    const summary = el("people-summary");
+    if (!list || !summary || !Game.People) return;
+    Game.People.ensureState();
+    list.innerHTML = "";
+    UI._peopleRows = {};
+    (cfg.peopleSpecialists || []).forEach((person) => {
+      const row = make("div", "market-card");
+      row.innerHTML =
+        '<div class="market-title">' + person.name + "</div>" +
+        '<div class="market-desc" data-desc>' + person.desc + "</div>" +
+        '<button class="settings-btn">Hire</button>';
+      const btn = row.querySelector("button");
+      btn.addEventListener("click", () => {
+        if (Game.People.hire(person.id)) UI.update();
+      });
+      list.appendChild(row);
+      UI._peopleRows[person.id] = { row, btn, def: person };
+    });
+    built.people = true;
+  };
+
+  UI.updatePeople = function () {
+    if (!built.people || !UI._peopleRows || !Game.People) return;
+    const summary = el("people-summary");
+    const total = Game.People.totalLevels();
+    const max = Game.People.maxLevels();
+    const affordable = (cfg.peopleSpecialists || []).filter((person) => Game.People.canHire(person.id)).length;
+    summary.innerHTML =
+      '<div class="stat-row"><span class="stat-key">Workforce Levels</span><span class="stat-val">' + fmt(total) + " / " + fmt(max) + "</span></div>" +
+      '<div class="stat-row"><span class="stat-key">Open Contracts</span><span class="stat-val">' + fmt(affordable) + "</span></div>";
+
+    Object.keys(UI._peopleRows).forEach((id) => {
+      const r = UI._peopleRows[id];
+      const level = Game.People.level(id);
+      const cost = Game.People.cost(id);
+      const maxed = !isFinite(cost);
+      const cap = r.def.maxLevel || 0;
+      r.row.querySelector("[data-desc]").textContent =
+        r.def.desc + " • level " + fmt(level) + " / " + fmt(cap);
+      r.btn.textContent = maxed ? "Maxed" : "Hire (" + fmt(cost) + ")";
+      setBtn(r.btn, !maxed && Game.state.coins >= cost);
     });
   };
 
@@ -1765,6 +1815,7 @@
       ["Diplomacy Coins Earned", fmt(stats.diplomacyCoins || 0)],
       ["Diplomacy RP Gained", fmt(stats.diplomacyResearch || 0)],
       ["Population (Workers Hired)", fmt(s.population || 0)],
+      ["People Employed (Specialists)", Game.People ? fmt(Game.People.totalLevels()) : "0"],
       ["Population Happiness", happiness + " / 100 (" + (parseFloat(happinessEffect) >= 0 ? "+" : "") + happinessEffect + "% CPS)"],
       ["Talents Purchased", fmt(stats.talentsPurchased || 0) + " / " + cfg.talents.length],
       ["Skill Nodes Purchased", fmt(stats.skillNodesPurchased || 0) + " / " + cfg.skillTreeNodes.length],
@@ -1870,6 +1921,7 @@
 
   UI.rebuildAll = function () {
     UI.buildBuildingList();
+    UI.buildPeople();
     UI.buildCasino();
     UI.buildHorseTrack();
     UI.buildRaceTrack();
@@ -1956,6 +2008,7 @@
     switch (currentTab) {
       case "economy":
         UI.updateBuildings();
+        UI.updatePeople();
         break;
       case "research":
         UI.updateResearch();

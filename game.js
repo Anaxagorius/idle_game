@@ -23,10 +23,14 @@
     const stocks = {};
     const stockHistory = {};
     const portfolio = {};
+    const people = {};
     (cfg.stocks || []).forEach((st) => {
       stocks[st.id] = st.basePrice;
       stockHistory[st.id] = [st.basePrice];
       portfolio[st.id] = { shares: 0, avgCost: 0 };
+    });
+    (cfg.peopleSpecialists || []).forEach((person) => {
+      people[person.id] = 0;
     });
     const subBuildings = {};
     const subBuildingUpgrades = {};
@@ -90,6 +94,7 @@
       stocks,
       stockHistory,
       portfolio,
+      people,
       gambling: {
         chips: 0,
         totalChipsWon: 0,
@@ -477,6 +482,15 @@
         (ab.effects || []).forEach(function (effect) { applyEffect(effect); });
       });
     }
+
+    // Employable specialists (stacking per level).
+    (cfg.peopleSpecialists || []).forEach((person) => {
+      const levels = Math.max(0, Math.floor((s.people && s.people[person.id]) || 0));
+      if (!levels || !person.effects || !person.effects.length) return;
+      for (let i = 0; i < levels; i++) {
+        person.effects.forEach((effect) => applyEffect(effect));
+      }
+    });
 
     // BTC income boost (Crypto Lord path: btc * value boosts global)
     if (m.btcIncomeBoost > 0) {
