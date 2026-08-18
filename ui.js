@@ -223,25 +223,23 @@
       const owned = s.buildings[b.id] || 0;
       const amount = Game.Buildings.resolveAmount(b.id);
       const cost = Game.Buildings.bulkCost(b.id, Math.max(1, amount));
-      const prevId = Game.Buildings.previousBuildingId(b.id);
-      const prev = prevId ? cfg.buildingMap[prevId] : null;
-      const requiredPrev = Game.Buildings.requiredPrevious(b.id, Math.max(1, amount));
-      const prevOwned = prevId ? (s.buildings[prevId] || 0) : 0;
+      const requiredWorkers = Game.Buildings.requiredWorkers(b.id, Math.max(1, amount));
+      const availableWorkers = Game.Buildings.availableWorkers();
       r.owned.textContent = "x" + owned;
       const contribution = Game.buildingCps(b.id) * (s._mult ? s._mult.global : 1);
       r.cps.textContent = fmt(contribution) + " CPS" + (owned > 0 ? " (" + ((contribution / (s._cps || 1)) * 100).toFixed(1) + "%)" : "");
       r.cost.textContent = fmt(cost) + (amount > 1 ? " (x" + amount + ")" : "");
-      if (!prevId) {
+      if (b.id === "worker") {
         r.req.textContent = "Base building";
         r.req.classList.remove("missing");
       } else {
         r.req.textContent =
-          "Needs " + fmt(requiredPrev) + " " + prev.name + " (" + fmt(prevOwned) + " available)";
-        r.req.classList.toggle("missing", prevOwned < requiredPrev);
+          "Needs " + fmt(requiredWorkers) + " Workers (" + fmt(availableWorkers) + " available)";
+        r.req.classList.toggle("missing", availableWorkers < requiredWorkers);
       }
       const affordable = s.coins >= cost;
-      const hasPrereq = !prevId || prevOwned >= requiredPrev;
-      r.btn.classList.toggle("disabled", !affordable || !hasPrereq);
+      const hasWorkers = b.id === "worker" || availableWorkers >= requiredWorkers;
+      r.btn.classList.toggle("disabled", !affordable || !hasWorkers);
       r.btn.disabled = false; // allow click to buy-max fallback
 
       const subs = Game.Buildings.subBuildingsForParent(b.id);
