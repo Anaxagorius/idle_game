@@ -711,7 +711,7 @@ header {
 }
 .stock-row {
   display: grid;
-  grid-template-columns: 1.5fr 1.5fr auto;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.5fr) auto;
   gap: 10px;
   align-items: center;
   border: 1px solid var(--border);
@@ -720,10 +720,22 @@ header {
   padding: 10px;
   margin-bottom: 8px;
 }
+.stock-meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
 .stock-name { font-weight: 700; color: var(--cyan); }
 .stock-price { color: var(--gold-2); font-size: 13px; margin-top: 3px; }
-.stock-portfolio { color: var(--muted); font-size: 12px; }
-.stock-actions { display: flex; gap: 6px; }
+.stock-trend { color: var(--muted); font-size: 12px; line-height: 1.4; }
+.stock-portfolio {
+  min-width: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.stock-actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
 
 /* ---------- Statistics ---------- */
 .stat-row {
