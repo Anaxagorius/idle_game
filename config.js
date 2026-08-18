@@ -1198,15 +1198,56 @@ const EXTRA_ASCENSION_UPGRADE_DEFS = [
   { name: "Prometheus Overclock", desc: "Final overclock for industry, markets and crypto.", effects: [{ type: "globalMult", value: 0.1 }, { type: "stockDividendMult", value: 0.1 }, { type: "coinFarmerYield", value: 0.08 }] },
 ];
 
+function effectLabel(effect) {
+  if (effect.type === "buildingMult") {
+    return ((Game.config.buildingMap[effect.building] && Game.config.buildingMap[effect.building].name) || effect.building || "building") + " output";
+  }
+  const labelMap = {
+    globalMult: "global output",
+    stockDividendMult: "stock dividends",
+    stockFeeReduction: "stock fee reduction",
+    clickMult: "click value",
+    prestigeGain: "prestige gain",
+    rpMult: "research gain",
+    minerEfficiency: "miner efficiency",
+    coinFarmerYield: "coin farmer yield",
+    energyProduction: "energy production",
+    energyCapacity: "energy capacity",
+    horseWinMult: "horse winnings",
+    carWinMult: "car winnings",
+    casinoPayoutMult: "casino payouts",
+    costReduction: "cost reduction",
+    clickCpsFractionMult: "click/CPS scaling",
+    btcClick: "manual BTC gain",
+    energyClick: "manual energy gain",
+  };
+  return labelMap[effect.type] || effect.type;
+}
+
+function downgradeText(effect) {
+  if (effect.mult !== undefined) {
+    const penaltyPct = Math.round((1 - effect.mult) * 100);
+    return "-" + penaltyPct + "% " + effectLabel(effect);
+  }
+  const penaltyPct = Math.round(Math.abs(effect.value || 0) * 100);
+  return "-" + penaltyPct + "% " + effectLabel(effect);
+}
+
 let extraGodTitanRequires = "titan_void";
 for (let i = 0; i < Game.config.EXTRA_ASCENSION_UPGRADES; i++) {
-  const def = EXTRA_ASCENSION_UPGRADE_DEFS[i] || EXTRA_ASCENSION_UPGRADE_DEFS[EXTRA_ASCENSION_UPGRADE_DEFS.length - 1];
+  const def = EXTRA_ASCENSION_UPGRADE_DEFS[i];
+  if (!def) break;
   const id = "mythic_upgrade_" + i;
+  const downsides = (def.effects || []).filter((effect) =>
+    (effect.mult !== undefined && effect.mult < 1) ||
+    (effect.value !== undefined && effect.value < 0)
+  );
+  const desc = downsides.length ? (def.desc + " Tradeoff: " + downsides.map(downgradeText).join(", ") + ".") : def.desc;
   GODS_TITANS.push({
     id,
     name: def.name,
     cost: 14 + i * 2,
-    desc: def.desc,
+    desc,
     effects: def.effects,
     requires: extraGodTitanRequires,
   });

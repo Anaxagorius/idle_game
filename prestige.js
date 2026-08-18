@@ -41,8 +41,8 @@
       s.stockHistory[st.id] = [st.basePrice];
       s.portfolio[st.id] = { shares: 0, avgCost: 0 };
     });
+    if (!s.people || typeof s.people !== "object") s.people = {};
     (cfg.peopleSpecialists || []).forEach((person) => {
-      if (!s.people || typeof s.people !== "object") s.people = {};
       s.people[person.id] = 0;
     });
     s.stockTickTimer = 0;
