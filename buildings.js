@@ -7,12 +7,17 @@
   const cfg = Game.config;
   const Buildings = {};
 
+  Buildings.costScale = function (buildingId) {
+    const b = cfg.buildingMap[buildingId];
+    return (b && b.costScale) || cfg.COST_SCALE;
+  };
+
   /* Cost of the (owned+offset)-th building */
   Buildings.costOf = function (buildingId, ownedOverride) {
     const b = cfg.buildingMap[buildingId];
     const owned = ownedOverride !== undefined ? ownedOverride : Game.state.buildings[buildingId] || 0;
     const reduction = (Game.state._mult && Game.state._mult.costReduction) || 1;
-    return b.baseCost * Math.pow(cfg.COST_SCALE, owned) * reduction;
+    return b.baseCost * Math.pow(Buildings.costScale(buildingId), owned) * reduction;
   };
 
   /* Cost of buying `amount` buildings starting from current owned count.
@@ -21,7 +26,7 @@
     const b = cfg.buildingMap[buildingId];
     const owned = Game.state.buildings[buildingId] || 0;
     const reduction = (Game.state._mult && Game.state._mult.costReduction) || 1;
-    const r = cfg.COST_SCALE;
+    const r = Buildings.costScale(buildingId);
     // sum_{k=0}^{amount-1} baseCost * r^(owned+k)
     const first = b.baseCost * Math.pow(r, owned);
     const total = first * (Math.pow(r, amount) - 1) / (r - 1);
@@ -33,7 +38,7 @@
     const b = cfg.buildingMap[buildingId];
     const owned = Game.state.buildings[buildingId] || 0;
     const reduction = (Game.state._mult && Game.state._mult.costReduction) || 1;
-    const r = cfg.COST_SCALE;
+    const r = Buildings.costScale(buildingId);
     const coins = Game.state.coins;
     const first = b.baseCost * Math.pow(r, owned) * reduction;
     if (coins < first) return 0;
@@ -53,37 +58,31 @@
     return Buildings.maxPurchasable(buildingId) >= Math.max(1, amount || 1);
   };
 
-  Buildings.previousBuildingId = function (buildingId) {
-    const idx = cfg.buildings.findIndex((b) => b.id === buildingId);
-    if (idx <= 0) return null;
-    return cfg.buildings[idx - 1].id;
-  };
-
-  Buildings.requirementRatio = function (buildingId) {
+  Buildings.workerRequirement = function (buildingId) {
     const b = cfg.buildingMap[buildingId];
-    if (!b) return 0;
-    const prevId = Buildings.previousBuildingId(buildingId);
-    if (!prevId) return 0;
-    const map = cfg.BUILDING_PREREQ_BY_TIER || {};
+    if (!b || buildingId === "worker") return 0;
+    const map = cfg.BUILDING_WORKER_REQUIREMENT_BY_TIER || {};
     return map[b.tier] || 0;
   };
 
-  Buildings.requiredPrevious = function (buildingId, amount) {
-    const ratio = Buildings.requirementRatio(buildingId);
-    if (!ratio) return 0;
-    return ratio * Math.max(1, amount || 1);
+  Buildings.requiredWorkers = function (buildingId, amount) {
+    const workersPerBuilding = Buildings.workerRequirement(buildingId);
+    if (!workersPerBuilding) return 0;
+    return workersPerBuilding * Math.max(1, amount || 1);
   };
 
-  Buildings.maxAffordableByRequirement = function (buildingId) {
-    const prevId = Buildings.previousBuildingId(buildingId);
-    const ratio = Buildings.requirementRatio(buildingId);
-    if (!prevId || !ratio) return Infinity;
-    const prevOwned = Game.state.buildings[prevId] || 0;
-    return Math.floor(prevOwned / ratio);
+  Buildings.availableWorkers = function () {
+    return Game.state.buildings.worker || 0;
+  };
+
+  Buildings.maxAffordableByWorkers = function (buildingId) {
+    const workersPerBuilding = Buildings.workerRequirement(buildingId);
+    if (!workersPerBuilding) return Infinity;
+    return Math.floor(Buildings.availableWorkers() / workersPerBuilding);
   };
 
   Buildings.maxPurchasable = function (buildingId) {
-    return Math.max(0, Math.min(Buildings.maxAffordable(buildingId), Buildings.maxAffordableByRequirement(buildingId)));
+    return Math.max(0, Math.min(Buildings.maxAffordable(buildingId), Buildings.maxAffordableByWorkers(buildingId)));
   };
 
   /* Purchase buildings. Returns number actually bought. */
@@ -96,11 +95,10 @@
     if (amount <= 0) return 0;
 
     const cost = Buildings.bulkCost(buildingId, amount);
-    const prevId = Buildings.previousBuildingId(buildingId);
-    const requiredPrev = Buildings.requiredPrevious(buildingId, amount);
-    const hasPrereq = !prevId || (s.buildings[prevId] || 0) >= requiredPrev;
+    const requiredWorkers = Buildings.requiredWorkers(buildingId, amount);
+    const hasWorkers = Buildings.availableWorkers() >= requiredWorkers;
     let finalCost = cost;
-    if (s.coins < cost || !hasPrereq) {
+    if (s.coins < cost || !hasWorkers) {
       // fall back to as many as affordable
       const max = Buildings.maxPurchasable(buildingId);
       if (max <= 0) return 0;
@@ -109,26 +107,10 @@
       if (s.coins < finalCost) return 0;
     }
 
-    const finalRequiredPrev = Buildings.requiredPrevious(buildingId, amount);
-    if (prevId && finalRequiredPrev > 0) {
-      // Safety guard for state mutations between amount resolution and final purchase application.
-      const prevTotal = s.buildings[prevId] || 0;
-      if (prevTotal < finalRequiredPrev) return 0;
-      s.buildings[prevId] -= finalRequiredPrev;
-      // Remove only the sub-buildings that now exceed the reduced parent capacity
-      // so that allocatedParentUnits never exceeds the new (lower) owned count.
-      const subs = Buildings.subBuildingsForParent(prevId);
-      if (subs.length > 0) {
-        const newOwned = s.buildings[prevId];
-        let overflow = subs.reduce((sum, sb) => sum + (s.subBuildings[sb.id] || 0), 0) - newOwned;
-        for (const sb of subs) {
-          if (overflow <= 0) break;
-          const current = s.subBuildings[sb.id] || 0;
-          const remove = Math.min(current, overflow);
-          s.subBuildings[sb.id] = current - remove;
-          overflow -= remove;
-        }
-      }
+    const finalRequiredWorkers = Buildings.requiredWorkers(buildingId, amount);
+    if (finalRequiredWorkers > 0) {
+      if (Buildings.availableWorkers() < finalRequiredWorkers) return 0;
+      s.buildings.worker -= finalRequiredWorkers;
     }
     s.coins -= finalCost;
     s.stats.totalCoinsSpent += finalCost;

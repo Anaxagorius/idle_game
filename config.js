@@ -62,8 +62,9 @@ Game.config = {
   MAX_COST_REDUCTION_MULT: 0.1,
   BONUS_EFFECTIVENESS_MULT: 0.1,
   GAIN_EFFECTIVENESS_MULT: 0.1,
-  // How many of the previous building are consumed to buy one current building, by target tier.
-  BUILDING_PREREQ_BY_TIER: { 1: 10, 2: 50, 3: 200 },
+  // How many workers are required (and consumed) when buying one non-worker building, by target tier.
+  BUILDING_WORKER_REQUIREMENT_BY_TIER: { 1: 1, 2: 4, 3: 12 },
+  WORKER_COST_SCALE: 1.08,
   CLICKER_UPGRADE_BASE_COST: 50,
   CLICKER_UPGRADE_MAX: 10,
   CLICKER_UPGRADE_COST_MULT: 3,
@@ -393,26 +394,26 @@ Game.config.diplomacyActions.forEach(function (action) {
    -------------------------------------------------------------------------- */
 const BUILDING_DATA = [
   // Tier 1 - Civilization
-  { id: "worker", name: "Worker", role: "Basic labor", tier: 1, baseCost: 10, baseCps: 0.1 },
-  { id: "farm", name: "Farm", role: "Food economy", tier: 1, baseCost: 100, baseCps: 0.5 },
-  { id: "mine", name: "Mine", role: "Resources", tier: 1, baseCost: 500, baseCps: 2 },
-  { id: "factory", name: "Factory", role: "Manufacturing", tier: 1, baseCost: 2500, baseCps: 10 },
-  { id: "bank", name: "Bank", role: "Finance", tier: 1, baseCost: 10000, baseCps: 50 },
-  { id: "corporation", name: "Corporation", role: "Global trade", tier: 1, baseCost: 75000, baseCps: 200 },
+  { id: "worker", name: "Worker", role: "Basic labor", tier: 1, baseCost: 10, costScale: Game.config.WORKER_COST_SCALE, baseCps: 0.12 },
+  { id: "farm", name: "Farm", role: "Food economy", tier: 1, baseCost: 100, baseCps: 0.7 },
+  { id: "mine", name: "Mine", role: "Resources", tier: 1, baseCost: 500, baseCps: 3.8 },
+  { id: "factory", name: "Factory", role: "Manufacturing", tier: 1, baseCost: 2500, baseCps: 19 },
+  { id: "bank", name: "Bank", role: "Finance", tier: 1, baseCost: 10000, baseCps: 80 },
+  { id: "corporation", name: "Corporation", role: "Global trade", tier: 1, baseCost: 75000, baseCps: 600 },
   // Tier 2 - Industrial Age
-  { id: "laboratory", name: "Laboratory", role: "Research", tier: 2, baseCost: 500000, baseCps: 800 },
-  { id: "powerplant", name: "Power Plant", role: "Energy", tier: 2, baseCost: 2000000, baseCps: 3000 },
-  { id: "refinery", name: "Refinery", role: "Fuel", tier: 2, baseCost: 7500000, baseCps: 10000 },
-  { id: "shipyard", name: "Shipyard", role: "Logistics", tier: 2, baseCost: 25000000, baseCps: 30000 },
-  { id: "university", name: "University", role: "Education", tier: 2, baseCost: 100000000, baseCps: 100000 },
-  { id: "datacenter", name: "Data Center", role: "Computing", tier: 2, baseCost: 500000000, baseCps: 300000 },
+  { id: "laboratory", name: "Laboratory", role: "Research", tier: 2, baseCost: 500000, baseCps: 4000 },
+  { id: "powerplant", name: "Power Plant", role: "Energy", tier: 2, baseCost: 2000000, baseCps: 18000 },
+  { id: "refinery", name: "Refinery", role: "Fuel", tier: 2, baseCost: 7500000, baseCps: 72000 },
+  { id: "shipyard", name: "Shipyard", role: "Logistics", tier: 2, baseCost: 25000000, baseCps: 260000 },
+  { id: "university", name: "University", role: "Education", tier: 2, baseCost: 100000000, baseCps: 1100000 },
+  { id: "datacenter", name: "Data Center", role: "Computing", tier: 2, baseCost: 500000000, baseCps: 6500000 },
   // Tier 3 - Space Age
-  { id: "spaceport", name: "Space Port", role: "Launches", tier: 3, baseCost: 3e9, baseCps: 1000000 },
-  { id: "orbital", name: "Orbital Station", role: "Orbital industry", tier: 3, baseCost: 2e10, baseCps: 3000000 },
-  { id: "mooncolony", name: "Moon Colony", role: "Lunar economy", tier: 3, baseCost: 1e11, baseCps: 10000000 },
-  { id: "marscolony", name: "Mars Colony", role: "Interplanetary", tier: 3, baseCost: 5e11, baseCps: 30000000 },
-  { id: "dysonswarm", name: "Dyson Swarm", role: "Stellar energy", tier: 3, baseCost: 3e12, baseCps: 100000000 },
-  { id: "galacticnexus", name: "Galactic Nexus", role: "Endgame production", tier: 3, baseCost: 2e13, baseCps: 350000000 },
+  { id: "spaceport", name: "Space Port", role: "Launches", tier: 3, baseCost: 3e9, baseCps: 48000000 },
+  { id: "orbital", name: "Orbital Station", role: "Orbital industry", tier: 3, baseCost: 2e10, baseCps: 360000000 },
+  { id: "mooncolony", name: "Moon Colony", role: "Lunar economy", tier: 3, baseCost: 1e11, baseCps: 2200000000 },
+  { id: "marscolony", name: "Mars Colony", role: "Interplanetary", tier: 3, baseCost: 5e11, baseCps: 13000000000 },
+  { id: "dysonswarm", name: "Dyson Swarm", role: "Stellar energy", tier: 3, baseCost: 3e12, baseCps: 90000000000 },
+  { id: "galacticnexus", name: "Galactic Nexus", role: "Endgame production", tier: 3, baseCost: 2e13, baseCps: 700000000000 },
 ];
 
 /* Upgrade names per building (6 each = 108 total) */
