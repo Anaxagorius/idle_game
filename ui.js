@@ -2076,7 +2076,7 @@
     });
     const marketEvent = Game.Stocks && Game.Stocks.activeCycleEvent ? Game.Stocks.activeCycleEvent() : null;
     if (marketEvent && Game.Cycles) {
-      const chip = make("div", "event-chip", marketEvent.icon + " " + marketEvent.name + " — phase remaining: " + Math.ceil(Math.max(0, Game.Cycles.timeRemaining())) + "s");
+      const chip = make("div", "event-chip", marketEvent.icon + " " + marketEvent.name + " — cycle phase remaining: " + Math.ceil(Math.max(0, Game.Cycles.timeRemaining())) + "s");
       chip.style.borderColor = marketEvent.color;
       chip.style.color = marketEvent.color;
       container.appendChild(chip);
