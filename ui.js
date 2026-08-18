@@ -777,15 +777,20 @@
     const summary = el("stock-summary");
     const tracking = Game.Stocks.dividendTracking();
     const forecast = tracking.forecast;
+    const fmtDividend = (value) => {
+      if (!Number.isFinite(value) || value === 0) return "0";
+      if (Math.abs(value) < 0.01) return value.toFixed(4);
+      return fmt(value);
+    };
     summary.innerHTML =
       '<div class="stat-row"><span class="stat-key">Portfolio Value</span><span class="stat-val">' + fmt(Game.Stocks.portfolioValue()) + " coins</span></div>" +
       '<div class="stat-row"><span class="stat-key">Trade Fee</span><span class="stat-val">' + (Game.Stocks.feeRate() * 100).toFixed(2) + "%</span></div>" +
-      '<div class="stat-row"><span class="stat-key">Dividend Forecast</span><span class="stat-val">' + fmt(forecast.totalPerPayout) + " / payout</span></div>" +
-      '<div class="stat-row"><span class="stat-key">Projected Dividend Rate</span><span class="stat-val">' + fmt(forecast.perMinute) + " / min</span></div>" +
-      '<div class="stat-row"><span class="stat-key">Dividend Coverage</span><span class="stat-val">' + forecast.eligibleStocks + " active • " + forecast.dividendStocksOwned + " yielding</span></div>" +
+      '<div class="stat-row"><span class="stat-key">Dividend Forecast</span><span class="stat-val">' + fmtDividend(forecast.totalPerPayout) + " / payout</span></div>" +
+      '<div class="stat-row"><span class="stat-key">Projected Dividend Rate</span><span class="stat-val">' + fmtDividend(forecast.perMinute) + " / min</span></div>" +
+      '<div class="stat-row"><span class="stat-key">Dividend Coverage</span><span class="stat-val">' + forecast.eligibleStocks + " paying • " + forecast.dividendStocksOwned + " dividend stocks</span></div>" +
       '<div class="stat-row"><span class="stat-key">Next Dividend</span><span class="stat-val">in ' + Game.formatTime(Math.ceil(tracking.nextInSeconds)) + "</span></div>" +
-      '<div class="stat-row"><span class="stat-key">Last Dividend</span><span class="stat-val">' + fmt(tracking.lastPayout) + " coins</span></div>" +
-      '<div class="stat-row"><span class="stat-key">Lifetime Dividends</span><span class="stat-val">' + fmt(tracking.lifetimePayout) + " coins</span></div>";
+      '<div class="stat-row"><span class="stat-key">Last Dividend</span><span class="stat-val">' + fmtDividend(tracking.lastPayout) + " coins</span></div>" +
+      '<div class="stat-row"><span class="stat-key">Lifetime Dividends</span><span class="stat-val">' + fmtDividend(tracking.lifetimePayout) + " coins</span></div>";
     const selectedAmount = Game.Stocks.tradeAmount();
     setAmountButtonsActive(".stock-amount-btn", selectedAmount);
     cfg.stocks.forEach((st) => {
