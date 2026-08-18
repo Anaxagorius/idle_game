@@ -19,6 +19,7 @@
     if (typeof s.stockBuyAmount !== "number" || !TRADE_AMOUNTS.includes(s.stockBuyAmount)) s.stockBuyAmount = 1;
     if (typeof s.stockMarketRegime !== "number") s.stockMarketRegime = 0;
     if (typeof s.stockRegimeTimer !== "number") s.stockRegimeTimer = 0;
+    if (typeof s.stockCycleEventId !== "string" || (s.stockCycleEventId && !(cfg.stockCycleEventMap && cfg.stockCycleEventMap[s.stockCycleEventId]))) s.stockCycleEventId = "";
     if (typeof s.stockDividendLastPayout !== "number") s.stockDividendLastPayout = 0;
     if (typeof s.stockDividendLifetime !== "number") s.stockDividendLifetime = 0;
     cfg.stocks.forEach((st) => {
@@ -74,6 +75,23 @@
     return 0;
   }
 
+  function pickCycleEventKind() {
+    const weights = cfg.STOCK_CYCLE_EVENT_KIND_WEIGHTS || { good: 25, bad: 25, mixed: 50 };
+    const total = (weights.good || 0) + (weights.bad || 0) + (weights.mixed || 0);
+    if (total <= 0) return "mixed";
+    const roll = Math.random() * total;
+    if (roll < (weights.good || 0)) return "good";
+    if (roll < (weights.good || 0) + (weights.bad || 0)) return "bad";
+    return "mixed";
+  }
+
+  function pickCycleEvent() {
+    const kind = pickCycleEventKind();
+    const bucket = (cfg.stockCycleEventsByKind && cfg.stockCycleEventsByKind[kind]) || [];
+    if (!bucket.length) return null;
+    return bucket[Math.floor(Math.random() * bucket.length)] || null;
+  }
+
   function canPayDividend(st, price) {
     const yieldRate = st.dividendYield || 0;
     if (yieldRate <= 0) return false;
@@ -104,6 +122,30 @@
   Stocks.tradeAmount = function () {
     ensureState();
     return Game.state.stockBuyAmount;
+  };
+
+  Stocks.clearCycleEvent = function () {
+    ensureState();
+    Game.state.stockCycleEventId = "";
+  };
+
+  Stocks.activeCycleEvent = function () {
+    ensureState();
+    return (cfg.stockCycleEventMap && cfg.stockCycleEventMap[Game.state.stockCycleEventId]) || null;
+  };
+
+  Stocks.onCycleChange = function () {
+    ensureState();
+    Stocks.clearCycleEvent();
+    const triggerChance = Math.max(0, Math.min(1, typeof cfg.STOCK_CYCLE_EVENT_TRIGGER_CHANCE === "number" ? cfg.STOCK_CYCLE_EVENT_TRIGGER_CHANCE : 0.2));
+    if (Math.random() >= triggerChance) return null;
+    const eventDef = pickCycleEvent();
+    if (!eventDef) return null;
+    Game.state.stockCycleEventId = eventDef.id;
+    if (Game.state.settings.notifications && Game.UI && Game.UI.toast) {
+      Game.UI.toast("Market Event: " + eventDef.name + " — " + eventDef.desc, "event");
+    }
+    return eventDef;
   };
 
   Stocks.setTradeAmount = function (amount) {
@@ -278,6 +320,10 @@
       s.stockMarketRegime = pickRegime();
       s.stockRegimeTimer = resetRegimeTimer();
     }
+    const cycleEvent = Stocks.activeCycleEvent();
+    const cycleEventMarketDrift = cycleEvent ? (cycleEvent.marketDrift || 0) : 0;
+    const cycleEventVolatilityMult = cycleEvent ? Math.max(0, cycleEvent.volatilityMult || 1) : 1;
+    const cycleEventSectorEffects = cycleEvent && cycleEvent.sectorEffects ? cycleEvent.sectorEffects : null;
 
     while (s.stockTickTimer >= cfg.STOCK_TICK_SECONDS) {
       s.stockTickTimer -= cfg.STOCK_TICK_SECONDS;
@@ -295,12 +341,13 @@
         const price = s.stocks[st.id];
         const beta = stockFieldWithFallback(st, "beta", defaultBeta);
         const volatility = stockFieldWithFallback(st, "volatility", defaultVolatility);
-        const sectorDrift = (st.drift + (Math.random() - 0.5) * volatility) * cycleDriftMult;
+        const sectorEventDrift = cycleEventSectorEffects ? (cycleEventSectorEffects[st.sector] || 0) : 0;
+        const sectorDrift = (st.drift + sectorEventDrift + (Math.random() - 0.5) * volatility * cycleEventVolatilityMult) * cycleDriftMult;
         const correlated = eventShift * (cfg.STOCK_EVENT_CORRELATION_MIN + Math.random() * cfg.STOCK_EVENT_CORRELATION_RANGE);
         const targetBasePrice = getPositiveBasePrice(st, minBasePrice);
         const safeBasePrice = Math.max(minBasePrice, targetBasePrice);
         const revert = ((targetBasePrice - price) / safeBasePrice) * meanReversion;
-        const next = price * (1 + marketMove * beta + sectorDrift + correlated + revert);
+        const next = price * (1 + marketMove * beta + sectorDrift + correlated + cycleEventMarketDrift + revert);
         const minPrice = Math.max(1, st.basePrice * minPriceMult);
         s.stocks[st.id] = Math.max(minPrice, next);
         const hist = s.stockHistory[st.id];

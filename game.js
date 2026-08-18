@@ -143,6 +143,7 @@
       stockBuyAmount: 1,
       stockMarketRegime: 0,
       stockRegimeTimer: 0,
+      stockCycleEventId: "",
       stockDividendLastPayout: 0,
       stockDividendLifetime: 0,
       stats: {

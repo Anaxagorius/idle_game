@@ -43,12 +43,14 @@
 
     if (s.stats.playTime >= s.cycle.endTime) {
       const prev = s.cycle.phase;
-      s.cycle.phase = s.cycle.endTime === 0 ? "stable" : pickNextPhase(prev);
+      const initialCycle = s.cycle.endTime === 0;
+      s.cycle.phase = initialCycle ? "stable" : pickNextPhase(prev);
       const dur = phaseDuration(s.cycle.phase);
       s.cycle.endTime = s.stats.playTime + dur;
+      if (!initialCycle && Game.Stocks && Game.Stocks.onCycleChange) Game.Stocks.onCycleChange(prev, s.cycle.phase);
 
       // Only announce phase change, not the very first initialisation.
-      if (s.cycle.endTime > dur) {
+      if (!initialCycle) {
         const def = cfg.economicCycleMap[s.cycle.phase];
         if (def && Game.UI && Game.UI.eventBanner) {
           Game.UI.eventBanner({ name: def.icon + " " + def.name, desc: def.desc, color: def.color });

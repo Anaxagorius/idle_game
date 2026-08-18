@@ -47,6 +47,7 @@
     });
     s.stockTickTimer = 0;
     s.stockDividendTimer = 0;
+    s.stockCycleEventId = "";
     s.gambling = {
       chips: 0,
       totalChipsWon: 0,
