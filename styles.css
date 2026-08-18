@@ -1377,3 +1377,26 @@ textarea#save-string {
 .difficulty-label em { color: var(--muted); font-style: normal; font-size: 12px; }
 .difficulty-reset-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
 .difficulty-reset-actions .settings-btn { width: 100%; text-align: center; }
+
+/* ── Real Estate Tab ─────────────────────────────────────────────────────── */
+.re-summary-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; margin-bottom:12px; }
+.re-stat { background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:10px 14px; }
+.re-stat-label { display:block; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px; }
+.re-stat-value { display:block; font-size:18px; font-weight:700; color:var(--gold); }
+.re-events-title { font-weight:700; color:var(--empire); margin-bottom:6px; }
+.re-event-chip { display:flex; align-items:center; gap:6px; background:var(--panel-2); border:1px solid var(--border); border-radius:6px; padding:6px 10px; margin-bottom:4px; font-size:13px; }
+.re-event-timer { color:var(--muted); font-size:11px; }
+.re-tier-panel { margin-bottom:12px; }
+.re-tier-header { font-size:15px; color:var(--empire); margin-bottom:10px; border-bottom:1px solid var(--border); padding-bottom:6px; }
+.re-property-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:10px; }
+.re-property-card { background:var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:6px; }
+.re-property-card.re-owned { border-color:var(--green); }
+.re-prop-header { display:flex; align-items:center; gap:8px; }
+.re-prop-emoji { font-size:22px; }
+.re-prop-name { font-weight:700; font-size:14px; flex:1; }
+.re-prop-tier-badge { font-size:10px; background:var(--panel); border:1px solid var(--border); border-radius:4px; padding:1px 5px; color:var(--muted); }
+.re-prop-desc { font-size:12px; color:var(--muted); }
+.re-prop-stats { font-size:12px; display:grid; grid-template-columns:1fr 1fr; gap:2px 10px; }
+.re-prop-actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
+.re-prop-actions .settings-btn { font-size:11px; padding:4px 8px; }
+.re-maxed { font-size:11px; color:var(--gold); align-self:center; }
