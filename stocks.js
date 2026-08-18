@@ -342,12 +342,12 @@
         const beta = stockFieldWithFallback(st, "beta", defaultBeta);
         const volatility = stockFieldWithFallback(st, "volatility", defaultVolatility);
         const sectorEventDrift = cycleEventSectorEffects ? (cycleEventSectorEffects[st.sector] || 0) : 0;
-        const sectorDrift = (st.drift + sectorEventDrift + (Math.random() - 0.5) * volatility * cycleEventVolatilityMult) * cycleDriftMult;
+        const sectorDrift = (st.drift + (Math.random() - 0.5) * volatility * cycleEventVolatilityMult) * cycleDriftMult;
         const correlated = eventShift * (cfg.STOCK_EVENT_CORRELATION_MIN + Math.random() * cfg.STOCK_EVENT_CORRELATION_RANGE);
         const targetBasePrice = getPositiveBasePrice(st, minBasePrice);
         const safeBasePrice = Math.max(minBasePrice, targetBasePrice);
         const revert = ((targetBasePrice - price) / safeBasePrice) * meanReversion;
-        const next = price * (1 + marketMove * beta + sectorDrift + correlated + cycleEventMarketDrift * cycleDriftMult + revert);
+        const next = price * (1 + marketMove * beta + sectorDrift + correlated + cycleEventMarketDrift + sectorEventDrift + revert);
         const minPrice = Math.max(1, st.basePrice * minPriceMult);
         s.stocks[st.id] = Math.max(minPrice, next);
         const hist = s.stockHistory[st.id];
