@@ -415,10 +415,11 @@
       else if (!available) cls += " locked";
       else if (affordable) cls += " affordable";
       const card = make("div", cls);
+      const rpCost = Game.Research.cost ? Game.Research.cost(r.id) : r.cost;
       card.innerHTML =
         '<div class="rn-name">' + r.name + "</div>" +
         '<div class="rn-desc">' + r.desc + "</div>" +
-        '<div class="rn-cost">' + (done ? "Purchased" : fmt(r.cost) + " RP") + "</div>";
+        '<div class="rn-cost">' + (done ? "Purchased" : fmt(rpCost) + " RP") + "</div>";
       if (!done && available) {
         card.addEventListener("click", () => {
           if (Game.Research.buy(r.id)) UI.update();
@@ -539,11 +540,12 @@
         const owned = Game.SkillTrees.purchased(n.id);
         const available = Game.SkillTrees.available(n.id);
         const affordable = Game.SkillTrees.canAfford(n.id);
+        const cost = Game.SkillTrees.cost ? Game.SkillTrees.cost(n.id) : n.cost;
         let actionText = "";
         if (owned) actionText = "Unlocked";
         else if (!available) actionText = "Requires prior node";
-        else if (affordable) actionText = "Buy " + fmt(n.cost) + " Prestige Points";
-        else actionText = "Need " + fmt(n.cost) + " Prestige Points";
+        else if (affordable) actionText = "Buy " + fmt(cost) + " Prestige Points";
+        else actionText = "Need " + fmt(cost) + " Prestige Points";
         const card = make("div", "skill-node" + (owned ? " purchased" : available ? "" : " locked"));
         card.style.borderColor = owned ? "#43aa8b" : tree.color;
         card.innerHTML =
@@ -1636,7 +1638,7 @@
         "</div>" +
         '<div class="megaproject-desc">' + proj.desc + "</div>" +
         '<div class="megaproject-reward">✅ ' + proj.reward + "</div>" +
-        '<div class="megaproject-costs">Cost: ' + costsHtml + "</div>" +
+        '<div class="megaproject-costs" data-costs>Cost: ' + costsHtml + "</div>" +
         '<div class="megaproject-progress"><div class="megaproject-progress-fill" data-fill style="width:0%"></div></div>' +
         '<div data-action></div>';
       container.appendChild(card);
@@ -1656,6 +1658,22 @@
       card.classList.toggle("affordable", !done && !!canAfford);
       const fill = card.querySelector("[data-fill]");
       if (fill) fill.style.width = (Game.MegaProjects ? Game.MegaProjects.progress(proj.id) * 100 : 0).toFixed(1) + "%";
+      const megaCostMult = Game.MegaProjects && Game.MegaProjects.costMultiplier
+        ? Game.MegaProjects.costMultiplier()
+        : 1;
+      const costs = card.querySelector("[data-costs]");
+      if (costs) {
+        const costsText = Object.entries(proj.costs || {}).map(function ([k, v]) {
+          const label = k === "coins" ? "Coins" :
+                        k === "researchPoints" ? "Research Points" :
+                        k === "ascensionShards" ? "Ascension Shards" :
+                        k === "empireLegacies" ? "Empire Legacies" :
+                        k === "timeFragments" ? "Time Fragments" :
+                        k === "realityCores" ? "Reality Cores" : k;
+          return label + ": <span>" + fmt(v * megaCostMult) + "</span>";
+        }).join(" • ");
+        costs.innerHTML = "Cost: " + costsText;
+      }
       const action = card.querySelector("[data-action]");
       if (!action) return;
       action.innerHTML = "";
@@ -1684,13 +1702,14 @@
       const owned = Game.Prestige.godTitanPurchased(gt.id);
       const available = Game.Prestige.godTitanAvailable(gt.id);
       const canAfford = Game.Prestige.canAffordGodTitan(gt.id);
+      const cost = Game.Prestige.godTitanCost ? Game.Prestige.godTitanCost(gt.id) : gt.cost;
       const card = make("div", "talent-card" + (owned ? " purchased" : available ? "" : " locked"));
 
       let actionText = "";
       if (owned) actionText = "Unlocked";
       else if (!available) actionText = "Requires previous God/Titan";
-      else if (canAfford) actionText = "Buy for " + fmt(gt.cost) + " Shards";
-      else actionText = "Need " + fmt(gt.cost) + " Shards";
+      else if (canAfford) actionText = "Buy for " + fmt(cost) + " Shards";
+      else actionText = "Need " + fmt(cost) + " Shards";
 
       card.innerHTML =
         '<div class="talent-header"><span class="talent-name">' + gt.name + "</span>" +
@@ -1722,13 +1741,14 @@
       const owned = Game.Talents.purchased(t.id);
       const available = Game.Talents.available(t.id);
       const canAfford = Game.Talents.canAfford(t.id);
+      const cost = Game.Talents.cost ? Game.Talents.cost(t.id) : t.cost;
       const card = make("div", "talent-card" + (owned ? " purchased" : available ? "" : " locked"));
 
       let actionText = "";
       if (owned) actionText = "Purchased";
       else if (!available) actionText = "Requires previous talent";
-      else if (canAfford) actionText = "Buy for " + fmt(t.cost) + " PP";
-      else actionText = "Need " + fmt(t.cost) + " PP";
+      else if (canAfford) actionText = "Buy for " + fmt(cost) + " PP";
+      else actionText = "Need " + fmt(cost) + " PP";
 
       card.innerHTML =
         '<div class="talent-header"><span class="talent-name">' + t.name + "</span>" +
@@ -2145,8 +2165,12 @@
 
     const diffLabel = el("current-difficulty-label");
     if (diffLabel) {
-      const diffNames = { hardcore: "Hardcore (Normal)", weak: "Weak (3× profits)", coward: "Coward (10× profits)" };
-      diffLabel.textContent = diffNames[s.difficulty || "hardcore"] || "Hardcore (Normal)";
+      const diffNames = {
+        hardcore: "Hardcore (" + Game.difficultyProfitMultiplier("hardcore") + "× profits, " + Game.difficultyCostMultiplier("hardcore") + "× costs)",
+        weak: "Weak (" + Game.difficultyProfitMultiplier("weak") + "× profits, " + Game.difficultyCostMultiplier("weak") + "× costs)",
+        coward: "Coward (" + Game.difficultyProfitMultiplier("coward") + "× profits, " + Game.difficultyCostMultiplier("coward") + "× costs)",
+      };
+      diffLabel.textContent = diffNames[s.difficulty || "hardcore"] || diffNames.hardcore;
     }
 
     UI.updateActiveEvents();

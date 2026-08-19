@@ -6,6 +6,11 @@
 (function () {
   const cfg = Game.config;
   const People = {};
+  function difficultyCostMult() {
+    const m = Game.state._mult;
+    if (m && m.difficultyCost != null) return m.difficultyCost;
+    return Game.difficultyCostMultiplier ? Game.difficultyCostMultiplier() : 1;
+  }
 
   function ensureState() {
     const s = Game.state;
@@ -27,7 +32,7 @@
     if (!def) return Infinity;
     const owned = People.level(id);
     if (owned >= (def.maxLevel || Infinity)) return Infinity;
-    return def.baseCost * Math.pow(def.costMult || 1.15, owned);
+    return def.baseCost * Math.pow(def.costMult || 1.15, owned) * difficultyCostMult();
   };
 
   People.canHire = function (id) {

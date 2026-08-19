@@ -8,6 +8,11 @@
   const Bitcoin = {};
   // Snapshot math uses demand * dt; keep dt above zero so UI rate previews stay stable.
   const SNAPSHOT_MIN_DELTA_TIME = 0.05;
+  function difficultyCostMult() {
+    const m = Game.state._mult;
+    if (m && m.difficultyCost != null) return m.difficultyCost;
+    return Game.difficultyCostMultiplier ? Game.difficultyCostMultiplier() : 1;
+  }
 
   function ownedCount(group, id) {
     return (Game.state[group] && Game.state[group][id]) || 0;
@@ -36,7 +41,7 @@
   }
 
   Bitcoin.equipmentCost = function (baseCost, owned) {
-    return baseCost * Math.pow(cfg.BTC_EQUIPMENT_COST_SCALE, owned);
+    return baseCost * Math.pow(cfg.BTC_EQUIPMENT_COST_SCALE, owned) * difficultyCostMult();
   };
 
   Bitcoin.buyProducer = function (id) {
