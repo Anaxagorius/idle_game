@@ -198,15 +198,15 @@
 
   Game.state = Game.defaultState();
 
-  Game.difficultyProfitMultiplier = function () {
-    const difficulty = (Game.state && Game.state.difficulty) || "hardcore";
+  Game.difficultyProfitMultiplier = function (difficultyArg) {
+    const difficulty = difficultyArg || ((Game.state && Game.state.difficulty) || "hardcore");
     if (difficulty === "weak") return 3;
     if (difficulty === "coward") return 10;
     return 1;
   };
 
-  Game.difficultyCostMultiplier = function () {
-    const difficulty = (Game.state && Game.state.difficulty) || "hardcore";
+  Game.difficultyCostMultiplier = function (difficultyArg) {
+    const difficulty = difficultyArg || ((Game.state && Game.state.difficulty) || "hardcore");
     if (difficulty === "weak") return 5;
     if (difficulty === "coward") return 10;
     return 3;

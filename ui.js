@@ -1658,10 +1658,9 @@
       card.classList.toggle("affordable", !done && !!canAfford);
       const fill = card.querySelector("[data-fill]");
       if (fill) fill.style.width = (Game.MegaProjects ? Game.MegaProjects.progress(proj.id) * 100 : 0).toFixed(1) + "%";
-      const m = Game.state._mult || {};
-      const megaCostMult =
-        (m.megaProjectCostMult != null ? m.megaProjectCostMult : 1) *
-        (m.difficultyCost != null ? m.difficultyCost : (Game.difficultyCostMultiplier ? Game.difficultyCostMultiplier() : 1));
+      const megaCostMult = Game.MegaProjects && Game.MegaProjects.costMultiplier
+        ? Game.MegaProjects.costMultiplier()
+        : 1;
       const costs = card.querySelector("[data-costs]");
       if (costs) {
         const costsText = Object.entries(proj.costs || {}).map(function ([k, v]) {
@@ -2167,9 +2166,9 @@
     const diffLabel = el("current-difficulty-label");
     if (diffLabel) {
       const diffNames = {
-        hardcore: "Hardcore (1× profits, 3× costs)",
-        weak: "Weak (3× profits, 5× costs)",
-        coward: "Coward (10× profits, 10× costs)",
+        hardcore: "Hardcore (" + Game.difficultyProfitMultiplier("hardcore") + "× profits, " + Game.difficultyCostMultiplier("hardcore") + "× costs)",
+        weak: "Weak (" + Game.difficultyProfitMultiplier("weak") + "× profits, " + Game.difficultyCostMultiplier("weak") + "× costs)",
+        coward: "Coward (" + Game.difficultyProfitMultiplier("coward") + "× profits, " + Game.difficultyCostMultiplier("coward") + "× costs)",
       };
       diffLabel.textContent = diffNames[s.difficulty || "hardcore"] || diffNames.hardcore;
     }

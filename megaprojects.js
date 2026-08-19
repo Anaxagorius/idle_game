@@ -16,6 +16,10 @@
     return megaMult * difficultyMult;
   }
 
+  MegaProjects.costMultiplier = function () {
+    return getCostMult();
+  };
+
   /* Check whether the player has completed a project. */
   MegaProjects.completed = function (id) {
     return !!(Game.state.megaProjects && Game.state.megaProjects[id]);
