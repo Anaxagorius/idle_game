@@ -885,6 +885,11 @@
      Each upgrade increases baseRent by 20% (compounding).
   ------------------------------------------------------------------ */
   const UPGRADE_RENT_BONUS = 0.2; // +20% rent per upgrade level
+  function difficultyCostMult() {
+    const m = Game.state._mult;
+    if (m && m.difficultyCost != null) return m.difficultyCost;
+    return Game.difficultyCostMultiplier ? Game.difficultyCostMultiplier() : 1;
+  }
   const MAX_UPGRADE_LEVEL = 5;
 
   /* ------------------------------------------------------------------
@@ -923,7 +928,7 @@
     const re = reState();
     const owned = re.owned[id] || 0;
     // Mild inflation: each unit costs 15% more than the previous
-    return Math.ceil(p.baseCost * Math.pow(1.15, owned));
+    return Math.ceil(p.baseCost * Math.pow(1.15, owned) * difficultyCostMult());
   };
 
   /* Sell proceeds for one unit */
@@ -975,7 +980,7 @@
     const level = re.upgrades[id] || 0;
     if (level >= MAX_UPGRADE_LEVEL) return Infinity;
     // upgrade costs 50% of base cost per level
-    return Math.ceil(p.baseCost * 0.5 * (level + 1));
+    return Math.ceil(p.baseCost * 0.5 * (level + 1) * difficultyCostMult());
   };
 
   /* ------------------------------------------------------------------

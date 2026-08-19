@@ -198,6 +198,20 @@
 
   Game.state = Game.defaultState();
 
+  Game.difficultyProfitMultiplier = function () {
+    const difficulty = (Game.state && Game.state.difficulty) || "hardcore";
+    if (difficulty === "weak") return 3;
+    if (difficulty === "coward") return 10;
+    return 1;
+  };
+
+  Game.difficultyCostMultiplier = function () {
+    const difficulty = (Game.state && Game.state.difficulty) || "hardcore";
+    if (difficulty === "weak") return 5;
+    if (difficulty === "coward") return 10;
+    return 3;
+  };
+
   /* ---------------------------------------------------------------------
      Multiplier calculation
      --------------------------------------------------------------------- */
@@ -258,7 +272,8 @@
       horseWinMult: 1,
       carWinMult: 1,
       megaProjectCostMult: 1,
-      difficulty: s.difficulty === "weak" ? 3 : s.difficulty === "coward" ? 10 : 1,
+      difficulty: Game.difficultyProfitMultiplier(),
+      difficultyCost: Game.difficultyCostMultiplier(),
     };
 
     function applyEffect(effect) {

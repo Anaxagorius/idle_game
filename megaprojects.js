@@ -9,7 +9,11 @@
 
   function getCostMult() {
     const m = Game.state._mult;
-    return (m && m.megaProjectCostMult != null) ? m.megaProjectCostMult : 1;
+    const megaMult = (m && m.megaProjectCostMult != null) ? m.megaProjectCostMult : 1;
+    const difficultyMult = (m && m.difficultyCost != null)
+      ? m.difficultyCost
+      : (Game.difficultyCostMultiplier ? Game.difficultyCostMultiplier() : 1);
+    return megaMult * difficultyMult;
   }
 
   /* Check whether the player has completed a project. */

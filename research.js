@@ -6,6 +6,12 @@
 (function () {
   const cfg = Game.config;
   const Research = {};
+  function costFor(id) {
+    const r = cfg.researchMap[id];
+    if (!r) return Infinity;
+    const mult = Game.difficultyCostMultiplier ? Game.difficultyCostMultiplier() : 1;
+    return r.cost * mult;
+  }
 
   Research.purchased = function (id) {
     return !!Game.state.research[id];
@@ -21,14 +27,14 @@
   };
 
   Research.canAfford = function (id) {
-    return Research.available(id) && Game.state.researchPoints >= cfg.researchMap[id].cost;
+    return Research.available(id) && Game.state.researchPoints >= costFor(id);
   };
 
   Research.buy = function (id) {
     const s = Game.state;
     if (!Research.canAfford(id)) return false;
     const r = cfg.researchMap[id];
-    s.researchPoints -= r.cost;
+    s.researchPoints -= costFor(id);
     s.research[id] = true;
     s.stats.researchCompleted++;
 
@@ -61,6 +67,8 @@
   Research.totalPurchased = function () {
     return cfg.research.filter((r) => Research.purchased(r.id)).length;
   };
+
+  Research.cost = costFor;
 
   /* Number of auto-clicker "tiers" earned via research (drives clicks/sec) */
   Research.autoclickTier = function () {

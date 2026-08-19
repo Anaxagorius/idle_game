@@ -6,6 +6,12 @@
 (function () {
   const cfg = Game.config;
   const SkillTrees = {};
+  function costFor(id) {
+    const n = cfg.skillTreeNodeMap[id];
+    if (!n) return Infinity;
+    const mult = Game.difficultyCostMultiplier ? Game.difficultyCostMultiplier() : 1;
+    return n.cost * mult;
+  }
 
   SkillTrees.purchased = function (id) {
     return !!Game.state.skillTrees[id];
@@ -20,14 +26,14 @@
 
   SkillTrees.canAfford = function (id) {
     const n = cfg.skillTreeNodeMap[id];
-    return !!n && SkillTrees.available(id) && Game.state.prestigePoints >= n.cost;
+    return !!n && SkillTrees.available(id) && Game.state.prestigePoints >= costFor(id);
   };
 
   SkillTrees.buy = function (id) {
     if (!SkillTrees.canAfford(id)) return false;
     const s = Game.state;
     const n = cfg.skillTreeNodeMap[id];
-    s.prestigePoints -= n.cost;
+    s.prestigePoints -= costFor(id);
     s.skillTrees[id] = true;
     s.stats.skillNodesPurchased = (s.stats.skillNodesPurchased || 0) + 1;
     Game.recalculate();
@@ -84,6 +90,8 @@
       remaining: Math.max(0, p.endTime - s.stats.playTime),
     }));
   };
+
+  SkillTrees.cost = costFor;
 
   Game.SkillTrees = SkillTrees;
 })();

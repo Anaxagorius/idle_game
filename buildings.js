@@ -6,6 +6,11 @@
 (function () {
   const cfg = Game.config;
   const Buildings = {};
+  function difficultyCostMult() {
+    const m = Game.state._mult;
+    if (m && m.difficultyCost != null) return m.difficultyCost;
+    return Game.difficultyCostMultiplier ? Game.difficultyCostMultiplier() : 1;
+  }
 
   Buildings.costScale = function (buildingId) {
     const b = cfg.buildingMap[buildingId];
@@ -17,7 +22,7 @@
     const b = cfg.buildingMap[buildingId];
     const owned = ownedOverride !== undefined ? ownedOverride : Game.state.buildings[buildingId] || 0;
     const reduction = (Game.state._mult && Game.state._mult.costReduction) || 1;
-    return b.baseCost * Math.pow(Buildings.costScale(buildingId), owned) * reduction;
+    return b.baseCost * Math.pow(Buildings.costScale(buildingId), owned) * reduction * difficultyCostMult();
   };
 
   /* Cost of buying `amount` buildings starting from current owned count.
@@ -30,7 +35,7 @@
     // sum_{k=0}^{amount-1} baseCost * r^(owned+k)
     const first = b.baseCost * Math.pow(r, owned);
     const total = first * (Math.pow(r, amount) - 1) / (r - 1);
-    return total * reduction;
+    return total * reduction * difficultyCostMult();
   };
 
   /* How many can be afforded (used for "max" buy) */
@@ -40,7 +45,7 @@
     const reduction = (Game.state._mult && Game.state._mult.costReduction) || 1;
     const r = Buildings.costScale(buildingId);
     const coins = Game.state.coins;
-    const first = b.baseCost * Math.pow(r, owned) * reduction;
+    const first = b.baseCost * Math.pow(r, owned) * reduction * difficultyCostMult();
     if (coins < first) return 0;
     // coins >= first * (r^n - 1)/(r-1)  =>  solve for n
     const n = Math.floor(Math.log((coins * (r - 1)) / first + 1) / Math.log(r));
@@ -176,7 +181,7 @@
     const level = Buildings.subUpgradeLevel(subId);
     if (level >= cfg.SUB_BUILDING_MAX_UPGRADES) return Infinity;
     const reduction = (Game.state._mult && Game.state._mult.costReduction) || 1;
-    return sb.upgradeCosts[level] * reduction;
+    return sb.upgradeCosts[level] * reduction * difficultyCostMult();
   };
 
   Buildings.canUpgradeSubBuilding = function (subId) {
@@ -212,7 +217,7 @@
   Buildings.upgradeCost = function (upgradeId) {
     const u = cfg.upgradeMap[upgradeId];
     const reduction = (Game.state._mult && Game.state._mult.costReduction) || 1;
-    return u.cost * reduction;
+    return u.cost * reduction * difficultyCostMult();
   };
 
   Buildings.canAffordUpgrade = function (upgradeId) {
@@ -251,7 +256,7 @@
     const level = tierLevels[subIdx] || 0;
     if (level >= cfg.CLICKER_SUBSECTION_MAX) return Infinity;
     const sub = cfg.clickerUpgradeDefs[tierIdx].subsections[subIdx];
-    return sub.baseCost * Math.pow(cfg.CLICKER_SUBSECTION_LEVEL_MULT, level);
+    return sub.baseCost * Math.pow(cfg.CLICKER_SUBSECTION_LEVEL_MULT, level) * difficultyCostMult();
   };
 
   Buildings.buyClickerSubsection = function (tierIdx, subIdx) {
@@ -276,7 +281,7 @@
   Buildings.clickerUpgradeCost = function () {
     const level = Game.state.clickerUpgrades || 0;
     if (level >= cfg.CLICKER_UPGRADE_MAX) return Infinity;
-    return cfg.CLICKER_UPGRADE_BASE_COST * Math.pow(cfg.CLICKER_UPGRADE_COST_MULT, level);
+    return cfg.CLICKER_UPGRADE_BASE_COST * Math.pow(cfg.CLICKER_UPGRADE_COST_MULT, level) * difficultyCostMult();
   };
 
   Buildings.canBuyClickerUpgrade = function () {

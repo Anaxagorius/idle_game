@@ -309,16 +309,23 @@
     return true;
   };
 
+  Prestige.godTitanCost = function (id) {
+    const gt = cfg.godTitanMap[id];
+    if (!gt) return Infinity;
+    const mult = Game.difficultyCostMultiplier ? Game.difficultyCostMultiplier() : 1;
+    return gt.cost * mult;
+  };
+
   Prestige.canAffordGodTitan = function (id) {
     const gt = cfg.godTitanMap[id];
-    return !!gt && Prestige.godTitanAvailable(id) && Game.state.ascensionShards >= gt.cost;
+    return !!gt && Prestige.godTitanAvailable(id) && Game.state.ascensionShards >= Prestige.godTitanCost(id);
   };
 
   Prestige.buyGodTitan = function (id) {
     const s = Game.state;
     if (!Prestige.canAffordGodTitan(id)) return false;
     const gt = cfg.godTitanMap[id];
-    s.ascensionShards -= gt.cost;
+    s.ascensionShards -= Prestige.godTitanCost(id);
     s.godsTitans[id] = true;
     Game.recalculate();
     if (Game.UI && Game.UI.toast) Game.UI.toast("Unlocked: " + gt.name, "prestige");

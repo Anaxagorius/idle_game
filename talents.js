@@ -6,6 +6,12 @@
 (function () {
   const cfg = Game.config;
   const Talents = {};
+  function costFor(id) {
+    const t = cfg.talentMap[id];
+    if (!t) return Infinity;
+    const mult = Game.difficultyCostMultiplier ? Game.difficultyCostMultiplier() : 1;
+    return t.cost * mult;
+  }
 
   Talents.purchased = function (id) {
     return !!Game.state.talents[id];
@@ -20,14 +26,14 @@
 
   Talents.canAfford = function (id) {
     const t = cfg.talentMap[id];
-    return !!t && Talents.available(id) && Game.state.prestigePoints >= t.cost;
+    return !!t && Talents.available(id) && Game.state.prestigePoints >= costFor(id);
   };
 
   Talents.buy = function (id) {
     const s = Game.state;
     if (!Talents.canAfford(id)) return false;
     const t = cfg.talentMap[id];
-    s.prestigePoints -= t.cost;
+    s.prestigePoints -= costFor(id);
     s.talents[id] = true;
     s.stats.talentsPurchased += 1;
     Game.recalculate();
@@ -95,6 +101,8 @@
     s.activeTalentPowers = s.activeTalentPowers.filter((p) => p.endTime > s.stats.playTime);
     if (s.activeTalentPowers.length !== before) Game.recalculate();
   };
+
+  Talents.cost = costFor;
 
   Game.Talents = Talents;
 })();
