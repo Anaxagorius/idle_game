@@ -10,7 +10,8 @@
     const t = cfg.talentMap[id];
     if (!t) return Infinity;
     const mult = Game.difficultyCostMultiplier ? Game.difficultyCostMultiplier() : 1;
-    return t.cost * mult;
+    const skillCostMult = cfg.PURCHASABLE_SKILL_COST_MULT || 1;
+    return t.cost * mult * skillCostMult;
   }
 
   Talents.purchased = function (id) {

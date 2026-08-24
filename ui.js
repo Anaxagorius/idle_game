@@ -304,6 +304,12 @@
     const container = el("clicker-upgrades");
     if (!container) return;
     container.addEventListener("click", function (e) {
+      const buyAllBtn = e.target.closest("[data-cu-buy-all]");
+      if (buyAllBtn) {
+        const bought = Game.Buildings.buyAllAffordableClickerUpgrades ? Game.Buildings.buyAllAffordableClickerUpgrades() : 0;
+        if (bought > 0) UI.update();
+        return;
+      }
       const btn = e.target.closest("[data-cu-buy]");
       if (btn) {
         const t = parseInt(btn.dataset.tier, 10);
@@ -326,7 +332,7 @@
       openStates[d.dataset.tierIdx] = d.open;
     });
 
-    let html = '<div class="cu-header">Click Upgrades</div>';
+    let html = '<div class="cu-header">Click Upgrades <button class="settings-btn btn-tiny" data-cu-buy-all>Buy All Affordable</button></div>';
 
     cfg.clickerUpgradeDefs.forEach(function (tier, t) {
       const tierLevels = tierData[t] || [];

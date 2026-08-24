@@ -452,6 +452,12 @@
     }
   };
 
+  MapUI.runHappinessProject = function (projectId) {
+    if (Game.Diplomacy && Game.Diplomacy.buyHappinessProject) {
+      Game.Diplomacy.buyHappinessProject(projectId);
+    }
+  };
+
   /* Refresh both mini-map and full map SVGs. */
   MapUI.refresh = function () {
     var mini = document.getElementById('mini-map-container');
@@ -526,6 +532,8 @@
           '<div class="county-summary-stat"><span>Propaganda</span><b>' + (diplomacySummary.clickBonusPct >= 0 ? '+' : '') + diplomacySummary.clickBonusPct.toFixed(1) + '% click</b></div>' +
           '<div class="county-summary-stat"><span>Intel</span><b>' + (diplomacySummary.rpBonusPct >= 0 ? '+' : '') + diplomacySummary.rpBonusPct.toFixed(1) + '% RP</b></div>' +
           '<div class="county-summary-stat"><span>Rival Pressure</span><b>' + diplomacySummary.productionPenaltyPct.toFixed(1) + '% CPS</b></div>' +
+          '<div class="county-summary-stat"><span>Empire Development</span><b>+' + diplomacySummary.mapBonusPct.toFixed(1) + '% CPS</b></div>' +
+          '<div class="county-summary-stat"><span>Empire Pins</span><b>' + diplomacySummary.mapPins + ' (' + diplomacySummary.mapDiversity + ' resources)</b></div>' +
           hHtml +
           '<div class="county-summary-stat"><span>Population</span><b>👥 ' + Game.formatNumber(s.population || 0) + '</b></div>' +
         '</div>';
@@ -598,6 +606,26 @@
     }
     var status = diplomacyStatus(countyId);
     var actions = Game.Diplomacy.availableActions(countyId);
+    var happinessProjects = (Game.config.happinessProjects || []).map(function (project) {
+      var cost = Game.Diplomacy.happinessProjectCost ? Game.Diplomacy.happinessProjectCost(project.id) : { coins: Infinity, rp: Infinity, maxed: true, level: 0 };
+      var level = cost.level || 0;
+      var maxLevel = project.maxLevel || 0;
+      var canBuy = Game.Diplomacy.canBuyHappinessProject && Game.Diplomacy.canBuyHappinessProject(project.id);
+      var stateLabel = cost.maxed ? "Maxed" : (canBuy ? "Ready" : "Need resources");
+      var costLabel = cost.maxed
+        ? "Max Level"
+        : Game.formatNumber(cost.coins) + " coins" + UI_SEPARATOR + Game.formatNumber(cost.rp) + " RP";
+      return (
+        '<button class="diplo-action-card' + (canBuy ? '' : ' disabled') + '" ' +
+          (canBuy ? '' : 'disabled ') +
+          'onclick="Game.MapUI.runHappinessProject(\'' + project.id + '\')">' +
+          '<span class="diplo-action-name">😊 ' + project.name + ' (' + level + '/' + maxLevel + ')</span>' +
+          '<span class="diplo-action-desc">' + project.desc + '</span>' +
+          '<span class="diplo-action-cost">' + costLabel + '</span>' +
+          '<span class="diplo-action-state">' + stateLabel + '</span>' +
+        '</button>'
+      );
+    }).join('');
     var actionHtml = actions.map(function (entry) {
       var action = entry.action;
       var availability = entry.availability;
@@ -637,7 +665,9 @@
       (countyState.lastOutcome
         ? '<div class="county-last-outcome">' + countyState.lastOutcome + '</div>'
         : '<div class="county-last-outcome muted">No recent operation in this county.</div>') +
-      '<div class="diplo-action-grid">' + actionHtml + '</div>';
+      '<div class="diplo-action-grid">' + actionHtml + '</div>' +
+      '<h4 style="margin:10px 0 6px">Empire Happiness Projects</h4>' +
+      '<div class="diplo-action-grid">' + happinessProjects + '</div>';
   };
 
   /* Build the terrain legend element. */

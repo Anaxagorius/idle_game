@@ -10,7 +10,8 @@
     const n = cfg.skillTreeNodeMap[id];
     if (!n) return Infinity;
     const mult = Game.difficultyCostMultiplier ? Game.difficultyCostMultiplier() : 1;
-    return n.cost * mult;
+    const skillCostMult = cfg.PURCHASABLE_SKILL_COST_MULT || 1;
+    return n.cost * mult * skillCostMult;
   }
 
   SkillTrees.purchased = function (id) {

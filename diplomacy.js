@@ -16,6 +16,11 @@
   function round2(value) {
     return Math.round(value * 100) / 100;
   }
+  function difficultyCostMult() {
+    var m = Game.state._mult;
+    if (m && m.difficultyCost != null) return m.difficultyCost;
+    return Game.difficultyCostMultiplier ? Game.difficultyCostMultiplier() : 1;
+  }
 
   function hostilityFromRelation(relation) {
     return Math.max(0, -relation);
@@ -99,6 +104,53 @@
     return state;
   }
 
+  function getEmpireResourceProfile() {
+    var s = Game.state;
+    if (!s.map || !s.map.selectedCounty) {
+      return { totalPins: 0, diversity: 0, urbanCount: 0, coastalCount: 0 };
+    }
+    var county = MapData.COUNTY_MAP[s.map.selectedCounty];
+    var resources = (county && county.resources) || [];
+    var unique = {};
+    var urbanCount = 0;
+    var coastalCount = 0;
+    for (var i = 0; i < resources.length; i++) {
+      var type = resources[i].type;
+      unique[type] = true;
+      if (type === "urban") urbanCount++;
+      if (type === "coastal") coastalCount++;
+    }
+    return {
+      totalPins: (s.map.pins || []).length,
+      diversity: Object.keys(unique).length,
+      urbanCount: urbanCount,
+      coastalCount: coastalCount,
+    };
+  }
+
+  function happinessInvestmentState() {
+    var s = Game.state;
+    if (!s.map || typeof s.map !== "object") s.map = { selectedCounty: null, pins: [], counties: {}, focusCounty: null };
+    if (!s.map.happinessInvestments || typeof s.map.happinessInvestments !== "object") s.map.happinessInvestments = {};
+    return s.map.happinessInvestments;
+  }
+
+  function happinessInvestmentBonuses() {
+    var levels = happinessInvestmentState();
+    var projects = cfg.happinessProjects || [];
+    var out = { happiness: 0, globalMult: 1, clickMult: 1, rpMult: 1 };
+    for (var i = 0; i < projects.length; i++) {
+      var p = projects[i];
+      var lvl = Math.max(0, Math.floor(levels[p.id] || 0));
+      if (!lvl) continue;
+      out.happiness += (p.happinessBonus || 0) * lvl;
+      out.globalMult *= 1 + (p.globalBonus || 0) * lvl;
+      out.clickMult *= 1 + (p.clickBonus || 0) * lvl;
+      out.rpMult *= 1 + (p.rpBonus || 0) * lvl;
+    }
+    return out;
+  }
+
   function addInstantRewards(county, action) {
     var coins = 0;
     var rp = 0;
@@ -134,6 +186,7 @@
     }
     if (!Array.isArray(s.map.pins)) s.map.pins = [];
     if (!s.map.counties || typeof s.map.counties !== "object") s.map.counties = {};
+    if (!s.map.happinessInvestments || typeof s.map.happinessInvestments !== "object") s.map.happinessInvestments = {};
 
     var empireId = s.map.selectedCounty || null;
     var firstRival = null;
@@ -206,18 +259,30 @@
       totalInfluence += county.influence * Math.max(0, county.relation + 25) / 125;
       totalRelation += county.relation;
     }
+    var empire = getEmpireResourceProfile();
+    var mapGlobalMult = 1 + Math.min(0.4, empire.totalPins * 0.003 + empire.diversity * 0.02);
+    var mapClickMult = 1 + Math.min(0.35, empire.totalPins * 0.002 + empire.urbanCount * 0.03);
+    var mapRpMult = 1 + Math.min(0.3, empire.totalPins * 0.0015 + (empire.urbanCount + empire.coastalCount) * 0.02);
+    var mapCoinIncome = empire.totalPins * (0.4 + empire.diversity * 0.12);
+    var mapHappiness = Math.min(25, Math.floor(empire.totalPins / 5) + empire.diversity * 2);
+    var investment = happinessInvestmentBonuses();
+
     // happiness: average county relation mapped from [-100,+100] to [0,100]
     var avgRelation = ids.length > 0 ? totalRelation / ids.length : 0;
     var happiness = Math.round((avgRelation + cfg.HAPPINESS_RELATION_OFFSET) / cfg.HAPPINESS_RELATION_SCALE);
+    happiness = clamp(happiness + mapHappiness + investment.happiness, 0, 100);
     var happinessMult = cfg.HAPPINESS_MIN_MULT + (cfg.HAPPINESS_MAX_MULT - cfg.HAPPINESS_MIN_MULT) * happiness / 100;
     return {
-      coinsPerSecond: round2(totalCps),
-      clickMult: 1 + totalInfluence * cfg.DIPLOMACY_PROPAGANDA_CLICK_SCALE,
-      rpMult: 1 + totalIntel * cfg.DIPLOMACY_INTEL_RP_SCALE,
-      globalMult: Math.max(cfg.DIPLOMACY_MIN_GLOBAL_MULT, 1 - hostility * cfg.DIPLOMACY_HOSTILITY_PRODUCTION_PENALTY),
+      coinsPerSecond: round2(totalCps + mapCoinIncome),
+      clickMult: (1 + totalInfluence * cfg.DIPLOMACY_PROPAGANDA_CLICK_SCALE) * mapClickMult * investment.clickMult,
+      rpMult: (1 + totalIntel * cfg.DIPLOMACY_INTEL_RP_SCALE) * mapRpMult * investment.rpMult,
+      globalMult: Math.max(cfg.DIPLOMACY_MIN_GLOBAL_MULT, 1 - hostility * cfg.DIPLOMACY_HOSTILITY_PRODUCTION_PENALTY) * mapGlobalMult * investment.globalMult,
       totalInfluence: round2(totalInfluence),
       totalIntel: round2(totalIntel),
       hostility: round2(hostility),
+      mapPins: empire.totalPins,
+      mapDiversity: empire.diversity,
+      mapBonusPct: (mapGlobalMult - 1) * 100,
       happiness: happiness,
       happinessMult: round2(happinessMult),
     };
@@ -233,9 +298,62 @@
       totalInfluence: bonuses.totalInfluence,
       totalIntel: bonuses.totalIntel,
       hostility: bonuses.hostility,
+      mapPins: bonuses.mapPins,
+      mapDiversity: bonuses.mapDiversity,
+      mapBonusPct: bonuses.mapBonusPct,
       happiness: bonuses.happiness,
       happinessPct: (bonuses.happinessMult - 1) * 100,
     };
+  };
+
+  Diplomacy.happinessProjectState = function () {
+    return happinessInvestmentState();
+  };
+
+  Diplomacy.happinessProjectCost = function (projectId) {
+    var project = cfg.happinessProjectMap[projectId];
+    if (!project) return { coins: Infinity, rp: Infinity, maxed: true, level: 0 };
+    var levels = happinessInvestmentState();
+    var level = Math.max(0, Math.floor(levels[projectId] || 0));
+    var max = project.maxLevel || Infinity;
+    if (level >= max) return { coins: Infinity, rp: Infinity, maxed: true, level: level };
+    var scale = project.costScale || 1.6;
+    var diffMult = difficultyCostMult();
+    return {
+      coins: Math.floor((project.baseCoinCost || 0) * Math.pow(scale, level) * diffMult),
+      rp: Math.floor((project.baseRpCost || 0) * Math.pow(scale, level)),
+      maxed: false,
+      level: level,
+    };
+  };
+
+  Diplomacy.canBuyHappinessProject = function (projectId) {
+    Diplomacy.ensureState();
+    var project = cfg.happinessProjectMap[projectId];
+    if (!project) return false;
+    var cost = Diplomacy.happinessProjectCost(projectId);
+    if (cost.maxed) return false;
+    return Game.state.coins >= cost.coins && Game.state.researchPoints >= cost.rp;
+  };
+
+  Diplomacy.buyHappinessProject = function (projectId) {
+    Diplomacy.ensureState();
+    var project = cfg.happinessProjectMap[projectId];
+    if (!project) return false;
+    var cost = Diplomacy.happinessProjectCost(projectId);
+    if (cost.maxed) return false;
+    if (Game.state.coins < cost.coins || Game.state.researchPoints < cost.rp) return false;
+
+    Game.state.coins -= cost.coins;
+    Game.state.researchPoints -= cost.rp;
+    Game.state.stats.totalCoinsSpent += cost.coins;
+    var levels = happinessInvestmentState();
+    levels[projectId] = (levels[projectId] || 0) + 1;
+
+    Game.recalculate();
+    if (Game.MapUI && Game.MapUI.refreshDiplomacy) Game.MapUI.refreshDiplomacy();
+    if (Game.UI && Game.UI.toast) Game.UI.toast("Happiness project funded: " + project.name, "success");
+    return true;
   };
 
   Diplomacy.listCounties = function () {
