@@ -321,7 +321,7 @@
     var diffMult = difficultyCostMult();
     return {
       coins: Math.floor((project.baseCoinCost || 0) * Math.pow(scale, level) * diffMult),
-      rp: Math.floor((project.baseRpCost || 0) * Math.pow(scale, level)),
+      rp: Math.floor((project.baseRpCost || 0) * Math.pow(scale, level) * diffMult),
       maxed: false,
       level: level,
     };
