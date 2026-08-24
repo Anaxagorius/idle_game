@@ -113,6 +113,7 @@
     if (!Array.isArray(fresh.map.pins)) fresh.map.pins = [];
     if (!fresh.map.counties || typeof fresh.map.counties !== "object") fresh.map.counties = {};
     if (typeof fresh.map.focusCounty !== "string") fresh.map.focusCounty = null;
+    if (!fresh.map.happinessInvestments || typeof fresh.map.happinessInvestments !== "object") fresh.map.happinessInvestments = {};
 
     if (!fresh.gambling || typeof fresh.gambling !== "object") fresh.gambling = {};
     if (typeof fresh.gambling.chips !== "number") fresh.gambling.chips = 0;

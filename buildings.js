@@ -121,7 +121,9 @@
     s.stats.totalCoinsSpent += finalCost;
     s.buildings[buildingId] = (s.buildings[buildingId] || 0) + amount;
     if (buildingId === "worker") {
-      s.population = (s.population || 0) + amount;
+      const familyMembers = cfg.WORKER_FAMILY_MEMBERS_PER_WORKER || 0;
+      const populationGain = amount * (1 + familyMembers);
+      s.population = (s.population || 0) + populationGain;
     }
     if (Game.MapUI) Game.MapUI.placeBuildingPin(buildingId);
     Game.recalculate();
@@ -298,6 +300,29 @@
     Game.state.clickerUpgrades = (Game.state.clickerUpgrades || 0) + 1;
     Game.recalculate();
     return true;
+  };
+
+  Buildings.buyAllAffordableClickerUpgrades = function () {
+    let bought = 0;
+    let changed = true;
+    let passCount = 0;
+    while (changed && passCount < 100) {
+      changed = false;
+      passCount++;
+      for (let t = 0; t < cfg.clickerUpgradeDefs.length; t++) {
+        const tier = cfg.clickerUpgradeDefs[t];
+        for (let si = 0; si < tier.subsections.length; si++) {
+          while (true) {
+            const cost = Buildings.clickerSubsectionCost(t, si);
+            if (!isFinite(cost) || Game.state.coins < cost) break;
+            if (!Buildings.buyClickerSubsection(t, si)) break;
+            bought++;
+            changed = true;
+          }
+        }
+      }
+    }
+    return bought;
   };
 
   Game.Buildings = Buildings;

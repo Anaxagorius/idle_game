@@ -183,6 +183,7 @@
         pins: [],
         counties: {},
         focusCounty: null,
+        happinessInvestments: {},
       },
       clickerUpgrades: 0,
       clickerTiers: Array.from({ length: 10 }, function () { return new Array(10).fill(0); }),
@@ -591,7 +592,7 @@
     const happinessMult = diplomacy.happinessMult || 1;
     const cps = baseCps * m.global * diplomacy.globalMult * happinessMult;
     const gainScale = cfg.GAIN_EFFECTIVENESS_MULT || 1;
-    s._cps = (cps + diplomacy.coinsPerSecond) * gainScale;
+    s._cps = (cps + diplomacy.coinsPerSecond * happinessMult) * gainScale;
     s._baseCps = baseCps;
     s._mult = m;
     s._mult.diplomacy = diplomacy;
@@ -601,10 +602,10 @@
       (s.buildings.laboratory || 0) * 0.2 +
       (s.buildings.university || 0) * 2 +
       (s.buildings.datacenter || 0) * 5;
-    s._rps = rpBase * m.researchGlobal * m.prestige * (1 + s.ascensionShards * cfg.ASCENSION_PER_SHARD_MULT * (cfg.BONUS_EFFECTIVENESS_MULT || 1)) * m.rpGain * diplomacy.rpMult * gainScale * m.difficulty;
+    s._rps = rpBase * m.researchGlobal * m.prestige * (1 + s.ascensionShards * cfg.ASCENSION_PER_SHARD_MULT * (cfg.BONUS_EFFECTIVENESS_MULT || 1)) * m.rpGain * diplomacy.rpMult * happinessMult * gainScale * m.difficulty;
 
     // Click value: flat scaled by global mult + fraction of CPS
-    s._clickValue = ((1 * m.global * diplomacy.globalMult + cps * cfg.CLICK_CPS_FRACTION * m.clickCpsFractionMult) * m.clickMult * diplomacy.clickMult) * gainScale;
+    s._clickValue = ((1 * m.global * diplomacy.globalMult + cps * cfg.CLICK_CPS_FRACTION * m.clickCpsFractionMult) * m.clickMult * diplomacy.clickMult * happinessMult) * gainScale;
 
     return { cps: s._cps, rps: s._rps, clickValue: s._clickValue, m };
   };

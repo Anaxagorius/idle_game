@@ -45,6 +45,11 @@
     (cfg.peopleSpecialists || []).forEach((person) => {
       s.people[person.id] = 0;
     });
+    if (Game.RealEstate && Game.RealEstate.defaultRealEstateState) {
+      s.realEstate = Game.RealEstate.defaultRealEstateState();
+    } else {
+      s.realEstate = null;
+    }
     s.stockTickTimer = 0;
     s.stockDividendTimer = 0;
     s.stockCycleEventId = "";
@@ -313,7 +318,8 @@
     const gt = cfg.godTitanMap[id];
     if (!gt) return Infinity;
     const mult = Game.difficultyCostMultiplier ? Game.difficultyCostMultiplier() : 1;
-    return gt.cost * mult;
+    const skillCostMult = cfg.PURCHASABLE_SKILL_COST_MULT || 1;
+    return gt.cost * mult * skillCostMult;
   };
 
   Prestige.canAffordGodTitan = function (id) {

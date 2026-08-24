@@ -52,9 +52,9 @@ Game.config = {
   OFFLINE_CAP_SECONDS: 72 * 3600,
   SAVE_KEY: "idleEmpireUltimateSave",
   COST_SCALE: 1.15,
-  PRESTIGE_REQUIRED_COINS: 1e6,
+  PRESTIGE_REQUIRED_COINS: 3e6,
   PRESTIGE_PER_POINT_MULT: 0.01,
-  ASCENSION_REQUIRED_PP: 1000,
+  ASCENSION_REQUIRED_PP: 3000,
   ASCENSION_PER_SHARD_MULT: 0.02,
   RESEARCH_RESET_PP_COST: 100,
   RESEARCH_RESET_RP_GAIN: 10,
@@ -65,6 +65,8 @@ Game.config = {
   // How many workers are required (and consumed) when buying one non-worker building, by target tier.
   BUILDING_WORKER_REQUIREMENT_BY_TIER: { 1: 1, 2: 4, 3: 12 },
   WORKER_COST_SCALE: 1.08,
+  WORKER_FAMILY_MEMBERS_PER_WORKER: 3,
+  PURCHASABLE_SKILL_COST_MULT: 3,
   CLICKER_UPGRADE_BASE_COST: 50,
   CLICKER_UPGRADE_MAX: 10,
   CLICKER_UPGRADE_COST_MULT: 3,
@@ -209,8 +211,8 @@ Game.config.DIPLOMACY_RELATION_TARGET_MIN = -55;
 Game.config.DIPLOMACY_RELATION_TARGET_MAX = 35;
 // Happiness: derived from average county relation (-100..+100 → 0..100 scale)
 // At happiness 50 (neutral) the multiplier is 1.0; fully happy → +25%; fully unhappy → -25%.
-Game.config.HAPPINESS_MIN_MULT = 0.75;
-Game.config.HAPPINESS_MAX_MULT = 1.25;
+Game.config.HAPPINESS_MIN_MULT = 0.5;
+Game.config.HAPPINESS_MAX_MULT = 1.7;
 // Mapping constants: happiness = (relation + RELATION_OFFSET) / RELATION_SCALE
 Game.config.HAPPINESS_RELATION_OFFSET = 100;  // shifts [-100,+100] → [0,200]
 Game.config.HAPPINESS_RELATION_SCALE = 2;     // divides [0,200] → [0,100]
@@ -387,6 +389,52 @@ Game.config.diplomacyActions = [
 Game.config.diplomacyActionMap = {};
 Game.config.diplomacyActions.forEach(function (action) {
   Game.config.diplomacyActionMap[action.id] = action;
+});
+
+Game.config.happinessProjects = [
+  {
+    id: "city_parks",
+    name: "City Parks Program",
+    desc: "Expand parks and festivals to raise morale and local spending.",
+    baseCoinCost: 40000,
+    baseRpCost: 30,
+    costScale: 1.8,
+    maxLevel: 15,
+    happinessBonus: 2,
+    globalBonus: 0.012,
+    clickBonus: 0.01,
+    rpBonus: 0.01,
+  },
+  {
+    id: "public_transport",
+    name: "Public Transit Expansion",
+    desc: "Cut commute stress and boost production efficiency across the empire.",
+    baseCoinCost: 180000,
+    baseRpCost: 80,
+    costScale: 1.95,
+    maxLevel: 12,
+    happinessBonus: 3,
+    globalBonus: 0.016,
+    clickBonus: 0.012,
+    rpBonus: 0.015,
+  },
+  {
+    id: "healthcare_reform",
+    name: "Healthcare Reform",
+    desc: "Improve quality of life while accelerating innovation and output.",
+    baseCoinCost: 750000,
+    baseRpCost: 180,
+    costScale: 2.1,
+    maxLevel: 10,
+    happinessBonus: 4,
+    globalBonus: 0.02,
+    clickBonus: 0.015,
+    rpBonus: 0.025,
+  },
+];
+Game.config.happinessProjectMap = {};
+Game.config.happinessProjects.forEach(function (project) {
+  Game.config.happinessProjectMap[project.id] = project;
 });
 
 /* --------------------------------------------------------------------------
@@ -1806,11 +1854,11 @@ Game.config.MAX_EVENT_DELAY_MULT = 1.5;
    Layer 5 — Time Fragments (ascend from Empire Legacies)
    Layer 6 — Reality Cores (ascend from Time Fragments)
    -------------------------------------------------------------------------- */
-Game.config.EMPIRE_REQUIRED_SHARDS   = 10;   // Shards consumed per Empire Legacy
+Game.config.EMPIRE_REQUIRED_SHARDS   = 30;   // Shards consumed per Empire Legacy
 Game.config.EMPIRE_PER_LEGACY_MULT   = 0.05; // Global multiplier per Empire Legacy
 Game.config.TIME_REQUIRED_LEGACIES   = 5;    // Legacies consumed per Time Fragment
 Game.config.TIME_PER_FRAGMENT_MULT   = 0.15; // Global multiplier per Time Fragment
-Game.config.REALITY_REQUIRED_FRAGMENTS = 3;  // Fragments consumed per Reality Core
+Game.config.REALITY_REQUIRED_FRAGMENTS = 9;  // Fragments consumed per Reality Core
 Game.config.REALITY_PER_CORE_MULT    = 0.50; // Global multiplier per Reality Core
 
 /* --------------------------------------------------------------------------
